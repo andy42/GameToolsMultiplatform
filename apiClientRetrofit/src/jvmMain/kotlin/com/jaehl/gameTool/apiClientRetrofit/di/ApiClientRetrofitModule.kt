@@ -3,7 +3,14 @@ package com.jaehl.gameTool.apiClientRetrofit.di
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.jaehl.gameTool.apiClientRetrofit.data.api.ServerApi
+import com.jaehl.gameTool.apiClientRetrofit.data.service.GameServiceRetroFit
+import com.jaehl.gameTool.apiClientRetrofit.data.service.ImageServiceRetroFit
+import com.jaehl.gameTool.apiClientRetrofit.data.service.ItemServiceRetroFit
 import com.jaehl.gameTool.apiClientRetrofit.data.service.UserServiceRetrofit
+import com.jaehl.gameTool.common.data.AuthProvider
+import com.jaehl.gameTool.common.data.service.GameService
+import com.jaehl.gameTool.common.data.service.ImageService
+import com.jaehl.gameTool.common.data.service.ItemService
 import com.jaehl.gameTool.common.data.service.UserService
 import okhttp3.OkHttpClient
 import org.kodein.di.DI
@@ -46,7 +53,30 @@ object ApiClientRetrofitModule {
         }}
 
         bind<UserService> { provider {
-            UserServiceRetrofit(instance<ServerApi>())
+            UserServiceRetrofit(
+                instance<ServerApi>()
+            )
+        }}
+
+        bind<GameService> { provider {
+            GameServiceRetroFit(
+                instance<ServerApi>(),
+                instance<AuthProvider>()
+            )
+        }}
+
+        bind<ItemService> { provider {
+            ItemServiceRetroFit(
+                instance<ServerApi>(),
+                instance<AuthProvider>()
+            )
+        }}
+
+        bind<ImageService> { provider {
+            ImageServiceRetroFit(
+                instance<ServerApi>(),
+                instance<AuthProvider>()
+            )
         }}
     }
 }

@@ -216,5 +216,4 @@ fun RegisterBox(modifier: Modifier,
             Text("Register")
         }
     }
-
 }

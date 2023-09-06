@@ -3,13 +3,13 @@ package com.jaehl.gameTool.common.ui.screens.login
 import androidx.compose.runtime.mutableStateOf
 import cafe.adriel.voyager.core.model.ScreenModel
 import com.jaehl.gameTool.common.JobDispatcher
-import com.jaehl.gameTool.common.data.UserRepo
+import com.jaehl.gameTool.common.data.repo.UserRepo
 import com.jaehl.gameTool.common.ui.componets.TextFieldValue
 import com.jaehl.gameTool.common.ui.screens.launchIo
 
 data class LoginViewModel(
-    val email : TextFieldValue = TextFieldValue(),
-    val password : TextFieldValue = TextFieldValue()
+    val email : TextFieldValue = TextFieldValue(value = "admin"),
+    val password : TextFieldValue = TextFieldValue(value = "foobar")
 )
 
 data class RegisterViewModel(

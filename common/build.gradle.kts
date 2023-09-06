@@ -6,13 +6,17 @@ plugins {
 }
 
 val voyagerVersion = "1.0.0-rc05"
+val composeVersion = findProperty("compose.version") as String
 val kodeinVersion = findProperty("kodein.version") as String
 val coroutinesVersion = findProperty("coroutinesVersion.version") as String
+val ktorVersion = findProperty("ktor.version") as String
+val mediaKamelversion = findProperty("mediaKamel.version") as String
 
 repositories {
     google()
     mavenCentral()
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+    maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
 }
 
 kotlin {
@@ -85,6 +89,12 @@ kotlin {
                 //implementation("cafe.adriel.voyager:voyager-rxjava:$voyagerVersion")
 
                 implementation ("com.google.code.gson:gson:2.8.9")
+
+
+                implementation("io.ktor:ktor-client-apache5:$ktorVersion")
+                implementation("media.kamel:kamel-image:$mediaKamelversion")
+
+                implementation("org.jetbrains.compose.ui:ui-tooling-preview:$composeVersion")
             }
         }
         val androidMain by getting {
