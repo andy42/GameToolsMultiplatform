@@ -6,8 +6,8 @@ import com.jaehl.gameTool.common.data.service.UserService
 
 interface UserRepo {
     fun isAccessTokenValid() : Boolean
-    fun login(email : String, password : String)
-    fun register(email : String, password : String)
+    fun login(userName : String, password : String)
+    fun register(userName : String, email : String, password : String)
     fun getUserSelf() : User
     fun getUsers() : List<User>
 }
@@ -21,15 +21,15 @@ class UserRepoImp(
         return true
     }
 
-    override fun login(email: String, password: String) {
+    override fun login(userName: String, password: String) {
         authProvider.saveToken(
-            userService.login(email = email, password = password)
+            userService.login(userName = userName, password = password)
         )
     }
 
-    override fun register(email: String, password: String) {
+    override fun register(userName : String, email: String, password: String) {
         authProvider.saveToken(
-            userService.register(email = email, password = password)
+            userService.register(userName = userName, email = email, password = password)
         )
     }
 

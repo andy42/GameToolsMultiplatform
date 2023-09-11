@@ -4,11 +4,21 @@ class RegisterValidator {
 
     var listener : RegisterValidatorListener? = null
 
-    fun onValidate(email : String, password : String, reEnterPassword : String) : Boolean {
-        var valid = onValidateEmail(email)
+    fun onValidate(userName : String, email : String, password : String, reEnterPassword : String) : Boolean {
+
+        var valid = onValidateUserName(userName)
+        valid = onValidateEmail(email) && valid
         valid = onValidatePassword(password) && valid
         valid = onValidateReEnterPassword(password, reEnterPassword) && valid
         return valid
+    }
+
+    fun onValidateUserName(userName : String) : Boolean {
+        if(userName.isEmpty()){
+            listener?.onRegisterUserNameError("you most enter a userName")
+            return false
+        }
+        return true
     }
 
     fun onValidateEmail(email : String) : Boolean {
@@ -40,6 +50,7 @@ class RegisterValidator {
     }
 
     interface RegisterValidatorListener {
+        fun onRegisterUserNameError(error: String)
         fun onRegisterEmailError(error : String)
         fun onRegisterPasswordError(error : String)
         fun onRegisterReEnterPasswordError(error : String)

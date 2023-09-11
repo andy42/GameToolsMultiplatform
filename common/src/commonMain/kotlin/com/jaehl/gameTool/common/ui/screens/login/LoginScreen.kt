@@ -129,13 +129,13 @@ fun LoginBox(modifier: Modifier,
     ) {
 
         StyledOutlinedTextField(
-            loginViewModel.email,
+            loginViewModel.userName,
             modifier = Modifier
                 .padding(top = 5.dp),
-            label = { Text("Email") },
+            label = { Text("UserName") },
             enabled = !screenModel.pageLoading.value,
             onValueChange = { value ->
-                screenModel.onLoginEmailChange(value)
+                screenModel.onLoginUserNameChange(value)
             }
         )
         StyledOutlinedTextField(
@@ -172,7 +172,16 @@ fun RegisterBox(modifier: Modifier,
         modifier = modifier
             .padding(10.dp)
     ) {
-
+        StyledOutlinedTextField(
+            registerViewModel.userName,
+            modifier = Modifier
+                .padding(top = 5.dp),
+            label = { Text("UserName") },
+            enabled = !screenModel.pageLoading.value,
+            onValueChange = { value ->
+                screenModel.onRegisterUserNameChange(value)
+            }
+        )
         StyledOutlinedTextField(
             registerViewModel.email,
             modifier = Modifier

@@ -8,11 +8,12 @@ import com.jaehl.gameTool.common.ui.componets.TextFieldValue
 import com.jaehl.gameTool.common.ui.screens.launchIo
 
 data class LoginViewModel(
-    val email : TextFieldValue = TextFieldValue(value = "admin"),
+    val userName : TextFieldValue = TextFieldValue(value = "admin"),
     val password : TextFieldValue = TextFieldValue(value = "foobar")
 )
 
 data class RegisterViewModel(
+    val userName : TextFieldValue = TextFieldValue(),
     val email : TextFieldValue = TextFieldValue(),
     val password : TextFieldValue = TextFieldValue(),
     val reEnterPassword : TextFieldValue = TextFieldValue()
@@ -47,9 +48,9 @@ class LoginScreenModel(
         navigateToHome.value  = false
     }
 
-    fun onLoginEmailChange(email : String) {
+    fun onLoginUserNameChange(email : String) {
         loginViewModel.value = loginViewModel.value.copy(
-            email = loginViewModel.value.email.copy(
+            userName = loginViewModel.value.userName.copy(
                 value = email,
                 error = ""
             )
@@ -64,6 +65,15 @@ class LoginScreenModel(
                 error = ""
             )
 
+        )
+    }
+
+    fun onRegisterUserNameChange(userName : String) {
+        registerViewModel.value = registerViewModel.value.copy(
+            userName = registerViewModel.value.userName.copy(
+                value = userName,
+                error = ""
+            )
         )
     }
 
@@ -102,7 +112,7 @@ class LoginScreenModel(
 
     fun onLoginClick() {
 
-        val email = loginViewModel.value.email.value
+        val email = loginViewModel.value.userName.value
         val password = loginViewModel.value.password.value
 
         if(!loginValidator.onValidate(email, password)){
@@ -127,11 +137,17 @@ class LoginScreenModel(
     }
 
     fun onRegisterClick() {
+        val userName = registerViewModel.value.userName.value
         val email = registerViewModel.value.email.value
         val password = registerViewModel.value.password.value
         val reEnterPassword = registerViewModel.value.reEnterPassword.value
 
-        if(!registerValidator.onValidate(email, password, reEnterPassword)){
+        if(!registerValidator.onValidate(
+                userName= userName,
+                email = email,
+                password = password,
+                reEnterPassword = reEnterPassword
+        )){
             return
         }
 
@@ -141,7 +157,11 @@ class LoginScreenModel(
             jobDispatcher,
             onException = ::onException
         ){
-            userRepo.register(email, password)
+            userRepo.register(
+                userName = userName,
+                email = email,
+                password = password
+            )
             pageLoading.value = false
             navigateToHome.value = true
         }
@@ -153,13 +173,19 @@ class LoginScreenModel(
 
     override fun onLoginEmailError(error: String) {
         loginViewModel.value = loginViewModel.value.copy(
-            email = loginViewModel.value.email.copySetError(error)
+            userName = loginViewModel.value.userName.copySetError(error)
         )
     }
 
     override fun onLoginPasswordError(error: String) {
         loginViewModel.value = loginViewModel.value.copy(
             password = loginViewModel.value.password.copySetError(error)
+        )
+    }
+
+    override fun onRegisterUserNameError(error: String) {
+        registerViewModel.value = registerViewModel.value.copy(
+            userName = registerViewModel.value.userName.copySetError(error)
         )
     }
 

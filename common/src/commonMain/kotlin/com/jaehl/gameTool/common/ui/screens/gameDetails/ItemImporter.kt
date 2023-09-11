@@ -3,12 +3,18 @@ package com.jaehl.gameTool.common.ui.screens.gameDetails
 import com.google.gson.reflect.TypeToken
 import com.jaehl.gameTool.common.data.local.ObjectListJsonLoader
 import com.jaehl.gameTool.common.data.model.Item
+import com.jaehl.gameTool.common.data.model.ItemAmount
 import com.jaehl.gameTool.common.data.service.ImageService
 import com.jaehl.gameTool.common.data.service.ItemService
+import com.jaehl.gameTool.common.data.service.RecipeService
 import java.io.File
 import java.nio.file.Paths
 
-object ItemImporter {
+class ItemImporter(
+    val itemService : ItemService,
+    val imageService: ImageService,
+    val recipeService: RecipeService
+) {
 
     private fun getImageFile(filePath : String) : File{
         return Paths.get(System.getProperty("user.home"),
@@ -17,7 +23,7 @@ object ItemImporter {
         ).toFile()
     }
 
-    fun import(itemService : ItemService, imageService: ImageService, gameId : Int){
+    fun import(gameId : Int){
 
         val categoriesResponse = itemService.getItemCategories()
         val categoriesMap = mutableMapOf<String, Int>()
@@ -25,21 +31,24 @@ object ItemImporter {
             categoriesMap[it.name] = it.id
         }
 
-        val loader = ObjectListJsonLoader<ItemData>(
+        val itemLoader = ObjectListJsonLoader<ItemData>(
             type = object : TypeToken<Array<ItemData>>() {}.type,
             projectUserDir = "gameTools",
             listFilePath = "icarus/items.json"
         )
-        val test = loader.load()
 
+        val itemLocalMap = mutableMapOf<String, ItemData>()
+        itemLoader.load().forEach {
+            itemLocalMap[it.id] = it
+        }
 
-        val itemMap = mutableMapOf<String, Item>()
+        val itemServerMap = mutableMapOf<String, Item>()
         itemService.getItems(gameId).forEach {
-            itemMap[it.name] = it
+            itemServerMap[it.name] = it
         }
 
         //add missing categories
-        test.forEach{ itemData ->
+        itemLocalMap.values.forEach{ itemData ->
             itemData.categories.forEach{
                 if(!categoriesMap.containsKey(it)){
                     val response = itemService.addItemCategories(it)
@@ -48,22 +57,80 @@ object ItemImporter {
             }
         }
 
-        test.forEach { itemData ->
-            if(itemMap.containsKey(itemData.name)) return
+        itemLocalMap.values.forEach { itemData ->
+            if(itemServerMap.containsKey(itemData.name)){
+                itemData.serverId = itemServerMap[itemData.name]?.id ?: -1
+                return@forEach
+            }
 
             val imageFile = getImageFile(itemData.iconPath)
             if(!imageFile.exists()){
                 System.out.println("image missing ${itemData.iconPath}")
+                return@forEach
             }
 
             val imageResponse = imageService.addImage(imageFile, itemData.name)
 
-            itemService.addItem(
+            val item = itemService.addItem(
                 game = gameId,
                 name = itemData.name,
                 categories = itemData.categories.map { categoriesMap[it] ?: -1 },
                 image = imageResponse.imageId
             )
+            itemData.serverId = item.id
+        }
+
+        ObjectListJsonLoader<RecipeData>(
+            type = object : TypeToken<Array<RecipeData>>() {}.type,
+            projectUserDir = "gameTools",
+            listFilePath = "icarus/recipes.json"
+        ).load().forEach { recipeData ->
+            val input = recipeData.input.mapNotNull {
+                ItemAmount(
+                    itemId = itemLocalMap[it.itemId]?.serverId ?: return@mapNotNull null,
+                    amount = it.amount
+                )
+            }
+            val output = recipeData.output.mapNotNull {
+                ItemAmount(
+                    itemId = itemLocalMap[it.itemId]?.serverId ?: return@mapNotNull null,
+                    amount = it.amount
+                )
+            }
+            if(output.firstOrNull{it.itemId == 0} != null) return@forEach
+
+            try {
+                recipeService.createRecipes(
+                    gameId = gameId,
+                    craftedAt = recipeData.craftedAt.map {
+                        itemLocalMap[it]?.serverId ?: return@forEach
+                    },
+                    input = input,
+                    output = output
+                )
+            }
+            catch (t : Throwable){
+                System.out.println("Throwable : ${t.message}")
+            }
         }
     }
 }
+
+data class ItemData(
+    var serverId : Int = -1,
+    val id : String,
+    val name : String,
+    val categories : List<String>,
+    val iconPath : String
+)
+
+data class RecipeData(
+    val craftedAt : List<String>,
+    val input : List<RecipeAmountData>,
+    val output : List<RecipeAmountData>
+)
+
+data class RecipeAmountData(
+    val itemId : String,
+    val amount : Int
+)

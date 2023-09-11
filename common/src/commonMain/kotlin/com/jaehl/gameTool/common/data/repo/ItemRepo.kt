@@ -4,14 +4,12 @@ import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.model.Item
 import com.jaehl.gameTool.common.data.service.ItemService
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.withContext
 
 interface ItemRepo {
     fun getItems(gameId : Int) : Flow<List<Item>>
-    fun getItem(id : Int) : Flow<Item>
+    fun getItemFlow(id : Int) : Flow<Item>
+    fun getItem(id : Int) : Item?
 }
 
 //TODO add local caching
@@ -20,11 +18,23 @@ class ItemRepoImp(
     private val itemService: ItemService
 ) : ItemRepo {
 
+    private val itemsMap = hashMapOf<Int, Item>()
+
     override fun getItems(gameId : Int) = flow {
-        emit(itemService.getItems(gameId))
+
+        val items = itemService.getItems(gameId)
+        itemsMap.clear()
+        items.forEach {
+            itemsMap[it.id] = it
+        }
+        emit(items)
     }
 
-    override fun getItem(id: Int) = flow {
+    override fun getItem(id: Int): Item? {
+        return itemsMap[id]
+    }
+
+    override fun getItemFlow(id: Int) = flow {
         emit(itemService.getItem(id))
     }
 }

@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.List
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,11 +37,18 @@ class ItemDetailsScreen(
         val screenModel = rememberScreenModel<ItemDetailsScreenModel.Config, ItemDetailsScreenModel>(
             arg = ItemDetailsScreenModel.Config(gameId = gameId, itemId = itemId)
         )
+        LaunchedEffect(itemId){
+            screenModel.update(
+                ItemDetailsScreenModel.Config(
+                    gameId = gameId,
+                    itemId = itemId)
+            )
+        }
 
         ItemDetailsPage(
             itemId = itemId,
             itemInfo = screenModel.itemInfo.value,
-            recipes = screenModel.recipes,
+            recipes = screenModel.recipeModels,
             onBackClick = {
                 navigator.pop()
             },
@@ -160,6 +168,7 @@ fun Recipe(
             ) {
                 Text(
                     text = "Recipe ${recipeIndex + 1}",
+                    color = MaterialTheme.colors.onPrimary,
                     modifier = Modifier.padding(15.dp)
                 )
                 Row(
@@ -331,10 +340,6 @@ fun ItemQuickInfo(item : ItemInfoModel, modifier: Modifier = Modifier) {
         }
         ItemQuickInfoheading("General")
         ItemQuickInfoTitleValue("Categories", item.categories.joinToString(", "))
-        //ItemQuickInfoTitleValue("Tech Tier", item.techTier.toString())
-//        if(item.craftedAt != null) {
-//            ItemQuickInfoTitleValue("Crafted at", item.craftedAt)
-//        }
     }
 }
 
