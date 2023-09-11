@@ -5,28 +5,38 @@ import androidx.compose.runtime.mutableStateOf
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.coroutineScope
 import com.jaehl.gameTool.common.JobDispatcher
+import com.jaehl.gameTool.common.data.AppConfig
 import com.jaehl.gameTool.common.data.AuthProvider
 import com.jaehl.gameTool.common.data.model.Item
 import com.jaehl.gameTool.common.data.model.ItemRecipeNode
 import com.jaehl.gameTool.common.data.repo.ItemRepo
+import com.jaehl.gameTool.common.data.repo.RecipeRepo
 import com.jaehl.gameTool.common.ui.screens.launchIo
 import com.jaehl.gameTool.common.extensions.postSwap
+import com.jaehl.gameTool.common.extensions.toItemModel
 import com.jaehl.gameTool.common.ui.componets.ImageResource
+import com.jaehl.gameTool.common.ui.util.ItemNotFoundException
+import com.jaehl.gameTool.common.ui.util.ItemRecipeNodeUtil
+import com.jaehl.gameTool.common.ui.viewModel.ItemAmountViewModel
 import com.jaehl.gameTool.common.ui.viewModel.ItemModel
 import kotlinx.coroutines.launch
 
 class ItemDetailsScreenModel(
     val jobDispatcher : JobDispatcher,
     val authProvider: AuthProvider,
-    val config : Config,
-    val itemRepo: ItemRepo
+    var config : Config,
+    val itemRepo: ItemRepo,
+    val recipeRepo: RecipeRepo,
+    val appConfig: AppConfig,
+    val itemRecipeNodeUtil : ItemRecipeNodeUtil
 ) : ScreenModel {
 
     var pageLoading = mutableStateOf<Boolean>(false)
     var itemInfo = mutableStateOf(ItemInfoModel())
-    var recipes = mutableStateListOf<RecipeViewModel>()
+    var recipeModels = mutableStateListOf<RecipeViewModel>()
 
-    init {
+    fun update(config : Config) {
+        this.config = config
         coroutineScope.launch {
             dataRefresh()
         }
@@ -37,10 +47,28 @@ class ItemDetailsScreenModel(
             jobDispatcher,
             onException = ::onException
         ){
-            itemRepo.getItem(config.itemId).collect{ item ->
-                itemInfo.value = item.toItemInfoModel(authProvider)
-            }
+            val item = itemRepo.getItem(config.itemId) ?: throw ItemNotFoundException(config.itemId)
 
+            itemInfo.value = item.toItemInfoModel(appConfig, authProvider)
+
+            recipeRepo.updateIfNotLoaded(config.gameId)
+
+            val recipes = recipeRepo.getRecipesForOutput(config.itemId).mapNotNull { recipe ->
+                val node = itemRecipeNodeUtil.buildTree(
+                    ItemAmountViewModel(
+                        item = item.toItemModel(appConfig, authProvider),
+                        amount = recipe.output.first { it.itemId == config.itemId}.amount
+                    ),
+                    recipeId = recipe.id
+                ) ?: return@mapNotNull null
+                RecipeViewModel(
+                    node = node,
+                    craftedAt = node.recipe?.craftedAt?.mapNotNull {
+                        itemRepo.getItem(it)?.toItemModel(appConfig, authProvider)
+                    } ?: listOf()
+                )
+            }
+            recipeModels.postSwap(recipes)
 
             this.pageLoading.value = false
         }
@@ -64,12 +92,12 @@ data class ItemInfoModel(
     val categories : List<String> = listOf()
 )
 
-fun Item.toItemInfoModel(authProvider: AuthProvider) : ItemInfoModel {
+fun Item.toItemInfoModel(appConfig: AppConfig, authProvider: AuthProvider) : ItemInfoModel {
     return ItemInfoModel(
         id = this.id,
         name = this.name,
         iconPath = ImageResource.ImageApiResource(
-            url = "http://0.0.0.0:8080/images/${this.image}",
+            url = "${appConfig.baseUrl}/images/${this.image}",
             authHeader = authProvider.getBearerToken()
         ),
         categories = this.categories.map {

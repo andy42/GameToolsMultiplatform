@@ -1,13 +1,14 @@
 package com.jaehl.gameTool.common.di
 
 import com.jaehl.gameTool.common.JobDispatcher
+import com.jaehl.gameTool.common.data.AppConfig
 import com.jaehl.gameTool.common.data.AuthProvider
 import com.jaehl.gameTool.common.data.repo.GameRepo
 import com.jaehl.gameTool.common.data.repo.ItemRepo
+import com.jaehl.gameTool.common.data.repo.RecipeRepo
 import com.jaehl.gameTool.common.data.repo.UserRepo
-import com.jaehl.gameTool.common.data.service.ImageService
-import com.jaehl.gameTool.common.data.service.ItemService
 import com.jaehl.gameTool.common.ui.screens.gameDetails.GameDetailsScreenModel
+import com.jaehl.gameTool.common.ui.screens.gameDetails.ItemImporter
 import com.jaehl.gameTool.common.ui.screens.home.HomeScreenModel
 import com.jaehl.gameTool.common.ui.screens.itemDetails.ItemDetailsScreenModel
 import com.jaehl.gameTool.common.ui.screens.itemEdit.ItemEditScreenModel
@@ -16,6 +17,7 @@ import com.jaehl.gameTool.common.ui.screens.login.LoginScreenModel
 import com.jaehl.gameTool.common.ui.screens.login.LoginValidator
 import com.jaehl.gameTool.common.ui.screens.login.RegisterValidator
 import com.jaehl.gameTool.common.ui.screens.users.UsersScreenModel
+import com.jaehl.gameTool.common.ui.util.ItemRecipeNodeUtil
 import org.kodein.di.*
 
 object ScreenModule {
@@ -46,8 +48,7 @@ object ScreenModule {
                 instance<JobDispatcher>(),
                 config = config,
                 instance<GameRepo>(),
-                instance<ItemService>(),
-                instance<ImageService>()
+                instance<ItemImporter>(),
             )
         }}
 
@@ -65,7 +66,10 @@ object ScreenModule {
                 instance<JobDispatcher>(),
                 instance<AuthProvider>(),
                 config = config,
-                itemRepo = instance<ItemRepo>()
+                itemRepo = instance<ItemRepo>(),
+                instance<RecipeRepo>(),
+                instance<AppConfig>(),
+                instance<ItemRecipeNodeUtil>()
             )
         }}
 

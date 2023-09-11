@@ -3,15 +3,10 @@ package com.jaehl.gameTool.apiClientRetrofit.di
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.jaehl.gameTool.apiClientRetrofit.data.api.ServerApi
-import com.jaehl.gameTool.apiClientRetrofit.data.service.GameServiceRetroFit
-import com.jaehl.gameTool.apiClientRetrofit.data.service.ImageServiceRetroFit
-import com.jaehl.gameTool.apiClientRetrofit.data.service.ItemServiceRetroFit
-import com.jaehl.gameTool.apiClientRetrofit.data.service.UserServiceRetrofit
+import com.jaehl.gameTool.apiClientRetrofit.data.service.*
+import com.jaehl.gameTool.common.data.AppConfig
 import com.jaehl.gameTool.common.data.AuthProvider
-import com.jaehl.gameTool.common.data.service.GameService
-import com.jaehl.gameTool.common.data.service.ImageService
-import com.jaehl.gameTool.common.data.service.ItemService
-import com.jaehl.gameTool.common.data.service.UserService
+import com.jaehl.gameTool.common.data.service.*
 import okhttp3.OkHttpClient
 import org.kodein.di.DI
 import org.kodein.di.bind
@@ -41,7 +36,7 @@ object ApiClientRetrofitModule {
 
         bind<Retrofit> { provider {
             Retrofit.Builder()
-                .baseUrl(instance<String>(tag = "baseUrl"))
+                .baseUrl(instance<AppConfig>().baseUrl)
                 .addConverterFactory(GsonConverterFactory.create(instance<Gson>()))
                 //.addCallAdapterFactory(RxJava3CallAdapterFactory.create())
                 .client(instance<OkHttpClient>())
@@ -74,6 +69,13 @@ object ApiClientRetrofitModule {
 
         bind<ImageService> { provider {
             ImageServiceRetroFit(
+                instance<ServerApi>(),
+                instance<AuthProvider>()
+            )
+        }}
+
+        bind<RecipeService> { provider {
+            RecipeServiceRetroFit(
                 instance<ServerApi>(),
                 instance<AuthProvider>()
             )

@@ -107,4 +107,22 @@ interface ServerApi {
         @PartMap() partMap: MutableMap<String,RequestBody>,
         @Part image: MultipartBody.Part
     ) : Call<Response<Image>>
+
+    @POST("recipes/new")
+    fun addRecipe(
+        @Header("Authorization") bearerToken : String,
+        @Body data : AddRecipeRequest
+    ) : Call<Response<Recipe>>
+
+    @GET("recipes")
+    fun getRecipes(
+        @Header("Authorization") bearerToken : String,
+        @Query("gameId") gameId : Int
+    ) : Call<Response<List<Recipe>>>
+
+    @GET("recipes/{id}")
+    fun getRecipe(
+        @Header("Authorization") bearerToken : String,
+        @Path("id") id : Int
+    ) : Call<Response<Recipe>>
 }

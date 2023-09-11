@@ -13,18 +13,19 @@ class UserServiceRetrofit(
     val serverApi : ServerApi
 ) : UserService {
 
-    override fun login(email: String, password: String): AccessToken {
+    override fun login(userName: String, password: String): AccessToken {
         return serverApi.login(
             data = LoginRequest(
-                username = email,
+                userName = userName,
                 password = password
             )
         ).baseBody()
     }
 
-    override fun register(email: String, password: String): AccessToken {
+    override fun register(userName : String, email: String, password: String): AccessToken {
         return serverApi.register(
             data = RegisterRequest(
+                userName = userName,
                 email = email,
                 password = password
             )
