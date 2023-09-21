@@ -1,11 +1,8 @@
 package com.jaehl.gameTool.common.ui.screens.home
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Edit
@@ -23,12 +20,10 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.jaehl.gameTool.common.ui.AppColor
 import com.jaehl.gameTool.common.ui.componets.AppBar
 import com.jaehl.gameTool.common.ui.screens.gameDetails.GameDetailsScreen
-import com.jaehl.gameTool.common.ui.screens.login.LoginScreenModel
 import com.jaehl.gameTool.common.ui.screens.users.UsersScreen
 
-class HomeScreen() : Screen {
+class HomeScreen : Screen {
 
-    @OptIn(ExperimentalFoundationApi::class)
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow

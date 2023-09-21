@@ -29,6 +29,7 @@ object ApiClientRetrofitModule {
 
         bind<Gson> { provider {
             GsonBuilder()
+                .serializeNulls()
                 .setPrettyPrinting()
                 .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.sssZ")
                 .create()
@@ -80,5 +81,13 @@ object ApiClientRetrofitModule {
                 instance<AuthProvider>()
             )
         }}
+
+        bind<CollectionService> { provider {
+            CollectionServiceRetroFit(
+                instance<ServerApi>(),
+                instance<AuthProvider>()
+            )
+        }}
+
     }
 }

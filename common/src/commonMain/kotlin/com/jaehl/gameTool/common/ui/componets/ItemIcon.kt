@@ -19,7 +19,7 @@ import io.ktor.client.request.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 
-sealed class ImageResource() {
+sealed class ImageResource {
     data class ImageLocalResource(
         val url : String
     ) : ImageResource()
@@ -31,20 +31,6 @@ sealed class ImageResource() {
 
 @Composable
 fun ItemIcon(imageResource : ImageResource, modifier : Modifier = Modifier, size : Dp = 40.dp){
-//    val file = LocalFiles.getFile(iconPath ?: "")
-//    if (file.exists() && !iconPath.isNullOrBlank()) {
-//        val imageBitmap: ImageBitmap = remember(file) {
-//            loadImageBitmap(file.inputStream())
-//        }
-//        Image(
-//            painter = BitmapPainter(image = imageBitmap),
-//            contentDescription = "",
-//            modifier = modifier.width(size).height(size)
-//        )
-//    } else {
-//        Box(modifier = modifier.width(size).height(size))
-//    }
-
     when(imageResource) {
         is ImageResource.ImageLocalResource -> {
             Box(

@@ -2,8 +2,6 @@ package com.jaehl.gameTool.common.ui.screens.itemEdit
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Card
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -14,8 +12,7 @@ import cafe.adriel.voyager.kodein.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.jaehl.gameTool.common.ui.componets.AppBar
-import com.jaehl.gameTool.common.ui.componets.ItemIcon
-import com.jaehl.gameTool.common.ui.screens.itemDetails.ItemDetailsScreenModel
+import com.jaehl.gameTool.common.ui.componets.CustomVerticalScrollbar
 
 class ItemEditScreen(
     private val gameId : Int,
@@ -65,11 +62,9 @@ fun ItemEditPage(
             ) {
 
             }
-            VerticalScrollbar(
+            CustomVerticalScrollbar(
                 modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                adapter = rememberScrollbarAdapter(
-                    scrollState = state
-                )
+                scrollState = state
             )
         }
     }

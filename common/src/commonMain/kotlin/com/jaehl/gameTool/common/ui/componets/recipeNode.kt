@@ -17,7 +17,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.jaehl.gameTool.common.data.model.Item
 import com.jaehl.gameTool.common.data.model.ItemRecipeNode
 import com.jaehl.gameTool.common.ui.AppColor
 import com.jaehl.gameTool.common.ui.viewModel.ItemAmountViewModel
@@ -69,9 +68,7 @@ fun RecipeNode(
     onItemClick : ((itemId : Int) -> Unit)? = null,
     onRecipeChange : ((itemId : Int) -> Unit)? = null
 ) {
-    Column(
-        //modifier = modifier.background(background)
-    ) {
+    Column {
 
         RecipeItemAmount(
             Modifier,
@@ -152,15 +149,15 @@ fun RecipeItemAmount(
 
         )
         ItemIcon(
-            itemAmount.item.iconPath,
+            itemAmount.itemModel.iconPath,
             modifier = Modifier
                 //.background(if(alternativeRecipe) R.Color.debugGreen else R.Color.transparent)
                 .clickable {
-                    onItemClick?.invoke(itemAmount.item.id)
+                    onItemClick?.invoke(itemAmount.itemModel.id)
                 }
         )
         Text(
-            itemAmount.item.name,
+            itemAmount.itemModel.name,
             modifier = Modifier
                 .weight(1f)
                 .padding(start = 10.dp)
@@ -169,7 +166,7 @@ fun RecipeItemAmount(
             IconButton(content = {
                 Icon(Icons.Outlined.Edit, "Change recipe", tint = MaterialTheme.colors.onSurface)
             }, onClick = {
-                onRecipeChange?.invoke(itemAmount.item.id)
+                onRecipeChange?.invoke(itemAmount.itemModel.id)
             })
         }
     }

@@ -1,5 +1,6 @@
 package com.jaehl.gameTool.common
 
+import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 
 import cafe.adriel.voyager.navigator.Navigator
@@ -9,5 +10,7 @@ import org.kodein.di.compose.withDI
 
 @Composable
 fun App(di : DI) = withDI(di){
-    Navigator(screen = LoginScreen())
+    MaterialTheme {
+        Navigator(screen = LoginScreen())
+    }
 }

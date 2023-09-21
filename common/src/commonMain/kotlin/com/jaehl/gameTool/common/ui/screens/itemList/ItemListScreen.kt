@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Edit
@@ -19,6 +20,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.jaehl.gameTool.common.ui.AppColor
 import com.jaehl.gameTool.common.ui.componets.AppBar
+import com.jaehl.gameTool.common.ui.componets.CustomVerticalScrollbar
 import com.jaehl.gameTool.common.ui.componets.ItemIcon
 import com.jaehl.gameTool.common.ui.screens.itemDetails.ItemDetailsScreen
 import com.jaehl.gameTool.common.ui.screens.itemEdit.ItemEditScreen
@@ -168,10 +170,17 @@ fun ItemList(
     onItemClick : (itemId : Int) -> Unit,
     onItemEditClick : (itemId : Int?) -> Unit
 ){
-    LazyColumn {
-        itemsIndexed(itemList) { index, item ->
-            ItemRow(index, item, onItemClick, onItemEditClick)
+    Box {
+        val state  = rememberLazyListState()
+        LazyColumn(state = state) {
+            itemsIndexed(itemList) { index, item ->
+                ItemRow(index, item, onItemClick, onItemEditClick)
+            }
         }
+        CustomVerticalScrollbar(
+            modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+            scrollState = state
+        )
     }
 }
 

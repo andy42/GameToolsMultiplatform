@@ -31,6 +31,15 @@ object DataModule {
             instance<RecipeService>()
         ) }}
 
+        bind<CollectionRepo> {
+            singleton {
+                CollectionRepoImp(
+                    instance<JobDispatcher>(),
+                    instance<CollectionService>()
+                )
+            }
+        }
+
         bind<AuthProvider> { singleton {
             AuthProviderImp()
         }}

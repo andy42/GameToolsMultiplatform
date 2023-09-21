@@ -1,6 +1,6 @@
 package com.jaehl.gameTool.common.ui.screens.itemDetails
 
-import androidx.compose.desktop.ui.tooling.preview.Preview
+//import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.FlowRow
@@ -62,23 +62,23 @@ class ItemDetailsScreen(
     }
 }
 
-@Preview
-@Composable
-fun preview(){
-    ItemDetailsPage(
-        itemId=1,
-        itemInfo = ItemInfoModel(
-            name = "test",
-            iconPath = ImageResource.ImageLocalResource(""),
-            categories = listOf(
-                "Resources", "CraftedResources"
-            )
-        ),
-        recipes = listOf(),
-        onBackClick = {},
-        onItemClick = {}
-    )
-}
+//@Preview
+//@Composable
+//fun preview(){
+//    ItemDetailsPage(
+//        itemId=1,
+//        itemInfo = ItemInfoModel(
+//            name = "test",
+//            iconPath = ImageResource.ImageLocalResource(""),
+//            categories = listOf(
+//                "Resources", "CraftedResources"
+//            )
+//        ),
+//        recipes = listOf(),
+//        onBackClick = {},
+//        onItemClick = {}
+//    )
+//}
 
 @Composable
 fun ItemDetailsPage(
@@ -134,11 +134,9 @@ fun ItemDetailsPage(
                     )
                 }
             }
-            VerticalScrollbar(
+            CustomVerticalScrollbar(
                 modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                adapter = rememberScrollbarAdapter(
-                    scrollState = state
-                )
+                scrollState = state
             )
         }
     }

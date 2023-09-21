@@ -1,6 +1,5 @@
 package com.jaehl.gameTool.common.ui.screens.gameDetails
 
-import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
@@ -16,8 +15,8 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.kodein.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import com.jaehl.gameTool.common.ui.AppColor
 import com.jaehl.gameTool.common.ui.componets.AppBar
+import com.jaehl.gameTool.common.ui.screens.collectionList.CollectionListScreen
 import com.jaehl.gameTool.common.ui.screens.itemList.ItemListScreen
 
 class GameDetailsScreen(
@@ -36,6 +35,9 @@ class GameDetailsScreen(
             onOpenItemsClick = {
                 navigator.push(ItemListScreen(gameId = gameId))
             },
+            onOpenCollectionsClick = {
+                navigator.push(CollectionListScreen(gameId = gameId))
+            },
             testImport = {
                 screenModel.testImport()
             }
@@ -43,22 +45,24 @@ class GameDetailsScreen(
     }
 }
 
-@Preview
-@Composable
-fun preview(){
-    GameDetailsPage(
-        title = "game 1",
-        onBackClick = {},
-        onOpenItemsClick = {},
-        testImport = {}
-    )
-}
+//@Preview
+//@Composable
+//fun preview(){
+//    GameDetailsPage(
+//        title = "game 1",
+//        onBackClick = {},
+//        onOpenItemsClick = {},
+//        onOpenCollectionsClick = {},
+//        testImport = {}
+//    )
+//}
 
 @Composable
 fun GameDetailsPage(
     title : String,
     onBackClick : () -> Unit,
     onOpenItemsClick : () -> Unit,
+    onOpenCollectionsClick : () -> Unit,
     testImport : () -> Unit
 ) {
     Column(
@@ -100,11 +104,19 @@ fun GameDetailsPage(
 
                     Button(
                         onClick = {
-                            testImport()
+                            onOpenCollectionsClick()
                         }
                     ) {
-                        Text("import")
+                        Text("Collections")
                     }
+
+//                    Button(
+//                        onClick = {
+//                            testImport()
+//                        }
+//                    ) {
+//                        Text("import")
+//                    }
                 }
 
             }

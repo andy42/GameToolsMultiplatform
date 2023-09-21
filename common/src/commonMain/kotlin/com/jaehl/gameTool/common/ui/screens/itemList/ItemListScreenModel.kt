@@ -5,19 +5,20 @@ import androidx.compose.runtime.mutableStateOf
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.coroutineScope
 import com.jaehl.gameTool.common.JobDispatcher
+import com.jaehl.gameTool.common.data.AppConfig
 import com.jaehl.gameTool.common.data.AuthProvider
 import com.jaehl.gameTool.common.data.model.Item
 import com.jaehl.gameTool.common.data.repo.ItemRepo
 import com.jaehl.gameTool.common.ui.screens.launchIo
 import com.jaehl.gameTool.common.extensions.postSwap
 import com.jaehl.gameTool.common.ui.componets.ImageResource
-import com.jaehl.gameTool.common.ui.screens.itemDetails.ItemInfoModel
 import kotlinx.coroutines.launch
 
 class ItemListScreenModel(
     val jobDispatcher : JobDispatcher,
     val authProvider: AuthProvider,
     val config : Config,
+    val appConfig: AppConfig,
     val itemRepo: ItemRepo
 ) : ScreenModel {
 
@@ -41,7 +42,7 @@ class ItemListScreenModel(
             itemRepo.getItems(config.gameId).collect { newItems ->
                 this.items.postSwap(
                     newItems.map {item ->
-                        item.toItemRowModel(authProvider)
+                        item.toItemRowModel(appConfig, authProvider)
                     }
                 )
             }
@@ -67,12 +68,12 @@ class ItemListScreenModel(
     )
 }
 
-fun Item.toItemRowModel(authProvider: AuthProvider) : ItemRowModel {
+fun Item.toItemRowModel(appConfig: AppConfig, authProvider: AuthProvider) : ItemRowModel {
     return ItemRowModel(
         id = this.id,
         name = this.name,
         imageResource = ImageResource.ImageApiResource(
-            url = "http://0.0.0.0:8080/images/${this.image}",
+            url = "${appConfig.baseUrl}/images/${this.image}",
             authHeader = authProvider.getBearerToken()
         )
     )

@@ -38,7 +38,7 @@ class  ObjectListJsonLoader<T>(
         val file = getFile()
 
         if(!file.exists()) {
-            println("ERROR : ${listFilePath} does not exist\n${file.absoluteFile} ")
+            println("ERROR : $listFilePath does not exist\n${file.absoluteFile} ")
             return listOf()
         }
         val gson = Gson().newBuilder().create()
