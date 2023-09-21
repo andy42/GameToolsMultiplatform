@@ -3,10 +3,9 @@ package com.jaehl.gameTool.common.di
 import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.AppConfig
 import com.jaehl.gameTool.common.data.AuthProvider
-import com.jaehl.gameTool.common.data.repo.GameRepo
-import com.jaehl.gameTool.common.data.repo.ItemRepo
-import com.jaehl.gameTool.common.data.repo.RecipeRepo
-import com.jaehl.gameTool.common.data.repo.UserRepo
+import com.jaehl.gameTool.common.data.repo.*
+import com.jaehl.gameTool.common.ui.screens.collectionDetails.CollectionDetailsScreenModel
+import com.jaehl.gameTool.common.ui.screens.collectionList.CollectionListScreenModel
 import com.jaehl.gameTool.common.ui.screens.gameDetails.GameDetailsScreenModel
 import com.jaehl.gameTool.common.ui.screens.gameDetails.ItemImporter
 import com.jaehl.gameTool.common.ui.screens.home.HomeScreenModel
@@ -17,6 +16,7 @@ import com.jaehl.gameTool.common.ui.screens.login.LoginScreenModel
 import com.jaehl.gameTool.common.ui.screens.login.LoginValidator
 import com.jaehl.gameTool.common.ui.screens.login.RegisterValidator
 import com.jaehl.gameTool.common.ui.screens.users.UsersScreenModel
+import com.jaehl.gameTool.common.ui.screens.collectionEdit.CollectionEditScreenModel
 import com.jaehl.gameTool.common.ui.util.ItemRecipeNodeUtil
 import org.kodein.di.*
 
@@ -57,6 +57,7 @@ object ScreenModule {
                 instance<JobDispatcher>(),
                 instance<AuthProvider>(),
                 config = config,
+                appConfig = instance<AppConfig>(),
                 itemRepo = instance<ItemRepo>()
             )
         }}
@@ -80,5 +81,29 @@ object ScreenModule {
                 itemRepo = instance<ItemRepo>()
             )
         }}
+
+        bind<CollectionDetailsScreenModel> { provider {
+            CollectionDetailsScreenModel(
+                instance<JobDispatcher>(),
+                instance<CollectionRepo>(),
+                instance<ItemRepo>(),
+                instance<AppConfig>(),
+                instance<AuthProvider>(),
+            )}}
+
+        bind<CollectionEditScreenModel> { provider {
+            CollectionEditScreenModel(
+                instance<JobDispatcher>(),
+                instance<CollectionRepo>(),
+                instance<ItemRepo>(),
+                instance<AppConfig>(),
+                instance<AuthProvider>(),
+            )}}
+
+        bind<CollectionListScreenModel> { provider {
+            CollectionListScreenModel(
+                instance<JobDispatcher>(),
+                instance<CollectionRepo>()
+            )}}
     }
 }

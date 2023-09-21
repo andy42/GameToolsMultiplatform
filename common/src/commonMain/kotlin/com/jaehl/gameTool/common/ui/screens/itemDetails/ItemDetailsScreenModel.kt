@@ -56,7 +56,7 @@ class ItemDetailsScreenModel(
             val recipes = recipeRepo.getRecipesForOutput(config.itemId).mapNotNull { recipe ->
                 val node = itemRecipeNodeUtil.buildTree(
                     ItemAmountViewModel(
-                        item = item.toItemModel(appConfig, authProvider),
+                        itemModel = item.toItemModel(appConfig, authProvider),
                         amount = recipe.output.first { it.itemId == config.itemId}.amount
                     ),
                     recipeId = recipe.id

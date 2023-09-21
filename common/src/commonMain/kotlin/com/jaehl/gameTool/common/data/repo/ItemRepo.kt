@@ -31,7 +31,15 @@ class ItemRepoImp(
     }
 
     override fun getItem(id: Int): Item? {
-        return itemsMap[id]
+        val item = itemsMap[id]
+        if(item == null){
+            val newItem = itemService.getItem(id)
+            itemsMap[newItem.id] = newItem
+            return newItem
+        } else {
+            return item
+        }
+
     }
 
     override fun getItemFlow(id: Int) = flow {

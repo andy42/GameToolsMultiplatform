@@ -2,15 +2,14 @@ package com.jaehl.gameTool.common.ui.screens.login
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.onClick
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-//import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.kodein.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -56,7 +55,7 @@ class LoginScreen() : Screen{
                                 .background(if (screenModel.homeState.value == LoginScreenModel.PageState.Loign) MaterialTheme.colors.primary else MaterialTheme.colors.surface)
                                 .fillMaxWidth(0.5f)
                                 .fillMaxHeight()
-                                .onClick(
+                                .clickable (
                                     onClick = {
                                         screenModel.onHomeStateChange(LoginScreenModel.PageState.Loign)
                                     }
@@ -74,7 +73,7 @@ class LoginScreen() : Screen{
                                 .background(if (screenModel.homeState.value == LoginScreenModel.PageState.Register) MaterialTheme.colors.primary else MaterialTheme.colors.surface)
                                 .fillMaxWidth()
                                 .fillMaxHeight()
-                                .onClick(
+                                .clickable (
                                     onClick = {
                                         screenModel.onHomeStateChange(LoginScreenModel.PageState.Register)
                                     }

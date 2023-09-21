@@ -53,41 +53,11 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:$coroutinesVersion")
 
                 implementation("org.kodein.di:kodein-di-framework-compose:$kodeinVersion")
-
-                // Navigator
                 implementation("cafe.adriel.voyager:voyager-navigator:$voyagerVersion")
-
-                // BottomSheetNavigator
                 implementation("cafe.adriel.voyager:voyager-bottom-sheet-navigator:$voyagerVersion")
-
-                // TabNavigator
                 implementation("cafe.adriel.voyager:voyager-tab-navigator:$voyagerVersion")
-
-                // Transitions
                 implementation("cafe.adriel.voyager:voyager-transitions:$voyagerVersion")
-
-                // Android
-
-                // Android ViewModel integration
-                //implementation("cafe.adriel.voyager:voyager-androidx:$voyagerVersion")
-
-                // Koin integration
-                //implementation("cafe.adriel.voyager:voyager-koin:$voyagerVersion")
-
-                // Hilt integration
-                //implementation("cafe.adriel.voyager:voyager-hilt:$voyagerVersion")
-
-                // LiveData integration
-                //implementation("cafe.adriel.voyager:voyager-livedata:$voyagerVersion")
-
-                // Desktop + Android
-
-                // Kodein integration
                 implementation("cafe.adriel.voyager:voyager-kodein:$voyagerVersion")
-
-                // RxJava integration
-                //implementation("cafe.adriel.voyager:voyager-rxjava:$voyagerVersion")
-
                 implementation ("com.google.code.gson:gson:2.8.9")
 
 
@@ -99,9 +69,9 @@ kotlin {
         }
         val androidMain by getting {
             dependencies {
-                api("androidx.activity:activity-compose:1.6.1")
+                api("androidx.activity:activity-compose:1.7.2")
                 api("androidx.appcompat:appcompat:1.6.1")
-                api("androidx.core:core-ktx:1.9.0")
+                api("androidx.core:core-ktx:1.12.0")
             }
         }
 //        val iosX64Main by getting
@@ -123,7 +93,7 @@ kotlin {
 
 android {
     compileSdk = (findProperty("android.compileSdk") as String).toInt()
-    namespace = "com.jaehl.gametools"
+    namespace = "com.jaehl.gametool.common"
 
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     sourceSets["main"].res.srcDirs("src/androidMain/res")

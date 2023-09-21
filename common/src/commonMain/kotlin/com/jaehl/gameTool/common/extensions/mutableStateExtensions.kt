@@ -18,3 +18,8 @@ suspend fun <T> SnapshotStateList<T>.postSwap(values : Collection<T>, dispatcher
         this@postSwap.addAll(values)
     }
 }
+
+fun <T> SnapshotStateList<T>.swap(values : Collection<T>){
+    this@swap.clear()
+    this@swap.addAll(values)
+}

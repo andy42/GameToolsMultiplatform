@@ -21,7 +21,7 @@ class ItemRecipeNodeUtil(
     private suspend fun itemAmountViewModel(itemAmount : ItemAmount, multiplier : Int = 1) : ItemAmountViewModel{
         val item = itemRepo.getItem(itemAmount.itemId) ?: throw ItemNotFoundException(itemAmount.itemId)
         return ItemAmountViewModel(
-            item = item.toItemModel(appConfig, authProvider),
+            itemModel = item.toItemModel(appConfig, authProvider),
             amount = itemAmount.amount * multiplier
         )
     }
@@ -31,7 +31,7 @@ class ItemRecipeNodeUtil(
     }
 
     private suspend fun getByProductFor(itemAmount : ItemAmountViewModel, recipe : Recipe, multiplier : Int) : ArrayList<ItemAmountViewModel> {
-        return ArrayList(recipe.output.filter { it.itemId != itemAmount.item.id }.map { itemAmountViewModel(it, it.amount * multiplier) })
+        return ArrayList(recipe.output.filter { it.itemId != itemAmount.itemModel.id }.map { itemAmountViewModel(it, it.amount * multiplier) })
     }
 
     private fun recipeMultiplier(itemAmount : ItemAmountViewModel, recipeItemAmount : ItemAmount) : Int {
@@ -49,7 +49,7 @@ class ItemRecipeNodeUtil(
 //                parentNode = WeakReference(parentNode),
 //                itemAmount = itemAmount)
 //        }
-        val recipes = recipeRepo.getRecipesForOutput(itemAmount.item.id)
+        val recipes = recipeRepo.getRecipesForOutput(itemAmount.itemModel.id)
 
         if(recipes.isEmpty()){
             return ItemRecipeNode(
@@ -64,7 +64,7 @@ class ItemRecipeNodeUtil(
             recipes.firstOrNull { it.id ==recipeId } ?: return null
         }
 
-        val recipeOutputAmount = getOutputItemAmountFor(itemAmount.item.id, recipe)
+        val recipeOutputAmount = getOutputItemAmountFor(itemAmount.itemModel.id, recipe)
         val recipeMultiplier = recipeMultiplier(itemAmount, recipeOutputAmount)
 
         val node = ItemRecipeNode(
