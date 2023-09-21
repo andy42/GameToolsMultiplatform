@@ -11,12 +11,11 @@ import androidx.compose.ui.graphics.Color
 
 @Composable
 fun DialogTitleBar(title: String, onClose : () -> Unit){
-    var navigationIcon : @Composable (() -> Unit)? = null
     TopAppBar(
         title = {
             Text(title)
         },
-        navigationIcon = navigationIcon,
+        navigationIcon = null,
         actions = {
             IconButton(content = {
                 Icon(Icons.Outlined.Close, "Close", tint = Color.White)

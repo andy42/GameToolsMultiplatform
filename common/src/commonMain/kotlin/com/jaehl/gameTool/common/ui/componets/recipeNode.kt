@@ -68,9 +68,7 @@ fun RecipeNode(
     onItemClick : ((itemId : Int) -> Unit)? = null,
     onRecipeChange : ((itemId : Int) -> Unit)? = null
 ) {
-    Column(
-        //modifier = modifier.background(background)
-    ) {
+    Column {
 
         RecipeItemAmount(
             Modifier,

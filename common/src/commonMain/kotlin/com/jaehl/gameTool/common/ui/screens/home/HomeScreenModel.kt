@@ -16,7 +16,7 @@ class HomeScreenModel(
 ) : ScreenModel {
 
     var games = mutableStateListOf<GameModel>()
-    var pageLoading = mutableStateOf<Boolean>(false)
+    var pageLoading = mutableStateOf(false)
 
     init {
         coroutineScope.launch {

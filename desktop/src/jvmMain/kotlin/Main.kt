@@ -11,7 +11,7 @@ import org.kodein.di.*
 fun main() = application {
     Window(onCloseRequest = ::exitApplication) {
         val di = DI {
-            bind<AppConfig>() { provider { AppConfig(baseUrl = "http://0.0.0.0:8080") }}
+            bind<AppConfig> { provider { AppConfig(baseUrl = "http://0.0.0.0:8080") }}
             import(DataModule.create())
             import(ScreenModule.create())
             import(ApiClientRetrofitModule.create())

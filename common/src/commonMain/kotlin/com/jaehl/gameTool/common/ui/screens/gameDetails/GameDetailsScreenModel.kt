@@ -15,7 +15,7 @@ class GameDetailsScreenModel(
     val itemImporter : ItemImporter
 ) : ScreenModel {
 
-    var pageLoading = mutableStateOf<Boolean>(false)
+    var pageLoading = mutableStateOf(false)
 
     var gameTitle = mutableStateOf("")
 

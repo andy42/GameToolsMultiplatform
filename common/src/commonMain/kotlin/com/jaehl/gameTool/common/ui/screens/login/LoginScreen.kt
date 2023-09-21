@@ -1,6 +1,5 @@
 package com.jaehl.gameTool.common.ui.screens.login
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -17,9 +16,8 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.jaehl.gameTool.common.ui.componets.StyledOutlinedTextField
 import com.jaehl.gameTool.common.ui.screens.home.HomeScreen
 
-class LoginScreen() : Screen{
+class LoginScreen : Screen{
 
-    @OptIn(ExperimentalFoundationApi::class)
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
@@ -28,7 +26,6 @@ class LoginScreen() : Screen{
         if(screenModel.navigateToHome.value) {
             LaunchedEffect(Unit){
                 navigator.push(HomeScreen())
-                //screenModel.onNavigatedToHome()
             }
         }
 

@@ -7,7 +7,7 @@ data class User(
     val userName : String,
     val role : Role
 ) {
-    enum class Role(){
+    enum class Role{
         @SerializedName("User")
         User,
         @SerializedName("Admin")

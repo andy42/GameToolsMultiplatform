@@ -12,7 +12,7 @@ class AuthProviderImp : AuthProvider {
     private var accessToken : AccessToken = AccessToken("")
 
     override fun getBearerToken(): String {
-        return "$bearerToken ${accessToken.token}"
+        return "$BEARER_TOKEN ${accessToken.token}"
     }
 
     override fun saveToken(accessToken: AccessToken) {
@@ -20,6 +20,6 @@ class AuthProviderImp : AuthProvider {
     }
 
     companion object {
-        private const val bearerToken = "Bearer"
+        private const val BEARER_TOKEN = "Bearer"
     }
 }

@@ -17,7 +17,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             val di = DI {
-                bind<AppConfig>() { provider { AppConfig(baseUrl = "http://192.168.1.112:8080") }}
+                bind<AppConfig> { provider { AppConfig(baseUrl = "http://192.168.1.112:8080") }}
                 import(DataModule.create())
                 import(ScreenModule.create())
                 import(ApiClientRetrofitModule.create())

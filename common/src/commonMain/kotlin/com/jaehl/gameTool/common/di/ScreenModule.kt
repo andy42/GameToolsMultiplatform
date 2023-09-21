@@ -43,7 +43,7 @@ object ScreenModule {
                 instance<GameRepo>()
             )}}
 
-        bind<GameDetailsScreenModel>() { factory {config : GameDetailsScreenModel.Config ->
+        bind<GameDetailsScreenModel> { factory {config : GameDetailsScreenModel.Config ->
             GameDetailsScreenModel(
                 instance<JobDispatcher>(),
                 config = config,
@@ -52,7 +52,7 @@ object ScreenModule {
             )
         }}
 
-        bind<ItemListScreenModel>() { factory {config : ItemListScreenModel.Config ->
+        bind<ItemListScreenModel> { factory {config : ItemListScreenModel.Config ->
             ItemListScreenModel(
                 instance<JobDispatcher>(),
                 instance<AuthProvider>(),
@@ -62,7 +62,7 @@ object ScreenModule {
             )
         }}
 
-        bind<ItemDetailsScreenModel>() { factory {config : ItemDetailsScreenModel.Config ->
+        bind<ItemDetailsScreenModel> { factory {config : ItemDetailsScreenModel.Config ->
             ItemDetailsScreenModel(
                 instance<JobDispatcher>(),
                 instance<AuthProvider>(),
@@ -74,7 +74,7 @@ object ScreenModule {
             )
         }}
 
-        bind<ItemEditScreenModel>() { factory {config : ItemEditScreenModel.Config ->
+        bind<ItemEditScreenModel> { factory {config : ItemEditScreenModel.Config ->
             ItemEditScreenModel(
                 instance<JobDispatcher>(),
                 config = config,

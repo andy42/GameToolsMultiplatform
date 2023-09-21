@@ -31,7 +31,7 @@ class CollectionEditScreenModel (
     private lateinit var config : Config
 
     val title = mutableStateOf("")
-    val collectionName = mutableStateOf<TextFieldValue>(TextFieldValue())
+    val collectionName = mutableStateOf(TextFieldValue())
     val groupList = mutableStateListOf<GroupViewModel>()
     val itemModels = mutableStateListOf<ItemModel>()
 
