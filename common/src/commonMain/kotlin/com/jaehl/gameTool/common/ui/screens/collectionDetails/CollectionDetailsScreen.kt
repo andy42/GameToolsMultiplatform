@@ -250,12 +250,6 @@ fun Item(itemViewModel : ItemAmountViewModel, onItemClick : (itemId : Int) -> Un
 
             verticalAlignment = Alignment.CenterVertically
         ) {
-//            ItemIcon(
-//                iconPath = itemViewModel.item.iconPath,
-//                modifier = Modifier
-//                    .padding(start = 5.dp, end = 5.dp, top = 10.dp, bottom = 10.dp),
-//                size = 70.dp
-//            )
             ItemIcon(
                 imageResource = itemViewModel.itemModel.iconPath,
                 modifier = Modifier
