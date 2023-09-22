@@ -264,20 +264,24 @@ fun ItemEditPage(
                 }
 
                 Column {
-                    viewModel.recipeList.forEachIndexed { index, recipeViewModel ->
-                        if (!recipeViewModel.isDeleted) {
-                            RecipeCard(
-                                recipeIndex = index,
-                                recipe = recipeViewModel,
-                                openItemPicker = openItemPicker,
-                                onItemAmountChange = onItemAmountChange,
-                                onItemAmountDelete = onItemAmountDelete,
-                                onAddRecipeCraftedAtClick = onAddRecipeCraftedAtClick,
-                                onRecipeCraftedAtDelete = onRecipeCraftedAtDelete,
-                                onRecipeDelete = onRecipeDelete
-                            )
+                    viewModel.recipeList
+                        .filter {
+                            !it.isDeleted
                         }
-                    }
+                        .forEachIndexed { index, recipeViewModel ->
+                            if (!recipeViewModel.isDeleted) {
+                                RecipeCard(
+                                    recipeIndex = index,
+                                    recipe = recipeViewModel,
+                                    openItemPicker = openItemPicker,
+                                    onItemAmountChange = onItemAmountChange,
+                                    onItemAmountDelete = onItemAmountDelete,
+                                    onAddRecipeCraftedAtClick = onAddRecipeCraftedAtClick,
+                                    onRecipeCraftedAtDelete = onRecipeCraftedAtDelete,
+                                    onRecipeDelete = onRecipeDelete
+                                )
+                            }
+                        }
                 }
                 if (viewModel.allowAddRecipes) {
                     Box(

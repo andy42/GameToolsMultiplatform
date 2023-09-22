@@ -19,7 +19,6 @@ fun ScreenModel.launchIo(
         catch (t: Throwable) {
             onException(t)
         }
-
     }
 }
 

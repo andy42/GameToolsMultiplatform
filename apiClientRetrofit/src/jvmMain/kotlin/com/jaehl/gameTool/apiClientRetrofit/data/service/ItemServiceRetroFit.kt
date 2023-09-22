@@ -41,9 +41,10 @@ class ItemServiceRetroFit(
         ).baseBody()
     }
 
-    override fun updateItem(game: Int, name: String, categories: List<Int>, image: Int): Item {
+    override fun updateItem(itemId : Int, game: Int, name: String, categories: List<Int>, image: Int): Item {
         return serverApi.updateItem(
             bearerToken = authProvider.getBearerToken(),
+            id = itemId,
             data = UpdateItemRequest(
                 game = game,
                 name = name,

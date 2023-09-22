@@ -14,6 +14,7 @@ interface ItemService {
     ) : Item
 
     fun updateItem(
+        itemId : Int,
         game: Int,
         name : String,
         categories : List<Int>,

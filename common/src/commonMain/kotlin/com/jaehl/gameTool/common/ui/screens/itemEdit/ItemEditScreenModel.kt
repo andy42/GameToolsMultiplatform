@@ -8,6 +8,7 @@ import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.AppConfig
 import com.jaehl.gameTool.common.data.AuthProvider
 import com.jaehl.gameTool.common.data.model.Item
+import com.jaehl.gameTool.common.data.model.ItemAmount
 import com.jaehl.gameTool.common.data.model.ItemCategory
 import com.jaehl.gameTool.common.data.repo.ItemRepo
 import com.jaehl.gameTool.common.data.repo.RecipeRepo
@@ -282,10 +283,15 @@ class ItemEditScreenModel(
         updateRecipeFromMap()
     }
 
-
-
-    fun onDeleteRecipe(recipeId : Int) {
-        recipeMap.remove(recipeId)
+    fun onDeleteRecipe(recipeId : Int) = runWithCatch(::onException) {
+        val recipe = recipeMap[recipeId] ?: throw Exception("recipeId not found $recipeId")
+        if(recipe.serverID == null){
+            recipeMap.remove(recipeId)
+        } else {
+            recipeMap[recipe.id] = recipe.copy(
+                isDeleted = true
+            )
+        }
         updateRecipeFromMap()
     }
 
@@ -334,11 +340,37 @@ class ItemEditScreenModel(
         }
 
         val item = itemRepo.updateItem(
+            itemId = config.itemId ?: throw Exception("config itemId null"),
             game = config.gameId,
             name = viewModel.value.itemName.value,
             categories = viewModel.value.itemCategories.map { it.id },
             image = imageId
         )
+
+       viewModel.value.recipeList.forEach { recipeViewModel ->
+           if(recipeViewModel.isDeleted){
+               recipeViewModel.serverID ?: throw Exception("")
+               recipeRepo.deleteRecipe(recipeViewModel.serverID)
+           }
+           else if (recipeViewModel.serverID == null) {
+               recipeRepo.createRecipes(
+                   gameId = config.gameId,
+                   craftedAt = recipeViewModel.craftingAtList.map { it.id },
+                   input = recipeViewModel.input.map { ItemAmount(it.itemModel.id, it.amount) },
+                   output = recipeViewModel.output.map { ItemAmount(it.itemModel.id, it.amount) }
+               )
+           }
+           else {
+               recipeRepo.updateRecipes(
+                   recipeId = recipeViewModel.serverID,
+                   gameId = config.gameId,
+                   craftedAt = recipeViewModel.craftingAtList.map { it.id },
+                   input = recipeViewModel.input.map { ItemAmount(it.itemModel.id, it.amount) },
+                   output = recipeViewModel.output.map { ItemAmount(it.itemModel.id, it.amount) }
+               )
+           }
+       }
+
         loadItem(item.id)
     }
 

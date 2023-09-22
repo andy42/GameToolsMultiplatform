@@ -5,6 +5,7 @@ import com.jaehl.gameTool.apiClientRetrofit.data.model.baseBody
 import com.jaehl.gameTool.apiClientRetrofit.data.model.request.AddItemRequest
 import com.jaehl.gameTool.apiClientRetrofit.data.model.request.AddRecipeRequest
 import com.jaehl.gameTool.apiClientRetrofit.data.model.request.RecipeAmountRequest
+import com.jaehl.gameTool.apiClientRetrofit.data.model.request.UpdateRecipeRequest
 import com.jaehl.gameTool.common.data.AuthProvider
 import com.jaehl.gameTool.common.data.model.ItemAmount
 import com.jaehl.gameTool.common.data.model.Recipe
@@ -45,5 +46,37 @@ class RecipeServiceRetroFit(
                 },
             )
         ).baseBody()
+    }
+
+    override fun updateRecipes(
+        recipeId: Int,
+        gameId: Int,
+        craftedAt: List<Int>,
+        input: List<ItemAmount>,
+        output: List<ItemAmount>
+    ): Recipe {
+        return serverApi.updateRecipe(
+            bearerToken = authProvider.getBearerToken(),
+            id = recipeId,
+            data = UpdateRecipeRequest(
+                gameId = gameId,
+                craftedAt = craftedAt,
+                input = input.map { RecipeAmountRequest(
+                    itemId = it.itemId,
+                    amount = it.amount)
+                },
+                output = output.map { RecipeAmountRequest(
+                    itemId = it.itemId,
+                    amount = it.amount)
+                },
+            )
+        ).baseBody()
+    }
+
+    override fun deleteRecipe(recipeId: Int) {
+        serverApi.deleteRecipe(
+            bearerToken = authProvider.getBearerToken(),
+            id = recipeId
+        ).execute()
     }
 }

@@ -18,7 +18,9 @@ interface ItemRepo {
         categories : List<Int>,
         image : Int
     ) : Item
+
     fun updateItem(
+        itemId : Int,
         game: Int,
         name : String,
         categories : List<Int>,
@@ -78,12 +80,14 @@ class ItemRepoImp(
     }
 
     override fun updateItem(
+        itemId : Int,
         game: Int,
         name : String,
         categories : List<Int>,
         image : Int
     ): Item {
         val item = itemService.updateItem(
+            itemId = itemId,
             game = game,
             name = name,
             categories = categories,

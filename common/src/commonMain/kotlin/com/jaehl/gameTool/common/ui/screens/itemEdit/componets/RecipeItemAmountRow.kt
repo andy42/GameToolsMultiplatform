@@ -39,7 +39,7 @@ fun RecipeItemAmountRow(
             onClick = {
                 openItemPicker(recipeId,isInput, itemAmount.itemModel.id)
             },
-            border = BorderStroke(1.dp, Color.Red),
+            border = BorderStroke(1.dp, MaterialTheme.colors.secondary),
         ){
             Row(
                 verticalAlignment = Alignment.CenterVertically
