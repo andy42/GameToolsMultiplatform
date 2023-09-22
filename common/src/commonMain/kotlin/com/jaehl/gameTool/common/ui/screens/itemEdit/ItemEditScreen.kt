@@ -4,8 +4,6 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -20,6 +18,8 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.jaehl.gameTool.common.data.model.ItemCategory
 import com.jaehl.gameTool.common.ui.componets.*
+import com.jaehl.gameTool.common.ui.screens.itemEdit.componets.ItemCategoryChip
+import com.jaehl.gameTool.common.ui.screens.itemEdit.componets.RecipeColumn
 
 class ItemEditScreen(
     private val gameId : Int,
@@ -65,6 +65,22 @@ class ItemEditScreen(
             },
             onIconChange = { filePath ->
                 screenModel.onIconChange(filePath)
+            },
+
+            openItemPicker = { recipeId, isInput, itemId ->  
+                             
+            },
+            onItemAmountChange = { recipeId, isInput, itemId, amount ->  
+                                 
+            },
+            onItemAmountDelete = { recipeId, isInput, itemId ->  
+                                 
+            },
+            onRecipeCraftedAtDelete = { recipeId, itemId ->  
+                                      
+            },
+            onRecipeDelete = {recipeId ->  
+                
             }
         )
 
@@ -95,7 +111,13 @@ fun ItemEditPage(
     onOpenItemCategoriesPicker : () -> Unit,
     onRecipeAddClick : () -> Unit,
     onItemCategoryDeleteClick : (itemCategory : ItemCategory) -> Unit,
-    onIconChange : (filePath : String) -> Unit
+    onIconChange : (filePath : String) -> Unit,
+
+    openItemPicker : (recipeId : Int, isInput : Boolean, itemId : Int?) -> Unit,
+    onItemAmountChange : (recipeId : Int, isInput : Boolean, itemId : Int, amount : String) -> Unit,
+    onItemAmountDelete : (recipeId : Int, isInput : Boolean, itemId : Int) -> Unit,
+    onRecipeCraftedAtDelete : (recipeId : Int, itemId : Int) -> Unit,
+    onRecipeDelete : (recipeId : Int) -> Unit
 
 ) {
     val state : ScrollState = rememberScrollState()
@@ -156,7 +178,7 @@ fun ItemEditPage(
 
 
                     Text(text = "Categories", modifier = Modifier.padding(top = 20.dp))
-                    FlowRow(modifier = Modifier) {
+                    FlowRow(modifier = Modifier, verticalArrangement = Arrangement.Center) {
                         viewModel.itemCategories.forEach { itemCategory ->
                             ItemCategoryChip(
                                 itemCategory,
@@ -176,11 +198,15 @@ fun ItemEditPage(
                 Column {
                     viewModel.recipeList.forEachIndexed { index, recipeViewModel ->
                         if (!recipeViewModel.isDeleted) {
-//                            RecipeColumn(
-//                                viewModel = viewModel,
-//                                recipeIndex = index,
-//                                recipe = recipeViewModel
-//                            )
+                            RecipeColumn(
+                                recipeIndex = index,
+                                recipe = recipeViewModel,
+                                openItemPicker = openItemPicker,
+                                onItemAmountChange = onItemAmountChange,
+                                onItemAmountDelete = onItemAmountDelete,
+                                onRecipeCraftedAtDelete = onRecipeCraftedAtDelete,
+                                onRecipeDelete = onRecipeDelete
+                            )
                         }
                     }
                 }
@@ -210,28 +236,4 @@ fun ItemEditPage(
     }
 }
 
-@Composable
-fun ItemCategoryChip(
-    itemCategory : ItemCategory,
-    onItemCategoryDeleteClick : (itemCategory : ItemCategory) -> Unit
-){
-    Row(
-        modifier = Modifier
-            .padding(top = 5.dp, end = 10.dp, bottom = 5.dp)
-            .clip(RoundedCornerShape(10.dp))
-            .background(MaterialTheme.colors.primary)
-            .padding(start = 10.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ){
-        Text(
-            text = itemCategory.name,
-            color = MaterialTheme.colors.onPrimary,
-            modifier = Modifier
-                .padding(start = 5.dp))
-        IconButton(content = {
-            Icon(Icons.Outlined.Delete, "delete", tint = MaterialTheme.colors.onPrimary)
-        }, onClick = {
-            onItemCategoryDeleteClick(itemCategory)
-        })
-    }
-}
+

@@ -10,9 +10,12 @@ import com.jaehl.gameTool.common.data.AuthProvider
 import com.jaehl.gameTool.common.data.model.Item
 import com.jaehl.gameTool.common.data.model.ItemCategory
 import com.jaehl.gameTool.common.data.repo.ItemRepo
+import com.jaehl.gameTool.common.data.repo.RecipeRepo
 import com.jaehl.gameTool.common.data.service.ImageService
 import com.jaehl.gameTool.common.extensions.post
 import com.jaehl.gameTool.common.extensions.postSwap
+import com.jaehl.gameTool.common.extensions.toItemAmountViewModel
+import com.jaehl.gameTool.common.extensions.toItemModel
 import com.jaehl.gameTool.common.ui.componets.ImageResource
 import com.jaehl.gameTool.common.ui.componets.TextFieldValue
 import com.jaehl.gameTool.common.ui.screens.launchIo
@@ -24,6 +27,7 @@ import java.io.File
 class ItemEditScreenModel(
     val jobDispatcher : JobDispatcher,
     val itemRepo: ItemRepo,
+    val recipeRepo: RecipeRepo,
     val imageService : ImageService,
     val appConfig : AppConfig,
     val authProvider: AuthProvider,
@@ -80,6 +84,24 @@ class ItemEditScreenModel(
         title.value = "Update Item"
         val item = itemRepo.getItem(itemId) ?: throw Exception("loadItem Item not found : $itemId")
         this.item = item
+
+        recipeRepo.updateIfNotLoaded(config.gameId)
+        val recipes = recipeRepo.getRecipesForOutput(itemId).map { recipe ->
+            RecipeViewModel(
+                id = recipe.id,
+                isDeleted = false,
+                craftingAtList = recipe.craftedAt.map { itemId ->
+                    itemRepo.getItem(itemId)?.toItemModel(appConfig, authProvider) ?: throw Exception("item not found : $itemId")
+                },
+                input = recipe.input.map { itemAmount ->
+                    itemAmount.toItemAmountViewModel(itemRepo, appConfig, authProvider)
+                },
+                output = recipe.output.map { itemAmount ->
+                    itemAmount.toItemAmountViewModel(itemRepo, appConfig, authProvider)
+                }
+            )
+        }
+
         viewModel.post(
             ViewModel(
                 itemName = TextFieldValue(value = item.name),
@@ -88,9 +110,12 @@ class ItemEditScreenModel(
                     authHeader = authProvider.getBearerToken()
                 ),
                 itemCategories = item.categories,
-                allowAddRecipes = true
+                allowAddRecipes = true,
+                recipeList = recipes
             )
         )
+
+
         updateItemCategories()
         this.pageLoading.value = false
     }
@@ -246,11 +271,10 @@ class ItemEditScreenModel(
     )
 
     data class RecipeViewModel(
-        var id : String = "",
-        var name : String = "",
+        var id : Int,
         var isDeleted : Boolean = false,
-        var craftingAtList: ArrayList<ItemModel> = arrayListOf(),
-        var input : ArrayList<ItemAmountViewModel> = arrayListOf(),
-        var output : ArrayList<ItemAmountViewModel> = arrayListOf()
+        var craftingAtList: List<ItemModel> = arrayListOf(),
+        var input : List<ItemAmountViewModel> = arrayListOf(),
+        var output : List<ItemAmountViewModel> = arrayListOf()
     )
 }

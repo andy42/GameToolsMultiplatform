@@ -101,11 +101,11 @@ fun GamesCard(
             Text(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colors.primary)
+                    .background(MaterialTheme.colors.secondary)
                     .padding(10.dp),
-                color = MaterialTheme.colors.onPrimary,
+                color = MaterialTheme.colors.onSecondary,
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.SemiBold,
                 text = "Games"
             )
             games.forEachIndexed{ index, gameModel ->
@@ -113,7 +113,6 @@ fun GamesCard(
             }
         }
     }
-
 }
 
 @Composable

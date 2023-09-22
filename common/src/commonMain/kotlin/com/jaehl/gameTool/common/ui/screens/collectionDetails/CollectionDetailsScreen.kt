@@ -187,11 +187,11 @@ fun Section(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.colors.primary)
+                .background(MaterialTheme.colors.secondary)
         ) {
             Text(
                 text = group.name,
-                color = MaterialTheme.colors.onPrimary,
+                color = MaterialTheme.colors.onSecondary,
                 modifier = Modifier.padding(15.dp)
             )
             Row(

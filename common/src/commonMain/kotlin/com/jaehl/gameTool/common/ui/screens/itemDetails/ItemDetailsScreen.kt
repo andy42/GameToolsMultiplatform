@@ -177,12 +177,12 @@ fun Recipe(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colors.primary)
+                    .background(MaterialTheme.colors.secondary)
 
             ) {
                 Text(
                     text = "Recipe ${recipeIndex + 1}",
-                    color = MaterialTheme.colors.onPrimary,
+                    color = MaterialTheme.colors.onSecondary,
                     modifier = Modifier.padding(15.dp)
                 )
                 Row(
@@ -309,7 +309,7 @@ fun CraftedAtChip(
         modifier = Modifier
             .padding(top = 5.dp, end = 10.dp, bottom = 5.dp)
             .clip(RoundedCornerShape(10.dp))
-            .background(MaterialTheme.colors.primary)
+            .background(MaterialTheme.colors.secondary)
             .clickable {
                 onItemClick?.invoke(item.id)
             }
@@ -322,7 +322,7 @@ fun CraftedAtChip(
         )
         Text(
             text = item.name,
-            color = MaterialTheme.colors.onPrimary,
+            color = MaterialTheme.colors.onSecondary,
             modifier = Modifier
                 .padding(start = 5.dp)
         )
@@ -334,7 +334,7 @@ fun ItemQuickInfo(item : ItemInfoModel, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .width(250.dp)
-            .background(MaterialTheme.colors.primary)
+            .background(MaterialTheme.colors.secondary)
     ) {
         ItemQuickInfoheading(item.name)
         item.iconPath?.let { iconPath ->
@@ -365,7 +365,7 @@ fun ItemQuickInfoheading(text : String) {
     ) {
         Text(
             text = text,
-            color = MaterialTheme.colors.onPrimary,
+            color = MaterialTheme.colors.onSecondary,
             modifier = Modifier
                 .padding(top = 10.dp, bottom = 10.dp)
                 .align(Alignment.Center),

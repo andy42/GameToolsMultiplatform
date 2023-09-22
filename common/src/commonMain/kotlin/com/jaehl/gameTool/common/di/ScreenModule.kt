@@ -79,6 +79,7 @@ object ScreenModule {
             ItemEditScreenModel(
                 instance<JobDispatcher>(),
                 itemRepo = instance<ItemRepo>(),
+                recipeRepo = instance<RecipeRepo>(),
                 imageService = instance<ImageService>(),
                 instance<AppConfig>(),
                 instance<AuthProvider>(),
