@@ -5,7 +5,7 @@ plugins {
     id("org.jetbrains.compose")
 }
 
-val voyagerVersion = "1.0.0-rc05"
+val voyagerVersion = findProperty("voyager.version") as String
 val composeVersion = findProperty("compose.version") as String
 val kodeinVersion = findProperty("kodein.version") as String
 val coroutinesVersion = findProperty("coroutinesVersion.version") as String

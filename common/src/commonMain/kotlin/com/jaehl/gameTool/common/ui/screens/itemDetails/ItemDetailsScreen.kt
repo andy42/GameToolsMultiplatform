@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowDropDown
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.List
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -24,6 +25,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.jaehl.gameTool.common.ui.AppColor
 import com.jaehl.gameTool.common.ui.componets.*
+import com.jaehl.gameTool.common.ui.screens.itemEdit.ItemEditScreen
 import com.jaehl.gameTool.common.ui.viewModel.ItemModel
 
 class ItemDetailsScreen(
@@ -34,9 +36,7 @@ class ItemDetailsScreen(
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        val screenModel = rememberScreenModel<ItemDetailsScreenModel.Config, ItemDetailsScreenModel>(
-            arg = ItemDetailsScreenModel.Config(gameId = gameId, itemId = itemId)
-        )
+        val screenModel = rememberScreenModel<ItemDetailsScreenModel>()
         LaunchedEffect(itemId){
             screenModel.update(
                 ItemDetailsScreenModel.Config(
@@ -57,6 +57,14 @@ class ItemDetailsScreen(
                     gameId = gameId,
                     itemId = clickedItemId
                 ))
+            },
+            onEditClick = {
+                navigator.push(
+                    ItemEditScreen(
+                        gameId = gameId,
+                        itemId = itemId
+                    )
+                )
             }
         )
     }
@@ -86,7 +94,8 @@ fun ItemDetailsPage(
     itemInfo : ItemInfoModel,
     recipes : List<RecipeViewModel>,
     onBackClick : ()-> Unit,
-    onItemClick : (clickedItemId : Int) -> Unit
+    onItemClick : (clickedItemId : Int) -> Unit,
+    onEditClick : () -> Unit
 ) {
     val state : ScrollState = rememberScrollState()
     Column(
@@ -99,6 +108,13 @@ fun ItemDetailsPage(
             backButtonEnabled = true,
             onBackClick = {
                 onBackClick()
+            },
+            actions = {
+                IconButton(content = {
+                    Icon(Icons.Outlined.Edit, "Edit", tint = MaterialTheme.colors.onPrimary)
+                }, onClick = {
+                    onEditClick()
+                })
             }
         )
         Box(

@@ -24,12 +24,13 @@ import kotlinx.coroutines.launch
 class ItemDetailsScreenModel(
     val jobDispatcher : JobDispatcher,
     val authProvider: AuthProvider,
-    var config : Config,
     val itemRepo: ItemRepo,
     val recipeRepo: RecipeRepo,
     val appConfig: AppConfig,
     val itemRecipeNodeUtil : ItemRecipeNodeUtil
 ) : ScreenModel {
+
+    private lateinit var config : Config
 
     var pageLoading = mutableStateOf<Boolean>(false)
     var itemInfo = mutableStateOf(ItemInfoModel())

@@ -10,6 +10,8 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,9 +20,11 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.kodein.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.jaehl.gameTool.common.data.model.ItemCategory
 import com.jaehl.gameTool.common.ui.AppColor
 import com.jaehl.gameTool.common.ui.componets.AppBar
 import com.jaehl.gameTool.common.ui.componets.CustomVerticalScrollbar
+import com.jaehl.gameTool.common.ui.componets.ItemCategoryPickDialog
 import com.jaehl.gameTool.common.ui.componets.ItemIcon
 import com.jaehl.gameTool.common.ui.screens.itemDetails.ItemDetailsScreen
 import com.jaehl.gameTool.common.ui.screens.itemEdit.ItemEditScreen
@@ -36,14 +40,23 @@ class ItemListScreen(
             arg = ItemListScreenModel.Config(gameId = gameId)
         )
 
+        val searchText = remember { mutableStateOf("") }
+        val categoryFilter = remember { mutableStateOf(ItemListScreenModel.Item_Category_ALL) }
+        val isItemCategoryPickerOpen = remember { mutableStateOf(false) }
+
         ItemListPage(
             items = screenModel.items,
-            searchText = "",
-            filterCategory = "",
+            searchText = searchText.value,
+            filterCategory = categoryFilter.value,
             onBackClick = {
                 navigator.pop()
             },
-            onSearchTextChange = {},
+            onSearchTextChange = {
+                searchText.value = it
+            },
+            onCategoryFilterClick = {
+                isItemCategoryPickerOpen.value = true
+            },
             onItemClick = { itemId ->
                 navigator.push(ItemDetailsScreen(
                     gameId = gameId,
@@ -58,34 +71,19 @@ class ItemListScreen(
             }
         )
 
-//        Column(
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .background(Color.Gray)
-//        ) {
-//            AppBar(
-//                title = "ItemList",
-//                backButtonEnabled = true,
-//                onBackClick = {
-//                    navigator.pop()
-//                }
-//            )
-//            Box(
-//                modifier = Modifier
-//                    .fillMaxSize()
-//
-//            ) {
-//                Card(
-//                    modifier = Modifier
-//                        .width(300.dp)
-//                        .height(400.dp)
-//                        .align(Alignment.Center)
-//                ) {
-//                    Text("Test")
-//                }
-//            }
-//        }
-
+        if(isItemCategoryPickerOpen.value){
+            ItemCategoryPickDialog(
+                title = "Category",
+                categoryList = screenModel.itemCategories,
+                onCategoryClick = { itemCategory ->
+                    categoryFilter.value = itemCategory
+                    isItemCategoryPickerOpen.value = false
+                },
+                onClose = {
+                    isItemCategoryPickerOpen.value = false
+                }
+            )
+        }
     }
 }
 
@@ -93,15 +91,14 @@ class ItemListScreen(
 fun ItemListPage(
     items : List<ItemRowModel>,
     searchText : String,
-    filterCategory : String,
+    filterCategory : ItemCategory,
     onBackClick : ()-> Unit,
     onSearchTextChange : (value : String) -> Unit,
+    onCategoryFilterClick : () -> Unit,
     onItemClick : (itemId : Int) -> Unit,
     onItemEditClick : (itemId : Int?) -> Unit
 
 ) {
-    //var isItemCategoryPickOpen by remember { mutableStateOf(false) }
-
     Column(modifier = Modifier) {
         AppBar(
             title = "Items",
@@ -147,19 +144,32 @@ fun ItemListPage(
                         .padding(start = 10.dp)
                 ) {
                     OutlinedTextField(
-                        value = filterCategory,
+                        value = filterCategory.name,
                         onValueChange = { },
                         label = { Text("Filter Category") }
                     )
                     Box(modifier = Modifier
                         .matchParentSize()
                         .clickable {
-                            //isItemCategoryPickOpen = true
+                            onCategoryFilterClick()
                         })
                 }
             }
 
-            ItemList(items, onItemClick, onItemEditClick)
+            ItemList(
+                items
+                    .filter { it.name.contains(searchText, ignoreCase = true)}
+                    .filter {
+                        if(filterCategory == ItemListScreenModel.Item_Category_ALL){
+                            true
+                        }
+                        else {
+                            it.itemCategories.contains(filterCategory)
+                        }
+                    }
+                ,
+                onItemClick,
+                onItemEditClick)
         }
     }
 }

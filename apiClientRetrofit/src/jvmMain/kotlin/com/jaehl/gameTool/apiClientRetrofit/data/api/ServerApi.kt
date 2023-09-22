@@ -91,6 +91,12 @@ interface ServerApi {
         @Body data : AddItemRequest
     ) : Call<Response<Item>>
 
+    @POST("items/{id}")
+    fun updateItem(
+        @Header("Authorization") bearerToken : String,
+        @Body data : UpdateItemRequest
+    ) : Call<Response<Item>>
+
     @GET("items/Categories")
     fun getItemCategories(
         @Header("Authorization") bearerToken : String

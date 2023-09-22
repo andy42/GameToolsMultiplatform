@@ -4,6 +4,7 @@ import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.AppConfig
 import com.jaehl.gameTool.common.data.AuthProvider
 import com.jaehl.gameTool.common.data.repo.*
+import com.jaehl.gameTool.common.data.service.ImageService
 import com.jaehl.gameTool.common.ui.screens.collectionDetails.CollectionDetailsScreenModel
 import com.jaehl.gameTool.common.ui.screens.collectionList.CollectionListScreenModel
 import com.jaehl.gameTool.common.ui.screens.gameDetails.GameDetailsScreenModel
@@ -17,6 +18,7 @@ import com.jaehl.gameTool.common.ui.screens.login.LoginValidator
 import com.jaehl.gameTool.common.ui.screens.login.RegisterValidator
 import com.jaehl.gameTool.common.ui.screens.users.UsersScreenModel
 import com.jaehl.gameTool.common.ui.screens.collectionEdit.CollectionEditScreenModel
+import com.jaehl.gameTool.common.ui.screens.itemEdit.ItemEditValidator
 import com.jaehl.gameTool.common.ui.util.ItemRecipeNodeUtil
 import org.kodein.di.*
 
@@ -62,25 +64,26 @@ object ScreenModule {
             )
         }}
 
-        bind<ItemDetailsScreenModel> { factory {config : ItemDetailsScreenModel.Config ->
+        bind<ItemDetailsScreenModel> { provider {
             ItemDetailsScreenModel(
                 instance<JobDispatcher>(),
                 instance<AuthProvider>(),
-                config = config,
                 itemRepo = instance<ItemRepo>(),
                 instance<RecipeRepo>(),
                 instance<AppConfig>(),
                 instance<ItemRecipeNodeUtil>()
-            )
-        }}
+            )}}
 
-        bind<ItemEditScreenModel> { factory {config : ItemEditScreenModel.Config ->
+
+        bind<ItemEditScreenModel> { provider {
             ItemEditScreenModel(
                 instance<JobDispatcher>(),
-                config = config,
-                itemRepo = instance<ItemRepo>()
-            )
-        }}
+                itemRepo = instance<ItemRepo>(),
+                imageService = instance<ImageService>(),
+                instance<AppConfig>(),
+                instance<AuthProvider>(),
+                ItemEditValidator()
+            )}}
 
         bind<CollectionDetailsScreenModel> { provider {
             CollectionDetailsScreenModel(
