@@ -19,7 +19,19 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.jaehl.gameTool.common.data.model.ItemCategory
 import com.jaehl.gameTool.common.ui.componets.*
 import com.jaehl.gameTool.common.ui.screens.itemEdit.componets.ItemCategoryChip
-import com.jaehl.gameTool.common.ui.screens.itemEdit.componets.RecipeColumn
+import com.jaehl.gameTool.common.ui.screens.itemEdit.componets.RecipeCard
+
+sealed class ItemPickerType {
+    data class ItemRecipePicker(
+        val recipeId: Int,
+        val isInput : Boolean,
+        val itemId : Int?
+    ) : ItemPickerType()
+    data object ItemPickerClosed : ItemPickerType()
+    data class ItemCraftedAtPicker(
+        val recipeId: Int
+    ) : ItemPickerType()
+}
 
 class ItemEditScreen(
     private val gameId : Int,
@@ -32,6 +44,8 @@ class ItemEditScreen(
         val screenModel = rememberScreenModel<ItemEditScreenModel>()
 
         var isItemCategoryPickOpen = remember { mutableStateOf(false) }
+        var itemPickerType = remember { mutableStateOf<ItemPickerType>(ItemPickerType.ItemPickerClosed) }
+        var itemPickerSearchText = remember { mutableStateOf("") }
 
         LaunchedEffect(itemId) {
             screenModel.setup(
@@ -58,7 +72,7 @@ class ItemEditScreen(
                 isItemCategoryPickOpen.value = true
             },
             onRecipeAddClick = {
-
+                screenModel.onRecipeAdd()
             },
             onItemCategoryDeleteClick = { itemCategory ->
                 screenModel.onItemCategoryDelete(itemCategory)
@@ -67,20 +81,29 @@ class ItemEditScreen(
                 screenModel.onIconChange(filePath)
             },
 
-            openItemPicker = { recipeId, isInput, itemId ->  
-                             
+            openItemPicker = { recipeId, isInput, itemId ->
+                itemPickerType.value = ItemPickerType.ItemRecipePicker(
+                    recipeId = recipeId,
+                    isInput = isInput,
+                    itemId = itemId
+                )
             },
-            onItemAmountChange = { recipeId, isInput, itemId, amount ->  
-                                 
+            onItemAmountChange = { recipeId, isInput, itemId, amount ->
+                screenModel.onUpdateItemAmountAmount(recipeId, isInput,itemId, amount)
             },
-            onItemAmountDelete = { recipeId, isInput, itemId ->  
-                                 
+            onItemAmountDelete = { recipeId, isInput, itemId ->
+                screenModel.onDeleteItemAmount(recipeId, isInput,itemId)
             },
-            onRecipeCraftedAtDelete = { recipeId, itemId ->  
-                                      
+            onAddRecipeCraftedAtClick = { recipeId ->
+                itemPickerType.value = ItemPickerType.ItemCraftedAtPicker(
+                    recipeId = recipeId
+                )
             },
-            onRecipeDelete = {recipeId ->  
-                
+            onRecipeCraftedAtDelete = { recipeId, itemId ->
+                screenModel.onDeleteCreatedAtItem(recipeId, itemId)
+            },
+            onRecipeDelete = {recipeId ->
+                screenModel.onDeleteRecipe(recipeId)
             }
         )
 
@@ -95,6 +118,50 @@ class ItemEditScreen(
                 onClose = {
                     isItemCategoryPickOpen.value = false
                 }
+            )
+        }
+        if(itemPickerType.value !is ItemPickerType.ItemPickerClosed){
+            ItemPickDialog(
+                title = "",
+                itemList = screenModel.items.filter {
+                    it.name.contains(itemPickerSearchText.value, true)
+                },
+                isClearable = false,
+                onItemClick = { itemId : Int? ->
+                    if(itemId == null) return@ItemPickDialog
+                    when (val pickerType = itemPickerType.value) {
+                        is ItemPickerType.ItemRecipePicker -> {
+                            if(pickerType.itemId == null){
+                                screenModel.onAddItemAmount(
+                                    recipeId = pickerType.recipeId,
+                                    isInput = pickerType.isInput,
+                                    itemId = itemId)
+                            } else {
+                                screenModel.onUpdateItemAmountItem(
+                                    recipeId = pickerType.recipeId,
+                                    isInput = pickerType.isInput,
+                                    oldItemId = pickerType.itemId,
+                                    newItemId = itemId)
+                            }
+                        }
+                        is ItemPickerType.ItemCraftedAtPicker -> {
+                            screenModel.onAddCreatedAtItem(pickerType.recipeId, itemId)
+                        }
+                        else -> {}
+                    }
+
+                    itemPickerType.value = ItemPickerType.ItemPickerClosed
+                    itemPickerSearchText.value = ""
+                },
+                searchText = itemPickerSearchText.value,
+                onSearchChange = { text ->
+                    itemPickerSearchText.value = text
+                },
+                onClose = {
+                    itemPickerType.value = ItemPickerType.ItemPickerClosed
+                    itemPickerSearchText.value = ""
+                }
+
             )
         }
     }
@@ -116,6 +183,7 @@ fun ItemEditPage(
     openItemPicker : (recipeId : Int, isInput : Boolean, itemId : Int?) -> Unit,
     onItemAmountChange : (recipeId : Int, isInput : Boolean, itemId : Int, amount : String) -> Unit,
     onItemAmountDelete : (recipeId : Int, isInput : Boolean, itemId : Int) -> Unit,
+    onAddRecipeCraftedAtClick : (recipeId : Int) -> Unit,
     onRecipeCraftedAtDelete : (recipeId : Int, itemId : Int) -> Unit,
     onRecipeDelete : (recipeId : Int) -> Unit
 
@@ -198,12 +266,13 @@ fun ItemEditPage(
                 Column {
                     viewModel.recipeList.forEachIndexed { index, recipeViewModel ->
                         if (!recipeViewModel.isDeleted) {
-                            RecipeColumn(
+                            RecipeCard(
                                 recipeIndex = index,
                                 recipe = recipeViewModel,
                                 openItemPicker = openItemPicker,
                                 onItemAmountChange = onItemAmountChange,
                                 onItemAmountDelete = onItemAmountDelete,
+                                onAddRecipeCraftedAtClick = onAddRecipeCraftedAtClick,
                                 onRecipeCraftedAtDelete = onRecipeCraftedAtDelete,
                                 onRecipeDelete = onRecipeDelete
                             )

@@ -25,6 +25,18 @@ fun ScreenModel.launchIo(
 
 fun ScreenModel.runWithCatch(
     onException: (t: Throwable) -> Unit,
+    block: () -> Unit
+) {
+    try {
+        block()
+    }
+    catch (t: Throwable) {
+        onException(t)
+    }
+}
+
+fun ScreenModel.launchWithCatch(
+    onException: (t: Throwable) -> Unit,
     block: suspend () -> Unit
 ) = coroutineScope.launch {
     try {

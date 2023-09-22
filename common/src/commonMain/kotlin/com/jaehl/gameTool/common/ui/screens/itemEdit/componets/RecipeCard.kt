@@ -15,24 +15,25 @@ import com.jaehl.gameTool.common.ui.screens.itemEdit.ItemEditScreenModel
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun RecipeColumn(
+fun RecipeCard(
     recipeIndex : Int,
     recipe : ItemEditScreenModel.RecipeViewModel,
     openItemPicker : (recipeId : Int, isInput : Boolean, itemId : Int?) -> Unit,
     onItemAmountChange : (recipeId : Int, isInput : Boolean, itemId : Int, amount : String) -> Unit,
     onItemAmountDelete : (recipeId : Int, isInput : Boolean, itemId : Int) -> Unit,
+    onAddRecipeCraftedAtClick : (recipeId : Int) -> Unit,
     onRecipeCraftedAtDelete : (recipeId : Int, itemId : Int) -> Unit,
     onRecipeDelete : (recipeId : Int) -> Unit
 ){
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(end = 10.dp, top = 10.dp)
+            .padding(end = 10.dp, top = 20.dp)
             .clip(RoundedCornerShape(10.dp))
             .background(MaterialTheme.colors.surface)
             .padding(10.dp)
     ) {
-        Text(text = "Recipe ${recipeIndex + 1}")
+        Text(text = "Recipe ${recipe.id + 1}")
 
         Text(text = "Crafted At", modifier = Modifier.padding(top = 20.dp))
         FlowRow(modifier = Modifier) {
@@ -41,7 +42,7 @@ fun RecipeColumn(
             }
             Button(
                 onClick = {
-                    TODO("add item picker")
+                    onAddRecipeCraftedAtClick(recipe.id)
                     //viewModel.onOpenItemPicker(ItemEditViewModel.ItemPickerType.CreatedAt(recipeIndex))
                 },
                 modifier = Modifier

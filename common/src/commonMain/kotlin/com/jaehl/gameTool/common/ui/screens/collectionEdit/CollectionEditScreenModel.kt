@@ -16,6 +16,7 @@ import com.jaehl.gameTool.common.extensions.swap
 import com.jaehl.gameTool.common.extensions.toItemModel
 import com.jaehl.gameTool.common.ui.componets.TextFieldValue
 import com.jaehl.gameTool.common.ui.screens.launchIo
+import com.jaehl.gameTool.common.ui.screens.launchWithCatch
 import com.jaehl.gameTool.common.ui.screens.runWithCatch
 import com.jaehl.gameTool.common.ui.viewModel.ItemAmountViewModel
 import com.jaehl.gameTool.common.ui.viewModel.ItemModel
@@ -73,7 +74,7 @@ class CollectionEditScreenModel (
         System.err.println(t.message)
     }
 
-    private suspend fun loadCollection(collectionId : Int) = runWithCatch(onException = ::onException) {
+    private suspend fun loadCollection(collectionId : Int) {
         val collection = collectionRepo.getCollection(collectionId)
 
         groupAddIndex = 0

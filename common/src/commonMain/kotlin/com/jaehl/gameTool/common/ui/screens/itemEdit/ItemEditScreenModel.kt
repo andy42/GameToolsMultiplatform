@@ -19,6 +19,7 @@ import com.jaehl.gameTool.common.extensions.toItemModel
 import com.jaehl.gameTool.common.ui.componets.ImageResource
 import com.jaehl.gameTool.common.ui.componets.TextFieldValue
 import com.jaehl.gameTool.common.ui.screens.launchIo
+import com.jaehl.gameTool.common.ui.screens.runWithCatch
 import com.jaehl.gameTool.common.ui.viewModel.ItemAmountViewModel
 import com.jaehl.gameTool.common.ui.viewModel.ItemModel
 import kotlinx.coroutines.launch
@@ -44,6 +45,10 @@ class ItemEditScreenModel(
 
     private var itemCategoriesFullList = listOf<ItemCategory>()
     val itemCategories = mutableStateListOf<ItemCategory>()
+    val items = mutableStateListOf<ItemModel>()
+
+    private val recipeMap : HashMap<Int, RecipeViewModel> = hashMapOf()
+    private var recipeIndex = 0
 
     init {
         itemEditValidator.listener = this
@@ -51,10 +56,7 @@ class ItemEditScreenModel(
 
     fun setup(config : Config) {
         this.config = config
-        launchIo(
-            jobDispatcher,
-            onException = ::onException) {
-
+        launchIo(jobDispatcher, onException = ::onException) {
                 if(config.itemId != null) {
                     loadItem(config.itemId)
                 } else {
@@ -62,13 +64,16 @@ class ItemEditScreenModel(
                 }
         }
 
-        launchIo(
-            jobDispatcher,
-            onException = ::onException) {
+        launchIo(jobDispatcher, onException = ::onException) {
                 itemRepo.getItemCategories(config.gameId).collect {
                     itemCategoriesFullList = it
                     updateItemCategories()
                 }
+        }
+        launchIo(jobDispatcher, onException = ::onException) {
+            itemRepo.getItems(config.gameId).collect {
+                items.postSwap(it.map { it.toItemModel(appConfig, authProvider) })
+            }
         }
     }
 
@@ -86,21 +91,29 @@ class ItemEditScreenModel(
         this.item = item
 
         recipeRepo.updateIfNotLoaded(config.gameId)
-        val recipes = recipeRepo.getRecipesForOutput(itemId).map { recipe ->
-            RecipeViewModel(
-                id = recipe.id,
-                isDeleted = false,
-                craftingAtList = recipe.craftedAt.map { itemId ->
-                    itemRepo.getItem(itemId)?.toItemModel(appConfig, authProvider) ?: throw Exception("item not found : $itemId")
-                },
-                input = recipe.input.map { itemAmount ->
-                    itemAmount.toItemAmountViewModel(itemRepo, appConfig, authProvider)
-                },
-                output = recipe.output.map { itemAmount ->
-                    itemAmount.toItemAmountViewModel(itemRepo, appConfig, authProvider)
-                }
-            )
-        }
+
+        recipeMap.clear()
+        recipeIndex = 0
+        recipeRepo.getRecipesForOutput(itemId)
+            .map { recipe ->
+                RecipeViewModel(
+                    id = recipeIndex++,
+                    serverID = recipe.id,
+                    isDeleted = false,
+                    craftingAtList = recipe.craftedAt.map { itemId ->
+                        itemRepo.getItem(itemId)?.toItemModel(appConfig, authProvider) ?: throw Exception("item not found : $itemId")
+                    },
+                    input = recipe.input.map { itemAmount ->
+                        itemAmount.toItemAmountViewModel(itemRepo, appConfig, authProvider)
+                    },
+                    output = recipe.output.map { itemAmount ->
+                        itemAmount.toItemAmountViewModel(itemRepo, appConfig, authProvider)
+                    }
+                )
+            }
+            .forEach {
+                recipeMap[it.id] = it
+            }
 
         viewModel.post(
             ViewModel(
@@ -111,7 +124,7 @@ class ItemEditScreenModel(
                 ),
                 itemCategories = item.categories,
                 allowAddRecipes = true,
-                recipeList = recipes
+                recipeList = recipeMap.values.toList()
             )
         )
 
@@ -166,8 +179,117 @@ class ItemEditScreenModel(
         }
     }
 
-    private suspend fun saveNewItem(){
+    private fun updateRecipeFromMap(){
+        viewModel.value =
+            viewModel.value.copy(
+                recipeList = recipeMap.values.toList(),
+            )
+    }
 
+    fun onAddCreatedAtItem(recipeId : Int, itemId : Int) = runWithCatch(::onException){
+        val recipe = recipeMap[recipeId] ?: throw Exception("recipeId not found $recipeId")
+        val craftingAtList = recipe.craftingAtList.toMutableList()
+        if(craftingAtList.firstOrNull { it.id == itemId } != null) return@runWithCatch
+        val item = itemRepo.getItem(itemId)?: throw Exception("itemId not found $itemId")
+        craftingAtList.add(item.toItemModel(appConfig, authProvider))
+
+        recipeMap[recipeId] = recipe.copy(
+            craftingAtList = craftingAtList
+        )
+        updateRecipeFromMap()
+    }
+
+    fun onDeleteCreatedAtItem(recipeId : Int, itemId : Int) = runWithCatch(::onException){
+        val recipe = recipeMap[recipeId] ?: throw Exception("recipeId not found $recipeId")
+        val craftingAtList = recipe.craftingAtList.toMutableList()
+        val index = craftingAtList.indexOfFirst { it.id == itemId }
+        craftingAtList.removeAt(index)
+        recipeMap[recipeId] = recipe.copy(
+            craftingAtList = craftingAtList
+        )
+        updateRecipeFromMap()
+    }
+
+    private fun updateRecipeItemAmount(recipeId: Int, recipeViewModel: RecipeViewModel, isInput : Boolean, list : List<ItemAmountViewModel>) {
+        if(isInput) {
+            recipeMap[recipeId] = recipeViewModel.copy(
+                input = list
+            )
+        } else {
+            recipeMap[recipeId] = recipeViewModel.copy(
+                output = list
+            )
+        }
+        updateRecipeFromMap()
+    }
+
+    fun onAddItemAmount(recipeId : Int, isInput : Boolean, itemId : Int) = runWithCatch(::onException){
+        val recipe = recipeMap[recipeId] ?: throw Exception("recipeId not found $recipeId")
+        val list = (if(isInput) recipe.input else recipe.output).toMutableList()
+        val item = itemRepo.getItem(itemId)?: throw Exception("itemId not found $itemId")
+        list.add(
+            ItemAmountViewModel(
+                itemModel = item.toItemModel(appConfig, authProvider),
+                amount = 1
+            ))
+        updateRecipeItemAmount(recipeId, recipe, isInput, list)
+    }
+
+    fun onUpdateItemAmountItem(recipeId : Int, isInput : Boolean, oldItemId : Int, newItemId : Int) = runWithCatch(::onException) {
+        val recipe = recipeMap[recipeId] ?: throw Exception("recipeId not found $recipeId")
+        val list = (if(isInput) recipe.input else recipe.output).toMutableList()
+        val index = list.indexOfFirst { it.itemModel.id == oldItemId }
+        val item = itemRepo.getItem(newItemId)?: throw Exception("itemId not found $newItemId")
+        list[index] = list[index].copy(
+            itemModel = item.toItemModel(appConfig, authProvider)
+        )
+        updateRecipeItemAmount(recipeId, recipe, isInput, list)
+    }
+
+    fun onUpdateItemAmountAmount(recipeId : Int, isInput : Boolean, itemId : Int, amount : String) = runWithCatch(::onException) {
+        val recipe = recipeMap[recipeId] ?: throw Exception("recipeId not found $recipeId")
+        val list = (if(isInput) recipe.input else recipe.output).toMutableList()
+        val index = list.indexOfFirst { it.itemModel.id == itemId }
+        list[index] = list[index].copy(
+            amount = if(amount.isEmpty()) 0 else amount.toInt()
+        )
+        updateRecipeItemAmount(recipeId, recipe, isInput, list)
+    }
+
+    fun onDeleteItemAmount(recipeId : Int, isInput : Boolean, itemId : Int) = runWithCatch(::onException) {
+        val recipe = recipeMap[recipeId] ?: throw Exception("recipeId not found $recipeId")
+        val list = (if(isInput) recipe.input else recipe.output).toMutableList()
+        val index = list.indexOfFirst { it.itemModel.id == itemId }
+        list.removeAt(index)
+        updateRecipeItemAmount(recipeId, recipe, isInput, list)
+    }
+
+    fun onRecipeAdd() = runWithCatch(::onException) {
+        val itemId = config.itemId ?: throw Exception("can not add a recipe that has not been added")
+        val item = itemRepo.getItem(itemId) ?: throw Exception("item not found $itemId")
+        val recipe = RecipeViewModel(
+            id = recipeIndex++,
+            serverID = null,
+            isDeleted = false,
+            output = listOf(
+                ItemAmountViewModel(
+                    itemModel = item.toItemModel(appConfig, authProvider),
+                    amount = 1
+                ))
+            )
+
+        recipeMap[recipe.id] = recipe
+        updateRecipeFromMap()
+    }
+
+
+
+    fun onDeleteRecipe(recipeId : Int) {
+        recipeMap.remove(recipeId)
+        updateRecipeFromMap()
+    }
+
+    private suspend fun saveNewItem(){
         if(!itemEditValidator.validate(
             name = viewModel.value.itemName.value,
             image = viewModel.value.icon
@@ -272,6 +394,7 @@ class ItemEditScreenModel(
 
     data class RecipeViewModel(
         var id : Int,
+        val serverID : Int? = null,
         var isDeleted : Boolean = false,
         var craftingAtList: List<ItemModel> = arrayListOf(),
         var input : List<ItemAmountViewModel> = arrayListOf(),
