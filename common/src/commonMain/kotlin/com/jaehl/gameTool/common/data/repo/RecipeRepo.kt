@@ -7,7 +7,7 @@ import com.jaehl.gameTool.common.data.service.RecipeService
 import java.lang.Exception
 
 interface RecipeRepo {
-    suspend fun updateIfNotLoaded(gameId : Int)
+    suspend fun preloadRecipes(gameId : Int)
     suspend fun getRecipes(gameId : Int) : List<Recipe>
     fun getRecipe(id : Int) : Recipe
     fun getRecipesForOutput(inputItemId : Int) : List<Recipe>
@@ -58,7 +58,7 @@ class RecipeRepoImp(
         }
     }
 
-    override suspend fun updateIfNotLoaded(gameId : Int){
+    override suspend fun preloadRecipes(gameId : Int){
         if(!isGameLoaded(gameId)){
             updateFromServer(gameId)
         }

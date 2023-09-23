@@ -12,6 +12,8 @@ interface ItemRepo {
     fun getItemFlow(id : Int) : Flow<Item>
     fun getItem(id : Int) : Item?
 
+    fun preloadItems(gameId : Int)
+
     fun addItem(
         game : Int,
         name : String,
@@ -46,6 +48,14 @@ class ItemRepoImp(
             itemsMap[it.id] = it
         }
         emit(items)
+    }
+
+    override fun preloadItems(gameId: Int) {
+        val items = itemService.getItems(gameId)
+        itemsMap.clear()
+        items.forEach {
+            itemsMap[it.id] = it
+        }
     }
 
     override fun getItem(id: Int): Item? {

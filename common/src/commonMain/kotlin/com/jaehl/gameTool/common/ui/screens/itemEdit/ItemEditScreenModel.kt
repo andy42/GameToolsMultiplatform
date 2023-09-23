@@ -91,7 +91,7 @@ class ItemEditScreenModel(
         val item = itemRepo.getItem(itemId) ?: throw Exception("loadItem Item not found : $itemId")
         this.item = item
 
-        recipeRepo.updateIfNotLoaded(config.gameId)
+        recipeRepo.preloadRecipes(config.gameId)
 
         recipeMap.clear()
         recipeIndex = 0

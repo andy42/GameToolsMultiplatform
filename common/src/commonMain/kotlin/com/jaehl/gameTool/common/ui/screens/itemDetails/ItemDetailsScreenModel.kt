@@ -52,7 +52,7 @@ class ItemDetailsScreenModel(
 
             itemInfo.value = item.toItemInfoModel(appConfig, authProvider)
 
-            recipeRepo.updateIfNotLoaded(config.gameId)
+            recipeRepo.preloadRecipes(config.gameId)
 
             val recipes = recipeRepo.getRecipesForOutput(config.itemId).mapNotNull { recipe ->
                 val node = itemRecipeNodeUtil.buildTree(

@@ -19,6 +19,7 @@ import com.jaehl.gameTool.common.ui.screens.login.RegisterValidator
 import com.jaehl.gameTool.common.ui.screens.users.UsersScreenModel
 import com.jaehl.gameTool.common.ui.screens.collectionEdit.CollectionEditScreenModel
 import com.jaehl.gameTool.common.ui.screens.itemEdit.ItemEditValidator
+import com.jaehl.gameTool.common.ui.util.ItemRecipeInverter
 import com.jaehl.gameTool.common.ui.util.ItemRecipeNodeUtil
 import org.kodein.di.*
 
@@ -91,8 +92,11 @@ object ScreenModule {
                 instance<JobDispatcher>(),
                 instance<CollectionRepo>(),
                 instance<ItemRepo>(),
+                instance<RecipeRepo>(),
                 instance<AppConfig>(),
                 instance<AuthProvider>(),
+                instance<ItemRecipeNodeUtil>(),
+                instance<ItemRecipeInverter>()
             )}}
 
         bind<CollectionEditScreenModel> { provider {
