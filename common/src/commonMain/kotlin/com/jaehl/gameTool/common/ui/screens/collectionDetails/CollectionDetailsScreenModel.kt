@@ -145,8 +145,6 @@ class CollectionDetailsScreenModel (
         val id : Int,
         val name : String,
         val recipeSettings : RecipeSettings,
-        //var collapseIngredientList : Boolean,
-        //var showBaseCrafting : Boolean,
         val itemList : List<ItemAmountViewModel>,
         val nodes : List<ItemRecipeNode>,
         val baseNodes : List<ItemRecipeNode>
