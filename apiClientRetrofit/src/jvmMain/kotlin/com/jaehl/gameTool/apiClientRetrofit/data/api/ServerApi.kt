@@ -91,6 +91,13 @@ interface ServerApi {
         @Body data : AddItemRequest
     ) : Call<Response<Item>>
 
+    @POST("items/{id}")
+    fun updateItem(
+        @Header("Authorization") bearerToken : String,
+        @Path("id") id : Int,
+        @Body data : UpdateItemRequest
+    ) : Call<Response<Item>>
+
     @GET("items/Categories")
     fun getItemCategories(
         @Header("Authorization") bearerToken : String
@@ -115,6 +122,19 @@ interface ServerApi {
         @Header("Authorization") bearerToken : String,
         @Body data : AddRecipeRequest
     ) : Call<Response<Recipe>>
+
+    @POST("recipes/{id}")
+    fun updateRecipe(
+        @Header("Authorization") bearerToken : String,
+        @Path("id") id : Int,
+        @Body data : UpdateRecipeRequest
+    ) : Call<Response<Recipe>>
+
+    @DELETE("recipes/{id}")
+    fun deleteRecipe(
+        @Header("Authorization") bearerToken : String,
+        @Path("id") id : Int
+    ) : Call<Unit>
 
     @GET("recipes")
     fun getRecipes(

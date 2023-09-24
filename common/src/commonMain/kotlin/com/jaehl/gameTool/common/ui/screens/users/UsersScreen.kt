@@ -33,8 +33,9 @@ class UsersScreen: Screen {
                     navigator.pop()
                 }
             )
-            Box(
+            Column(
                 modifier = Modifier
+                    .padding(top = 20.dp)
                     .fillMaxSize()
 
             ) {
@@ -42,7 +43,7 @@ class UsersScreen: Screen {
                     modifier = Modifier
                         .width(300.dp)
                         .height(400.dp)
-                        .align(Alignment.Center)
+                        .align(Alignment.CenterHorizontally)
                 ) {
                     Column(
                         modifier = Modifier

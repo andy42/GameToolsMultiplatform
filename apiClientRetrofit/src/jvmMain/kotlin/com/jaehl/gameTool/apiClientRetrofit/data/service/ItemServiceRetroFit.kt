@@ -4,6 +4,7 @@ import com.jaehl.gameTool.apiClientRetrofit.data.api.ServerApi
 import com.jaehl.gameTool.apiClientRetrofit.data.model.baseBody
 import com.jaehl.gameTool.apiClientRetrofit.data.model.request.AddItemCategoriesRequest
 import com.jaehl.gameTool.apiClientRetrofit.data.model.request.AddItemRequest
+import com.jaehl.gameTool.apiClientRetrofit.data.model.request.UpdateItemRequest
 import com.jaehl.gameTool.common.data.AuthProvider
 import com.jaehl.gameTool.common.data.model.Item
 import com.jaehl.gameTool.common.data.model.ItemCategory
@@ -32,6 +33,19 @@ class ItemServiceRetroFit(
         return serverApi.addItem(
             bearerToken = authProvider.getBearerToken(),
             data = AddItemRequest(
+                game = game,
+                name = name,
+                categories = categories,
+                image = image
+            )
+        ).baseBody()
+    }
+
+    override fun updateItem(itemId : Int, game: Int, name: String, categories: List<Int>, image: Int): Item {
+        return serverApi.updateItem(
+            bearerToken = authProvider.getBearerToken(),
+            id = itemId,
+            data = UpdateItemRequest(
                 game = game,
                 name = name,
                 categories = categories,

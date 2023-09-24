@@ -12,4 +12,14 @@ interface RecipeService {
         input : List<ItemAmount>,
         output : List<ItemAmount>
     ) : Recipe
+
+    fun updateRecipes(
+        recipeId : Int,
+        gameId : Int,
+        craftedAt : List<Int>,
+        input : List<ItemAmount>,
+        output : List<ItemAmount>
+    ) : Recipe
+
+    fun deleteRecipe(recipeId : Int)
 }

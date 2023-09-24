@@ -7,8 +7,8 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowDropDown
-import androidx.compose.material.icons.outlined.List
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -24,6 +24,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.jaehl.gameTool.common.ui.AppColor
 import com.jaehl.gameTool.common.ui.componets.*
+import com.jaehl.gameTool.common.ui.screens.itemEdit.ItemEditScreen
 import com.jaehl.gameTool.common.ui.viewModel.ItemModel
 
 class ItemDetailsScreen(
@@ -34,9 +35,7 @@ class ItemDetailsScreen(
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        val screenModel = rememberScreenModel<ItemDetailsScreenModel.Config, ItemDetailsScreenModel>(
-            arg = ItemDetailsScreenModel.Config(gameId = gameId, itemId = itemId)
-        )
+        val screenModel = rememberScreenModel<ItemDetailsScreenModel>()
         LaunchedEffect(itemId){
             screenModel.update(
                 ItemDetailsScreenModel.Config(
@@ -57,8 +56,36 @@ class ItemDetailsScreen(
                     gameId = gameId,
                     itemId = clickedItemId
                 ))
+            },
+            onEditClick = {
+                navigator.push(
+                    ItemEditScreen(
+                        gameId = gameId,
+                        itemId = itemId
+                    )
+                )
+            },
+            onRecipeSettingsClick = {
+                screenModel.onRecipeSettingClick(it)
             }
         )
+
+        if(screenModel.recipeSettingDialogState.value is ItemDetailsScreenModel.RecipeSettingDialogState.Open ){
+            val recipeSettingDialogState = screenModel.recipeSettingDialogState.value as ItemDetailsScreenModel.RecipeSettingDialogState.Open
+            RecipeSettingsDialog(
+                title = "Recipe Settings",
+                recipeSettings = recipeSettingDialogState.recipeSettings,
+                onClose = {
+                    screenModel.onRecipeSettingDialogStateClose()
+                },
+                onRecipeSettingsChange = {
+                    screenModel.onRecipeSettingsChange(
+                        recipeSettingDialogState.recipeId,
+                        it
+                    )
+                }
+            )
+        }
     }
 }
 
@@ -86,7 +113,9 @@ fun ItemDetailsPage(
     itemInfo : ItemInfoModel,
     recipes : List<RecipeViewModel>,
     onBackClick : ()-> Unit,
-    onItemClick : (clickedItemId : Int) -> Unit
+    onItemClick : (clickedItemId : Int) -> Unit,
+    onEditClick : () -> Unit,
+    onRecipeSettingsClick : (recipeId : Int) -> Unit
 ) {
     val state : ScrollState = rememberScrollState()
     Column(
@@ -99,6 +128,13 @@ fun ItemDetailsPage(
             backButtonEnabled = true,
             onBackClick = {
                 onBackClick()
+            },
+            actions = {
+                IconButton(content = {
+                    Icon(Icons.Outlined.Edit, "Edit", tint = MaterialTheme.colors.onPrimary)
+                }, onClick = {
+                    onEditClick()
+                })
             }
         )
         Box(
@@ -129,8 +165,7 @@ fun ItemDetailsPage(
                                 onItemClick(clickedItemId)
                             }
                         },
-                        onCollapseListToggle = {},
-                        onShowBaseCraftingToggle = {}
+                        onRecipeSettingsClick = onRecipeSettingsClick
                     )
                 }
             }
@@ -148,8 +183,7 @@ fun Recipe(
     recipeIndex : Int,
     recipe : RecipeViewModel,
     onItemClick : (clickedItemId : Int) -> Unit,
-    onCollapseListToggle : (recipeIndex : Int) -> Unit,
-    onShowBaseCraftingToggle : (recipeIndex : Int) -> Unit,
+    onRecipeSettingsClick : (recipeId : Int) -> Unit
 ) {
     Box {
         Column(
@@ -161,12 +195,12 @@ fun Recipe(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colors.primary)
+                    .background(MaterialTheme.colors.secondary)
 
             ) {
                 Text(
                     text = "Recipe ${recipeIndex + 1}",
-                    color = MaterialTheme.colors.onPrimary,
+                    color = MaterialTheme.colors.onSecondary,
                     modifier = Modifier.padding(15.dp)
                 )
                 Row(
@@ -177,26 +211,13 @@ fun Recipe(
                         modifier = Modifier,
                         content = {
                             Icon(
-                                Icons.Outlined.ArrowDropDown,
+                                Icons.Outlined.Settings,
                                 "Edit",
-                                tint = if (recipe.collapseList) Color.White else Color.Black
+                                tint = MaterialTheme.colors.onSecondary
                             )
                         },
                         onClick = {
-                            onCollapseListToggle(recipeIndex)
-                        }
-                    )
-                    IconButton(
-                        modifier = Modifier,
-                        content = {
-                            Icon(
-                                Icons.Outlined.List,
-                                "Edit",
-                                tint = if (recipe.showBaseCrafting) Color.White else Color.Black
-                            )
-                        },
-                        onClick = {
-                            onShowBaseCraftingToggle(recipeIndex)
+                            onRecipeSettingsClick(recipe.id)
                         }
                     )
                 }
@@ -271,8 +292,8 @@ fun Recipe(
 
             RecipeNodes(
                 Modifier.padding(top = 10.dp, bottom = 10.dp, start = 10.dp, end = 10.dp),
-                recipe.collapseList,
-                recipe.node.inputs,
+                recipe.recipeSettings.collapseIngredients,
+                if(recipe.recipeSettings.showBaseIngredients) recipe.baseIngredients else recipe.node.inputs,
                 onItemClick = onItemClick,
                 onRecipeChange = { item ->
 
@@ -293,7 +314,7 @@ fun CraftedAtChip(
         modifier = Modifier
             .padding(top = 5.dp, end = 10.dp, bottom = 5.dp)
             .clip(RoundedCornerShape(10.dp))
-            .background(MaterialTheme.colors.primary)
+            .background(MaterialTheme.colors.secondary)
             .clickable {
                 onItemClick?.invoke(item.id)
             }
@@ -306,7 +327,7 @@ fun CraftedAtChip(
         )
         Text(
             text = item.name,
-            color = MaterialTheme.colors.onPrimary,
+            color = MaterialTheme.colors.onSecondary,
             modifier = Modifier
                 .padding(start = 5.dp)
         )
@@ -318,7 +339,7 @@ fun ItemQuickInfo(item : ItemInfoModel, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .width(250.dp)
-            .background(MaterialTheme.colors.primary)
+            .background(MaterialTheme.colors.secondary)
     ) {
         ItemQuickInfoheading(item.name)
         item.iconPath?.let { iconPath ->
@@ -349,7 +370,7 @@ fun ItemQuickInfoheading(text : String) {
     ) {
         Text(
             text = text,
-            color = MaterialTheme.colors.onPrimary,
+            color = MaterialTheme.colors.onSecondary,
             modifier = Modifier
                 .padding(top = 10.dp, bottom = 10.dp)
                 .align(Alignment.Center),

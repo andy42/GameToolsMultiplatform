@@ -10,7 +10,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 @Composable
-fun DialogTitleBar(title: String, onClose : () -> Unit){
+fun DialogTitleBar(
+    title: String,
+    onClose : () -> Unit
+){
     TopAppBar(
         title = {
             Text(title)

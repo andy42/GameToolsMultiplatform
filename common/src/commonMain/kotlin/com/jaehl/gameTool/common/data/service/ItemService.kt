@@ -13,6 +13,14 @@ interface ItemService {
         image : Int
     ) : Item
 
+    fun updateItem(
+        itemId : Int,
+        game: Int,
+        name : String,
+        categories : List<Int>,
+        image : Int
+    ) : Item
+
     fun getItemCategories() : List<ItemCategory>
     fun addItemCategories(name : String) : ItemCategory
 }

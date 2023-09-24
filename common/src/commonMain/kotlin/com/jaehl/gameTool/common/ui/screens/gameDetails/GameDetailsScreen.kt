@@ -77,16 +77,17 @@ fun GameDetailsPage(
                 onBackClick()
             }
         )
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
 
         ) {
             Card(
                 modifier = Modifier
+                    .padding(top = 20.dp)
                     .width(300.dp)
                     .height(400.dp)
-                    .align(Alignment.Center)
+                    .align(Alignment.CenterHorizontally)
                     .background(MaterialTheme.colors.surface)
             ) {
                 Column(

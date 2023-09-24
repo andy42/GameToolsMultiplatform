@@ -8,6 +8,7 @@ import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.AppConfig
 import com.jaehl.gameTool.common.data.AuthProvider
 import com.jaehl.gameTool.common.data.model.Item
+import com.jaehl.gameTool.common.data.model.ItemCategory
 import com.jaehl.gameTool.common.data.repo.ItemRepo
 import com.jaehl.gameTool.common.ui.screens.launchIo
 import com.jaehl.gameTool.common.extensions.postSwap
@@ -28,6 +29,8 @@ class ItemListScreenModel(
     var items = mutableStateListOf<ItemRowModel>()
         private set
 
+    val itemCategories = mutableStateListOf<ItemCategory>()
+
     init {
         coroutineScope.launch {
             dataRefresh()
@@ -46,15 +49,16 @@ class ItemListScreenModel(
                     }
                 )
             }
-//            val items = itemRepo.getItems(config.gameId).map {
-//                ItemRowModel(
-//                    id = it.id,
-//                    name = it.name,
-//                    imageResource = ImageResource.ImageLocalResource("")
-//                )
-//            }
-//            this.items.postSwap(items)
             this.pageLoading.value = false
+        }
+        launchIo(
+            jobDispatcher,
+            onException = ::onException) {
+            itemRepo.getItemCategories(config.gameId).collect {
+                val list = mutableListOf(Item_Category_ALL)
+                list.addAll(it)
+                itemCategories.postSwap(list)
+            }
         }
     }
 
@@ -66,12 +70,17 @@ class ItemListScreenModel(
     data class Config(
         val gameId : Int
     )
+
+    companion object {
+        val Item_Category_ALL = ItemCategory(id = -1, name = "All")
+    }
 }
 
 fun Item.toItemRowModel(appConfig: AppConfig, authProvider: AuthProvider) : ItemRowModel {
     return ItemRowModel(
         id = this.id,
         name = this.name,
+        itemCategories = this.categories,
         imageResource = ImageResource.ImageApiResource(
             url = "${appConfig.baseUrl}/images/${this.image}",
             authHeader = authProvider.getBearerToken()

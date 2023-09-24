@@ -13,6 +13,7 @@ fun Item.toItemModel(appConfig : AppConfig, authProvider: AuthProvider) : ItemMo
         iconPath = ImageResource.ImageApiResource(
             url = "${appConfig.baseUrl}/images/${this.image}",
             authHeader = authProvider.getBearerToken()
-        )
+        ),
+        categories = this.categories
     )
 }

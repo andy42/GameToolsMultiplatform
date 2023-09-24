@@ -222,7 +222,7 @@ fun Group(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colors.primary)
+                    .background(MaterialTheme.colors.secondary)
                     .padding(2.dp)
                     .background(Color.White)
             ) {
@@ -283,7 +283,7 @@ fun ItemRecipeRow(
         OutlinedButton(
             modifier = Modifier.width(200.dp).padding(top = 10.dp),
             onClick = { },
-            border = BorderStroke(1.dp, Color.Red),
+            border = BorderStroke(1.dp, MaterialTheme.colors.secondary),
         ){
             Row(
                 //modifier = Modifier()
