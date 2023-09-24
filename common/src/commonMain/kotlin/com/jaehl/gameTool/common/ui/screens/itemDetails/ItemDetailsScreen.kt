@@ -7,9 +7,8 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.List
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -65,8 +64,28 @@ class ItemDetailsScreen(
                         itemId = itemId
                     )
                 )
+            },
+            onRecipeSettingsClick = {
+                screenModel.onRecipeSettingClick(it)
             }
         )
+
+        if(screenModel.recipeSettingDialogState.value is ItemDetailsScreenModel.RecipeSettingDialogState.Open ){
+            val recipeSettingDialogState = screenModel.recipeSettingDialogState.value as ItemDetailsScreenModel.RecipeSettingDialogState.Open
+            RecipeSettingsDialog(
+                title = "Recipe Settings",
+                recipeSettings = recipeSettingDialogState.recipeSettings,
+                onClose = {
+                    screenModel.onRecipeSettingDialogStateClose()
+                },
+                onRecipeSettingsChange = {
+                    screenModel.onRecipeSettingsChange(
+                        recipeSettingDialogState.recipeId,
+                        it
+                    )
+                }
+            )
+        }
     }
 }
 
@@ -95,7 +114,8 @@ fun ItemDetailsPage(
     recipes : List<RecipeViewModel>,
     onBackClick : ()-> Unit,
     onItemClick : (clickedItemId : Int) -> Unit,
-    onEditClick : () -> Unit
+    onEditClick : () -> Unit,
+    onRecipeSettingsClick : (recipeId : Int) -> Unit
 ) {
     val state : ScrollState = rememberScrollState()
     Column(
@@ -145,8 +165,7 @@ fun ItemDetailsPage(
                                 onItemClick(clickedItemId)
                             }
                         },
-                        onCollapseListToggle = {},
-                        onShowBaseCraftingToggle = {}
+                        onRecipeSettingsClick = onRecipeSettingsClick
                     )
                 }
             }
@@ -164,8 +183,7 @@ fun Recipe(
     recipeIndex : Int,
     recipe : RecipeViewModel,
     onItemClick : (clickedItemId : Int) -> Unit,
-    onCollapseListToggle : (recipeIndex : Int) -> Unit,
-    onShowBaseCraftingToggle : (recipeIndex : Int) -> Unit,
+    onRecipeSettingsClick : (recipeId : Int) -> Unit
 ) {
     Box {
         Column(
@@ -193,26 +211,13 @@ fun Recipe(
                         modifier = Modifier,
                         content = {
                             Icon(
-                                Icons.Outlined.ArrowDropDown,
+                                Icons.Outlined.Settings,
                                 "Edit",
-                                tint = if (recipe.collapseList) Color.White else Color.Black
+                                tint = MaterialTheme.colors.onSecondary
                             )
                         },
                         onClick = {
-                            onCollapseListToggle(recipeIndex)
-                        }
-                    )
-                    IconButton(
-                        modifier = Modifier,
-                        content = {
-                            Icon(
-                                Icons.Outlined.List,
-                                "Edit",
-                                tint = if (recipe.showBaseCrafting) Color.White else Color.Black
-                            )
-                        },
-                        onClick = {
-                            onShowBaseCraftingToggle(recipeIndex)
+                            onRecipeSettingsClick(recipe.id)
                         }
                     )
                 }
@@ -287,8 +292,8 @@ fun Recipe(
 
             RecipeNodes(
                 Modifier.padding(top = 10.dp, bottom = 10.dp, start = 10.dp, end = 10.dp),
-                recipe.collapseList,
-                recipe.node.inputs,
+                recipe.recipeSettings.collapseIngredients,
+                if(recipe.recipeSettings.showBaseIngredients) recipe.baseIngredients else recipe.node.inputs,
                 onItemClick = onItemClick,
                 onRecipeChange = { item ->
 

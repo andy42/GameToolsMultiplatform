@@ -15,9 +15,11 @@ import com.jaehl.gameTool.common.data.repo.RecipeRepo
 import com.jaehl.gameTool.common.extensions.postSwap
 import com.jaehl.gameTool.common.extensions.toItemModel
 import com.jaehl.gameTool.common.ui.screens.launchIo
+import com.jaehl.gameTool.common.ui.screens.runWithCatch
 import com.jaehl.gameTool.common.ui.util.ItemRecipeInverter
 import com.jaehl.gameTool.common.ui.util.ItemRecipeNodeUtil
 import com.jaehl.gameTool.common.ui.viewModel.ItemAmountViewModel
+import com.jaehl.gameTool.common.ui.viewModel.RecipeSettings
 
 class CollectionDetailsScreenModel (
     val jobDispatcher : JobDispatcher,
@@ -31,7 +33,10 @@ class CollectionDetailsScreenModel (
 ) : ScreenModel {
 
     var title = mutableStateOf("")
+    private val groupsMap = hashMapOf<Int, GroupsViewModel>()
     var groups = mutableStateListOf<GroupsViewModel>()
+
+    var recipeSettingDialogState = mutableStateOf<RecipeSettingDialogState>(RecipeSettingDialogState.Closed)
 
     private lateinit var config : Config
 
@@ -49,30 +54,39 @@ class CollectionDetailsScreenModel (
 
             collectionRepo.getCollectionFlow(config.collectionId).collect{ collection ->
                 title.value = collection.name
-                groups.postSwap(
-                    collection.groups.map { group ->
-                        val items = group.itemAmounts.mapNotNull { itemIngredient ->
-                            val item = itemRepo.getItem(itemIngredient.itemId) ?: return@mapNotNull null
-                            ItemAmountViewModel(
-                                item.toItemModel(appConfig, authProvider),
-                                itemIngredient.amount
-                            )
-                        }
 
-                        val nodes = mergeItemRecipesNodes(items)
-                        val baseNodes = itemRecipeInverter.invertItemRecipes(nodes)
-
-                        group.toGroupsViewModel(
-                            itemRepo,
-                            appConfig,
-                            authProvider,
-                            nodes,
-                            baseNodes
+                collection.groups.map { group ->
+                    val items = group.itemAmounts.mapNotNull { itemIngredient ->
+                        val item = itemRepo.getItem(itemIngredient.itemId) ?: return@mapNotNull null
+                        ItemAmountViewModel(
+                            item.toItemModel(appConfig, authProvider),
+                            itemIngredient.amount
                         )
                     }
+
+                    val nodes = mergeItemRecipesNodes(items)
+                    val baseNodes = itemRecipeInverter.invertItemRecipes(nodes)
+
+                    group.toGroupsViewModel(
+                        itemRepo,
+                        appConfig,
+                        authProvider,
+                        nodes,
+                        baseNodes
+                    )
+                }.forEach {
+                    groupsMap[it.id] = it
+                }
+
+                groups.postSwap(
+                    groupsMap.values.toList()
                 )
             }
         }
+    }
+
+    private fun onException(t : Throwable) {
+        System.err.println(t.message)
     }
 
     private suspend fun mergeItemRecipesNodes(items : List<ItemAmountViewModel>) : List<ItemRecipeNode>{
@@ -93,6 +107,35 @@ class CollectionDetailsScreenModel (
         }
     }
 
+    fun onRecipeSettingDialogStateClick(groupId : Int) = runWithCatch(::onException ) {
+        recipeSettingDialogState.value = RecipeSettingDialogState.Open(
+            groupId = groupId,
+            settings = groupsMap[groupId]?.recipeSettings ?: throw Exception("groupId not found groupId")
+        )
+    }
+
+    fun onRecipeSettingDialogStateClose(){
+        recipeSettingDialogState.value = RecipeSettingDialogState.Closed
+    }
+
+    fun onRecipeSettingsChange(groupId : Int, recipeSettings : RecipeSettings) = launchIo(jobDispatcher, ::onException) {
+
+        var group = groupsMap[groupId]?.copy(
+            recipeSettings = recipeSettings
+        ) ?: throw Exception("groupId not found groupId")
+
+        groupsMap[groupId] = group
+
+        recipeSettingDialogState.value = RecipeSettingDialogState.Open(
+            groupId = groupId,
+            settings = group.recipeSettings
+        )
+
+        groups.postSwap(
+            groupsMap.values.toList()
+        )
+    }
+
     data class Config(
         val gameId : Int,
         val collectionId : Int
@@ -101,12 +144,21 @@ class CollectionDetailsScreenModel (
     data class GroupsViewModel(
         val id : Int,
         val name : String,
-        var collapseIngredientList : Boolean,
-        var showBaseCrafting : Boolean,
+        val recipeSettings : RecipeSettings,
+        //var collapseIngredientList : Boolean,
+        //var showBaseCrafting : Boolean,
         val itemList : List<ItemAmountViewModel>,
         val nodes : List<ItemRecipeNode>,
         val baseNodes : List<ItemRecipeNode>
     )
+
+    sealed class RecipeSettingDialogState{
+        data object Closed : RecipeSettingDialogState()
+        data class Open(
+            val groupId : Int,
+            val settings : RecipeSettings
+        ) : RecipeSettingDialogState()
+    }
 }
 
 fun Collection.Group.toGroupsViewModel(
@@ -119,8 +171,10 @@ fun Collection.Group.toGroupsViewModel(
     return CollectionDetailsScreenModel.GroupsViewModel(
         id = this.id,
         name = this.name,
-        collapseIngredientList =  true,
-        showBaseCrafting = true,
+        recipeSettings = RecipeSettings(
+            showBaseIngredients = false,
+            collapseIngredients = true
+        ),
         itemList = this.itemAmounts.map {
             ItemAmountViewModel(
                 itemModel = itemRepo.getItem(it.itemId)?.toItemModel(appConfig, authProvider) ?: throw Exception("Item Not Found : ${it.itemId}"),

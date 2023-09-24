@@ -72,7 +72,8 @@ object ScreenModule {
                 itemRepo = instance<ItemRepo>(),
                 instance<RecipeRepo>(),
                 instance<AppConfig>(),
-                instance<ItemRecipeNodeUtil>()
+                instance<ItemRecipeNodeUtil>(),
+                instance<ItemRecipeInverter>()
             )}}
 
 

@@ -46,6 +46,7 @@ class HomeScreen : Screen {
             ) {
                 Card(
                     modifier = Modifier
+                        .padding(top = 20.dp)
                         .width(300.dp)
                         .align(Alignment.CenterHorizontally)
                 ) {

@@ -2,6 +2,7 @@ package com.jaehl.gameTool.common.ui.componets
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -29,7 +30,7 @@ fun ItemPickDialog(
     Box(modifier = Modifier
         .fillMaxWidth()
         .fillMaxHeight()
-        .clickable {}
+        .clickable(interactionSource = MutableInteractionSource(), indication = null, onClick = {})
         .background(AppColor.dialogBackground)) {
         Column(
             modifier = Modifier

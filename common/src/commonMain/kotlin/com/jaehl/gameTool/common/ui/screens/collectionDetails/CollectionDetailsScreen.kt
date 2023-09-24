@@ -9,9 +9,8 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.List
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -24,11 +23,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.kodein.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import com.jaehl.gameTool.common.ui.componets.AppBar
-import com.jaehl.gameTool.common.ui.componets.CustomVerticalScrollbar
-import com.jaehl.gameTool.common.ui.componets.ItemIcon
-import com.jaehl.gameTool.common.ui.componets.RecipeNodes
-import com.jaehl.gameTool.common.ui.screens.collectionEdit.CollectionEditPage
+import com.jaehl.gameTool.common.ui.componets.*
 import com.jaehl.gameTool.common.ui.screens.collectionEdit.CollectionEditScreen
 import com.jaehl.gameTool.common.ui.screens.itemDetails.ItemDetailsScreen
 import com.jaehl.gameTool.common.ui.viewModel.ItemAmountViewModel
@@ -73,9 +68,25 @@ class CollectionDetailsScreen(
                     )
                 )
             },
-            onCollapseIngredientsClick = {},
-            showBaseCrafting = {}
+            onRecipeSettingDialogStateClick = screenModel::onRecipeSettingDialogStateClick,
         )
+
+        if(screenModel.recipeSettingDialogState.value is CollectionDetailsScreenModel.RecipeSettingDialogState.Open ){
+            val recipeSettingDialogState = screenModel.recipeSettingDialogState.value as CollectionDetailsScreenModel.RecipeSettingDialogState.Open
+            RecipeSettingsDialog(
+                title = "Recipe Settings",
+                recipeSettings = recipeSettingDialogState.settings,
+                onClose = {
+                    screenModel.onRecipeSettingDialogStateClose()
+                },
+                onRecipeSettingsChange = {
+                    screenModel.onRecipeSettingsChange(
+                        recipeSettingDialogState.groupId,
+                        it
+                    )
+                }
+            )
+        }
     }
 }
 
@@ -119,10 +130,10 @@ fun CollectionDetailsPage(
     onBackClick : () -> Unit,
     onEditClick : () -> Unit,
     onItemClick : (clickedItemId : Int) -> Unit,
-    onCollapseIngredientsClick : (groupId : Int) -> Unit,
-    showBaseCrafting : (groupId : Int) -> Unit
+    onRecipeSettingDialogStateClick : (groupId : Int) -> Unit,
 ){
     val state : ScrollState = rememberScrollState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -157,8 +168,7 @@ fun CollectionDetailsPage(
                             .padding(bottom = 20.dp),
                         group = groupsViewModel,
                         onItemClick = onItemClick,
-                        onCollapseIngredientsClick = onCollapseIngredientsClick,
-                        showBaseCrafting = showBaseCrafting
+                        onRecipeSettingDialogStateClick = onRecipeSettingDialogStateClick
                     )
                 }
             }
@@ -167,6 +177,7 @@ fun CollectionDetailsPage(
                 scrollState = state
             )
         }
+
     }
 }
 
@@ -176,8 +187,7 @@ fun Section(
     modifier: Modifier,
     group : CollectionDetailsScreenModel.GroupsViewModel,
     onItemClick : (itemId : Int) -> Unit,
-    onCollapseIngredientsClick : (groupId : Int) -> Unit,
-    showBaseCrafting : (groupId : Int) -> Unit
+    onRecipeSettingDialogStateClick : (groupId : Int) -> Unit
 ){
     Column(
         modifier = modifier
@@ -201,19 +211,12 @@ fun Section(
                 IconButton(
                     modifier = Modifier,
                     content = {
-                        Icon(Icons.Outlined.ArrowDropDown, "Edit", tint = if(group.collapseIngredientList) Color.White else Color.Black)
+                        Icon(Icons.Outlined.Settings, "Settings", tint = MaterialTheme.colors.onSecondary)
                     },
                     onClick = {
-                        onCollapseIngredientsClick(group.id)
-                    }
-                )
-                IconButton(
-                    modifier = Modifier,
-                    content = {
-                        Icon(Icons.Outlined.List, "Edit", tint = if(group.showBaseCrafting) Color.White else Color.Black)
-                    },
-                    onClick = {
-                        showBaseCrafting(group.id)
+                        onRecipeSettingDialogStateClick(
+                            group.id
+                        )
                     }
                 )
             }
@@ -226,8 +229,8 @@ fun Section(
         }
         RecipeNodes(
             Modifier.padding(top = 10.dp, bottom = 10.dp),
-            group.collapseIngredientList,
-            if(group.showBaseCrafting) group.baseNodes else group.nodes,
+            group.recipeSettings.collapseIngredients,
+            if(group.recipeSettings.showBaseIngredients) group.baseNodes else group.nodes,
             onItemClick = onItemClick
         )
     }

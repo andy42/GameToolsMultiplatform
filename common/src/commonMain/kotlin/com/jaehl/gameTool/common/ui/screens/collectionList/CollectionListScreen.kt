@@ -132,7 +132,6 @@ fun CollectionListPage(
                             onAddCollectionClick()
                         },
                         modifier = Modifier
-                            .padding(top = 20.dp)
                     ) {
                         Text("Create New")
                     }
