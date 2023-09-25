@@ -117,14 +117,6 @@ fun ItemListPage(
                 }) {
                     Text("Create New")
                 }
-                Button(
-                    modifier = Modifier.padding(start = 20.dp),
-                    onClick = {
-                        //viewModel.createFromImages()
-                    }
-                ) {
-                    Text("Create From Images")
-                }
             }
             Row(
                 modifier = Modifier

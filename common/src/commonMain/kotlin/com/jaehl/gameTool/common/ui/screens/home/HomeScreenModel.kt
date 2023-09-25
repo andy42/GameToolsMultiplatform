@@ -18,10 +18,8 @@ class HomeScreenModel(
     var games = mutableStateListOf<GameModel>()
     var pageLoading = mutableStateOf(false)
 
-    init {
-        coroutineScope.launch {
-            dataRefresh()
-        }
+    fun setup() = launchIo(jobDispatcher, ::onException){
+        dataRefresh()
     }
 
     suspend fun dataRefresh() {

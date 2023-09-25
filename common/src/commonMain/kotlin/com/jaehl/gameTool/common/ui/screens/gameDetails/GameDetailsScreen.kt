@@ -7,6 +7,7 @@ import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -17,6 +18,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.jaehl.gameTool.common.ui.componets.AppBar
 import com.jaehl.gameTool.common.ui.screens.collectionList.CollectionListScreen
+import com.jaehl.gameTool.common.ui.screens.gameEdit.GameEditScreenModel
 import com.jaehl.gameTool.common.ui.screens.itemList.ItemListScreen
 
 class GameDetailsScreen(
@@ -26,7 +28,16 @@ class GameDetailsScreen(
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        val screenModel = rememberScreenModel<GameDetailsScreenModel.Config, GameDetailsScreenModel>(tag = null, arg = GameDetailsScreenModel.Config(gameId = gameId))
+        val screenModel = rememberScreenModel<GameDetailsScreenModel>()
+
+        LaunchedEffect(gameId){
+            screenModel.setup(
+                GameDetailsScreenModel.Config(
+                    gameId = gameId
+                )
+            )
+        }
+
         GameDetailsPage(
             title = screenModel.gameTitle.value,
             onBackClick = {
