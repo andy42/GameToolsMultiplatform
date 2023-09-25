@@ -10,16 +10,18 @@ import kotlinx.coroutines.launch
 
 class GameDetailsScreenModel(
     val jobDispatcher : JobDispatcher,
-    val config : Config,
     val gameRepo: GameRepo,
     val itemImporter : ItemImporter
 ) : ScreenModel {
+
+    private lateinit var config : Config
 
     var pageLoading = mutableStateOf(false)
 
     var gameTitle = mutableStateOf("")
 
-    init {
+    fun setup(config : Config) {
+        this.config = config
         coroutineScope.launch {
             dataRefresh()
         }

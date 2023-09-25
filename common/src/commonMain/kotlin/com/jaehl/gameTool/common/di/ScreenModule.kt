@@ -18,6 +18,8 @@ import com.jaehl.gameTool.common.ui.screens.login.LoginValidator
 import com.jaehl.gameTool.common.ui.screens.login.RegisterValidator
 import com.jaehl.gameTool.common.ui.screens.users.UsersScreenModel
 import com.jaehl.gameTool.common.ui.screens.collectionEdit.CollectionEditScreenModel
+import com.jaehl.gameTool.common.ui.screens.gameEdit.GameEditScreenModel
+import com.jaehl.gameTool.common.ui.screens.gameEdit.GameEditValidator
 import com.jaehl.gameTool.common.ui.screens.itemEdit.ItemEditValidator
 import com.jaehl.gameTool.common.ui.util.ItemRecipeInverter
 import com.jaehl.gameTool.common.ui.util.ItemRecipeNodeUtil
@@ -46,14 +48,19 @@ object ScreenModule {
                 instance<GameRepo>()
             )}}
 
-        bind<GameDetailsScreenModel> { factory {config : GameDetailsScreenModel.Config ->
+        bind<GameDetailsScreenModel> { provider {
             GameDetailsScreenModel(
                 instance<JobDispatcher>(),
-                config = config,
                 instance<GameRepo>(),
                 instance<ItemImporter>(),
-            )
-        }}
+            )}}
+
+        bind<GameEditScreenModel> { provider {
+            GameEditScreenModel(
+                instance<JobDispatcher>(),
+                instance<GameRepo>(),
+                GameEditValidator()
+            )}}
 
         bind<ItemListScreenModel> { factory {config : ItemListScreenModel.Config ->
             ItemListScreenModel(

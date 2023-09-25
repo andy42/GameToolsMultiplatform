@@ -36,7 +36,7 @@ class GameServiceRetroFit(
         serverApi.deleteGame(
             bearerToken = authProvider.getBearerToken(),
             id = id
-        ).request()
+        ).execute()
     }
 
     override fun getGame(id: Int): Game {
