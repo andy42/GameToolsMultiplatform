@@ -64,7 +64,7 @@ class CollectionServiceRetroFit (
             bearerToken = authProvider.getBearerToken(),
             collectionId = collectionId,
             groupId = groupId
-        ).request()
+        ).execute()
     }
 
     override fun addUpdateItemAmount(collectionId: Int, groupId: Int, itemId: Int, amount: Int): Collection.ItemAmount {
@@ -83,6 +83,6 @@ class CollectionServiceRetroFit (
             collectionId = collectionId,
             groupId = groupId,
             itemId = itemId
-        ).request()
+        ).execute()
     }
 }

@@ -6,6 +6,7 @@ import com.jaehl.gameTool.common.data.model.ItemCategory
 interface ItemService {
     fun getItem(id : Int) : Item
     fun getItems(gameId : Int) : List<Item>
+    fun getItems() : List<Item>
     fun addItem(
         game : Int,
         name : String,

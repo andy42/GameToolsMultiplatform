@@ -8,7 +8,7 @@ import com.jaehl.gameTool.common.data.service.ImageService
 import com.jaehl.gameTool.common.ui.screens.collectionDetails.CollectionDetailsScreenModel
 import com.jaehl.gameTool.common.ui.screens.collectionList.CollectionListScreenModel
 import com.jaehl.gameTool.common.ui.screens.gameDetails.GameDetailsScreenModel
-import com.jaehl.gameTool.common.ui.screens.gameDetails.ItemImporter
+import com.jaehl.gameTool.common.ui.util.ItemImporter
 import com.jaehl.gameTool.common.ui.screens.home.HomeScreenModel
 import com.jaehl.gameTool.common.ui.screens.itemDetails.ItemDetailsScreenModel
 import com.jaehl.gameTool.common.ui.screens.itemEdit.ItemEditScreenModel
@@ -62,15 +62,13 @@ object ScreenModule {
                 GameEditValidator()
             )}}
 
-        bind<ItemListScreenModel> { factory {config : ItemListScreenModel.Config ->
+        bind<ItemListScreenModel> { provider {
             ItemListScreenModel(
                 instance<JobDispatcher>(),
                 instance<AuthProvider>(),
-                config = config,
                 appConfig = instance<AppConfig>(),
                 itemRepo = instance<ItemRepo>()
-            )
-        }}
+            )}}
 
         bind<ItemDetailsScreenModel> { provider {
             ItemDetailsScreenModel(

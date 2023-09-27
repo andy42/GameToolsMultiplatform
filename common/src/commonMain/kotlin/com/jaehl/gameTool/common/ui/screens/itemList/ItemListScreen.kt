@@ -10,12 +10,14 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import cafe.adriel.voyager.core.lifecycle.LifecycleEffect
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.kodein.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -36,8 +38,14 @@ class ItemListScreen(
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        val screenModel = rememberScreenModel<ItemListScreenModel.Config, ItemListScreenModel>(
-            arg = ItemListScreenModel.Config(gameId = gameId)
+        val screenModel = rememberScreenModel<ItemListScreenModel>()
+
+        LifecycleEffect(
+            onStarted = {
+                screenModel.setup(
+                    config = ItemListScreenModel.Config(gameId)
+                )
+            }
         )
 
         val searchText = remember { mutableStateOf("") }

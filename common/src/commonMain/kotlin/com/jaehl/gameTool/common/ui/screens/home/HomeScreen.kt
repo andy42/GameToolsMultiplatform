@@ -56,6 +56,9 @@ class HomeScreen : Screen {
                 navigator.push(GameEditScreen(
                     gameId = gameId
                 ))
+            },
+            onCreateBackupClick = {
+                TODO("create backup")
             }
         )
     }
@@ -67,8 +70,8 @@ fun HomePage(
     onUserClick : () -> Unit,
     onCreateGameClick : () -> Unit,
     onGameClick : (gameId: Int) -> Unit,
-    onGameEditClick : (gameId: Int) -> Unit
-
+    onGameEditClick : (gameId: Int) -> Unit,
+    onCreateBackupClick : () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -85,27 +88,16 @@ fun HomePage(
                 .fillMaxHeight()
 
         ) {
-            Card(
+            AdminTools(
                 modifier = Modifier
-                    .padding(top = 20.dp)
                     .width(300.dp)
-                    .align(Alignment.CenterHorizontally)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                ) {
-                    Button(
-                        modifier = Modifier
-                            .padding(start = 10.dp),
-                        onClick = {
-                            onUserClick()
-                        }
-                    ){
-                        Text("Users")
-                    }
-                }
-            }
+                    .padding(top = 20.dp)
+                    .align(Alignment.CenterHorizontally),
+                onUsersClick = {
+                    onUserClick()
+                },
+                onCreateBackupClick = onCreateBackupClick
+            )
             GamesCard(
                 modifier = Modifier
                     .width(300.dp)
@@ -125,6 +117,64 @@ fun HomePage(
 }
 
 @Composable
+fun AdminTools(
+    modifier: Modifier,
+    onUsersClick : () -> Unit,
+    onCreateBackupClick : () -> Unit
+) {
+    Card(
+        modifier = modifier
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colors.secondary),
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    modifier = Modifier
+                        .padding(start = 10.dp, top = 12.dp, bottom = 12.dp),
+                    color = MaterialTheme.colors.onSecondary,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    text = "Admin Tools"
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(
+                    modifier = Modifier
+                        .padding(start = 10.dp),
+                    onClick = {
+                        onCreateBackupClick()
+                    }
+                ){
+                    Text("create Backup")
+                }
+                Button(
+                    modifier = Modifier
+                        .padding(start = 10.dp),
+                    onClick = {
+                        onUsersClick()
+                    }
+                ){
+                    Text("Users")
+                }
+            }
+
+        }
+    }
+}
+
+@Composable
 fun GamesCard(
     modifier: Modifier,
     games: List<GameModel>,
@@ -136,7 +186,6 @@ fun GamesCard(
 
     Card(
         modifier = modifier
-            .width(300.dp)
     ) {
         Column(
             modifier = Modifier

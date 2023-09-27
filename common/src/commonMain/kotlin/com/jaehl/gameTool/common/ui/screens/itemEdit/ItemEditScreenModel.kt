@@ -7,6 +7,7 @@ import cafe.adriel.voyager.core.model.coroutineScope
 import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.AppConfig
 import com.jaehl.gameTool.common.data.AuthProvider
+import com.jaehl.gameTool.common.data.model.ImageType
 import com.jaehl.gameTool.common.data.model.Item
 import com.jaehl.gameTool.common.data.model.ItemAmount
 import com.jaehl.gameTool.common.data.model.ItemCategory
@@ -303,9 +304,13 @@ class ItemEditScreenModel(
             return
         }
 
-        val imageFile = File((viewModel.value.icon as ImageResource.ImageLocalResource).url)
+        val imageLocalResource = viewModel.value.icon as ImageResource.ImageLocalResource
+
+        val imageType = ImageType.fromFileExtension( imageLocalResource.getFileExtension() )
+        val imageFile = File(imageLocalResource.url)
         val image = imageService.addImage(
             imageFile = imageFile,
+            imageType = imageType,
             description = viewModel.value.itemName.value
         )
 
@@ -332,9 +337,12 @@ class ItemEditScreenModel(
         var imageId = item?.image ?: -1
 
         if(viewModel.value.icon is ImageResource.ImageLocalResource) {
-            val imageFile = File((viewModel.value.icon as ImageResource.ImageLocalResource).url)
+            val imageLocalResource = viewModel.value.icon as ImageResource.ImageLocalResource
+            val imageType = ImageType.fromFileExtension( imageLocalResource.getFileExtension() )
+            val imageFile = File(imageLocalResource.url)
             imageId = imageService.addImage(
                 imageFile = imageFile,
+                imageType = imageType,
                 description = viewModel.value.itemName.value
             ).imageId
         }

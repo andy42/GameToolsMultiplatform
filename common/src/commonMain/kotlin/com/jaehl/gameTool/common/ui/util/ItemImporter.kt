@@ -1,7 +1,8 @@
-package com.jaehl.gameTool.common.ui.screens.gameDetails
+package com.jaehl.gameTool.common.ui.util
 
 import com.google.gson.reflect.TypeToken
 import com.jaehl.gameTool.common.data.local.ObjectListJsonLoader
+import com.jaehl.gameTool.common.data.model.ImageType
 import com.jaehl.gameTool.common.data.model.Item
 import com.jaehl.gameTool.common.data.model.ItemAmount
 import com.jaehl.gameTool.common.data.service.ImageService
@@ -64,12 +65,13 @@ class ItemImporter(
             }
 
             val imageFile = getImageFile(itemData.iconPath)
+            val imageType = ImageType.fromFileExtension(itemData.iconPath.split(".").lastOrNull() ?: "")
             if(!imageFile.exists()){
                 System.out.println("image missing ${itemData.iconPath}")
                 return@forEach
             }
 
-            val imageResponse = imageService.addImage(imageFile, itemData.name)
+            val imageResponse = imageService.addImage(imageFile, imageType, itemData.name)
 
             val item = itemService.addItem(
                 game = gameId,

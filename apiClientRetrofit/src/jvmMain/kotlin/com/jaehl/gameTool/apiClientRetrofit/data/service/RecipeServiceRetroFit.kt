@@ -2,7 +2,6 @@ package com.jaehl.gameTool.apiClientRetrofit.data.service
 
 import com.jaehl.gameTool.apiClientRetrofit.data.api.ServerApi
 import com.jaehl.gameTool.apiClientRetrofit.data.model.baseBody
-import com.jaehl.gameTool.apiClientRetrofit.data.model.request.AddItemRequest
 import com.jaehl.gameTool.apiClientRetrofit.data.model.request.AddRecipeRequest
 import com.jaehl.gameTool.apiClientRetrofit.data.model.request.RecipeAmountRequest
 import com.jaehl.gameTool.apiClientRetrofit.data.model.request.UpdateRecipeRequest
@@ -20,6 +19,12 @@ class RecipeServiceRetroFit(
         return serverApi.getRecipes(
             bearerToken = authProvider.getBearerToken(),
             gameId = gameId
+        ).baseBody()
+    }
+
+    override fun getRecipes(): List<Recipe> {
+        return serverApi.getRecipes(
+            bearerToken = authProvider.getBearerToken(),
         ).baseBody()
     }
 
