@@ -8,6 +8,7 @@ import com.jaehl.gameTool.common.data.model.request.NewCollectionRequest
 import com.jaehl.gameTool.common.data.model.request.UpdateCollectionRequest
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -79,6 +80,11 @@ interface ServerApi {
         @Query("gameId") gameId : Int
     ) : Call<Response<List<Item>>>
 
+    @GET("items")
+    fun getItems(
+        @Header("Authorization") bearerToken : String,
+    ) : Call<Response<List<Item>>>
+
     @GET("items/{id}")
     fun getItem(
         @Header("Authorization") bearerToken : String,
@@ -117,6 +123,17 @@ interface ServerApi {
         @Part image: MultipartBody.Part
     ) : Call<Response<Image>>
 
+    @GET("images/{id}")
+    fun getImage(
+        @Header("Authorization") bearerToken : String,
+        @Path("id") id : Int,
+    ) : Call<ResponseBody>
+
+    @GET("images")
+    fun getImages(
+        @Header("Authorization") bearerToken : String
+    ) : Call<Response<List<ImageMetaData>>>
+
     @POST("recipes/new")
     fun addRecipe(
         @Header("Authorization") bearerToken : String,
@@ -140,6 +157,11 @@ interface ServerApi {
     fun getRecipes(
         @Header("Authorization") bearerToken : String,
         @Query("gameId") gameId : Int
+    ) : Call<Response<List<Recipe>>>
+
+    @GET("recipes")
+    fun getRecipes(
+        @Header("Authorization") bearerToken : String,
     ) : Call<Response<List<Recipe>>>
 
     @GET("recipes/{id}")

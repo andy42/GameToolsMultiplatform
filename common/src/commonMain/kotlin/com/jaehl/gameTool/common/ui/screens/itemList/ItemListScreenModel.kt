@@ -18,10 +18,11 @@ import kotlinx.coroutines.launch
 class ItemListScreenModel(
     val jobDispatcher : JobDispatcher,
     val authProvider: AuthProvider,
-    val config : Config,
     val appConfig: AppConfig,
     val itemRepo: ItemRepo
 ) : ScreenModel {
+
+    private lateinit var config : Config
 
     var pageLoading = mutableStateOf<Boolean>(false)
         private set
@@ -31,7 +32,8 @@ class ItemListScreenModel(
 
     val itemCategories = mutableStateListOf<ItemCategory>()
 
-    init {
+    fun setup(config : Config) {
+        this.config = config
         coroutineScope.launch {
             dataRefresh()
         }

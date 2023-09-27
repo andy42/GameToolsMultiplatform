@@ -6,6 +6,7 @@ import cafe.adriel.voyager.core.model.coroutineScope
 import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.repo.GameRepo
 import com.jaehl.gameTool.common.ui.screens.launchIo
+import com.jaehl.gameTool.common.ui.util.ItemImporter
 import kotlinx.coroutines.launch
 
 class GameDetailsScreenModel(

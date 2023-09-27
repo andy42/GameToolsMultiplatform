@@ -5,6 +5,7 @@ import com.jaehl.gameTool.common.data.model.Recipe
 
 interface RecipeService {
     fun getRecipes(gameId : Int) : List<Recipe>
+    fun getRecipes() : List<Recipe>
     fun getRecipe(recipeId : Int) : Recipe
     fun createRecipes(
         gameId : Int,

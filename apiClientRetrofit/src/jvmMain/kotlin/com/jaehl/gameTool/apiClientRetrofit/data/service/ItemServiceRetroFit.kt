@@ -29,6 +29,12 @@ class ItemServiceRetroFit(
         ).baseBody()
     }
 
+    override fun getItems(): List<Item> {
+        return serverApi.getItems(
+            bearerToken = authProvider.getBearerToken(),
+        ).baseBody()
+    }
+
     override fun addItem(game: Int, name: String, categories: List<Int>, image: Int): Item {
         return serverApi.addItem(
             bearerToken = authProvider.getBearerToken(),

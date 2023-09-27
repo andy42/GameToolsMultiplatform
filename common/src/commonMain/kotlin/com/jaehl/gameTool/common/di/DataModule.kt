@@ -4,7 +4,7 @@ import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.*
 import com.jaehl.gameTool.common.data.repo.*
 import com.jaehl.gameTool.common.data.service.*
-import com.jaehl.gameTool.common.ui.screens.gameDetails.ItemImporter
+import com.jaehl.gameTool.common.ui.util.ItemImporter
 import com.jaehl.gameTool.common.ui.util.ItemRecipeInverter
 import com.jaehl.gameTool.common.ui.util.ItemRecipeNodeUtil
 import org.kodein.di.*

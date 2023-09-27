@@ -8,7 +8,11 @@ import androidx.compose.ui.unit.dp
 sealed class ImageResource {
     data class ImageLocalResource(
         val url : String
-    ) : ImageResource()
+    ) : ImageResource() {
+        fun getFileExtension() : String {
+            return this.url.split(".").lastOrNull() ?: ""
+        }
+    }
     data class ImageApiResource(
         val url : String,
         val authHeader : String
