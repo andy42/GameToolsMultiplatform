@@ -2,6 +2,7 @@ package com.jaehl.gameTool.common.ui.screens.itemList
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.coroutineScope
 import com.jaehl.gameTool.common.JobDispatcher
@@ -29,6 +30,9 @@ class ItemListScreenModel(
 
     var items = mutableStateListOf<ItemRowModel>()
         private set
+
+    val searchText =  mutableStateOf("")
+    val categoryFilter = mutableStateOf(Item_Category_ALL)
 
     val itemCategories = mutableStateListOf<ItemCategory>()
 

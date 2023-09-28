@@ -2,10 +2,7 @@ package com.jaehl.gameTool.common.ui.screens.itemEdit.componets
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
@@ -44,7 +41,12 @@ fun RecipeItemAmountRow(
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                ItemIcon(itemAmount.itemModel.iconPath)
+                ItemIcon(
+                    modifier = Modifier
+                        .width(40.dp)
+                        .height(40.dp),
+                    itemAmount.itemModel.iconPath
+                )
                 Text(
                     itemAmount.itemModel.name,
                     modifier = Modifier

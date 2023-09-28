@@ -56,11 +56,18 @@ class ItemEditScreen(
             )
         }
 
+        LaunchedEffect(screenModel.closePageEvent.value){
+            if(screenModel.closePageEvent.value){
+                navigator.pop()
+            }
+        }
+
         ItemEditPage(
             title = screenModel.title.value,
             viewModel = screenModel.viewModel.value,
             onBackClick = {
-                navigator.pop()
+                //navigator.pop()
+                screenModel.onBackClick()
             },
             onItemNameChange = { value ->
                 screenModel.onItemNameChange(value)
@@ -106,6 +113,23 @@ class ItemEditScreen(
                 screenModel.onDeleteRecipe(recipeId)
             }
         )
+
+        if(screenModel.showExitSaveDialog.value){
+            WarningDialog(
+                title = "Unsaved changes",
+                message = "You have unsaved changes, do you want to save changes?",
+                positiveText = "Save",
+                negativeText = "Discard",
+                onPositiveClick = {
+                    screenModel.showExitSaveDialog.value = false
+                    screenModel.save()
+                },
+                onNegativeClick = {
+                    screenModel.showExitSaveDialog.value = false
+                    navigator.pop()
+                }
+            )
+        }
 
         if(isItemCategoryPickOpen.value){
             ItemCategoryPickDialog(
@@ -239,9 +263,12 @@ fun ItemEditPage(
                     ImageEdit(
                         modifier = Modifier
                             .padding(top = 10.dp),
+                        title = "Icon",
                         viewModel.icon,
                         viewModel.iconError,
-                        onIconChange = onIconChange
+                        onIconChange = onIconChange,
+                        width = 150.dp,
+                        height = 150.dp
                     )
 
 

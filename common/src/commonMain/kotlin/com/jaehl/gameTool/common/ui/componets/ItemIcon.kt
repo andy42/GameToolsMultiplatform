@@ -2,6 +2,7 @@ package com.jaehl.gameTool.common.ui.componets
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -20,4 +21,4 @@ sealed class ImageResource {
 }
 
 @Composable
-expect fun ItemIcon(imageResource : ImageResource, modifier : Modifier = Modifier, size : Dp = 40.dp)
+expect fun ItemIcon(modifier : Modifier = Modifier, imageResource : ImageResource, contentScale : ContentScale = ContentScale.Fit)

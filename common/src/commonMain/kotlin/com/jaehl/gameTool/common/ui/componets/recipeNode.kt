@@ -149,12 +149,14 @@ fun RecipeItemAmount(
 
         )
         ItemIcon(
-            itemAmount.itemModel.iconPath,
             modifier = Modifier
+                .width(40.dp)
+                .height(40.dp)
                 //.background(if(alternativeRecipe) R.Color.debugGreen else R.Color.transparent)
                 .clickable {
                     onItemClick?.invoke(itemAmount.itemModel.id)
-                }
+                },
+            itemAmount.itemModel.iconPath,
         )
         Text(
             itemAmount.itemModel.name,

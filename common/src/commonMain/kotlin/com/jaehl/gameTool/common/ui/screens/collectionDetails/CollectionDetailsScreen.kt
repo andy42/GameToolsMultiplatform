@@ -19,6 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import cafe.adriel.voyager.core.lifecycle.LifecycleEffect
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.kodein.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -26,6 +27,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.jaehl.gameTool.common.ui.componets.*
 import com.jaehl.gameTool.common.ui.screens.collectionEdit.CollectionEditScreen
 import com.jaehl.gameTool.common.ui.screens.itemDetails.ItemDetailsScreen
+import com.jaehl.gameTool.common.ui.screens.itemDetails.ItemDetailsScreenModel
 import com.jaehl.gameTool.common.ui.viewModel.ItemAmountViewModel
 
 class CollectionDetailsScreen(
@@ -38,13 +40,15 @@ class CollectionDetailsScreen(
         val navigator = LocalNavigator.currentOrThrow
         val screenModel = rememberScreenModel<CollectionDetailsScreenModel>()
 
-        LaunchedEffect(collectionId){
-            screenModel.setup(
-                CollectionDetailsScreenModel.Config(
-                    gameId = gameId,
-                    collectionId = collectionId)
-            )
-        }
+        LifecycleEffect(
+            onStarted = {
+                screenModel.setup(
+                    CollectionDetailsScreenModel.Config(
+                        gameId = gameId,
+                        collectionId = collectionId)
+                )
+            }
+        )
 
         CollectionDetailsPage(
             title = screenModel.title.value,
@@ -254,10 +258,11 @@ fun Item(itemViewModel : ItemAmountViewModel, onItemClick : (itemId : Int) -> Un
             verticalAlignment = Alignment.CenterVertically
         ) {
             ItemIcon(
-                imageResource = itemViewModel.itemModel.iconPath,
                 modifier = Modifier
+                    .width(70.dp)
+                    .height(70.dp)
                     .padding(start = 5.dp, end = 5.dp, top = 10.dp, bottom = 10.dp),
-                size = 70.dp
+                imageResource = itemViewModel.itemModel.iconPath
             )
             Text(
                 itemViewModel.amount.toString(),

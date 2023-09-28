@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import io.kamel.core.Resource
 import io.kamel.image.KamelImage
@@ -15,13 +16,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 
 @Composable
-actual fun ItemIcon(imageResource : ImageResource, modifier : Modifier, size : Dp){
+actual fun ItemIcon(modifier : Modifier, imageResource : ImageResource, contentScale : ContentScale){
     when(imageResource) {
         is ImageResource.ImageLocalResource -> {
             Box(
                 modifier = modifier
-                    .width(size)
-                    .height(size)
             )
         }
         is ImageResource.ImageApiResource -> {
@@ -34,9 +33,8 @@ actual fun ItemIcon(imageResource : ImageResource, modifier : Modifier, size : D
                 }
             }
             KamelImage(
-                modifier = modifier
-                    .width(size)
-                    .height(size),
+                modifier = modifier,
+                contentScale = contentScale,
                 resource = painterResource,
                 contentDescription = "Profile",
             )

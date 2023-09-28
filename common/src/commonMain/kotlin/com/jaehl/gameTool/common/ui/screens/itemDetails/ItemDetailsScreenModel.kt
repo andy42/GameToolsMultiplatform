@@ -44,7 +44,11 @@ class ItemDetailsScreenModel(
     private val recipeMap = hashMapOf<Int, RecipeViewModel>()
     var recipeModels = mutableStateListOf<RecipeViewModel>()
 
-    fun update(config : Config) {
+    fun update(config : Config, ifItemChanged : Boolean = false) {
+        if(ifItemChanged && this.config.itemId == config.itemId){
+            return
+        }
+
         this.config = config
         coroutineScope.launch {
             dataRefresh()

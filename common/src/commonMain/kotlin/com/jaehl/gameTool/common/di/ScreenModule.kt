@@ -45,7 +45,9 @@ object ScreenModule {
         bind<HomeScreenModel> { provider {
             HomeScreenModel(
                 instance<JobDispatcher>(),
-                instance<GameRepo>()
+                instance<GameRepo>(),
+                instance<AuthProvider>(),
+                instance<AppConfig>(),
             )}}
 
         bind<GameDetailsScreenModel> { provider {
@@ -53,12 +55,17 @@ object ScreenModule {
                 instance<JobDispatcher>(),
                 instance<GameRepo>(),
                 instance<ItemImporter>(),
+                instance<AuthProvider>(),
+                instance<AppConfig>(),
             )}}
 
         bind<GameEditScreenModel> { provider {
             GameEditScreenModel(
                 instance<JobDispatcher>(),
                 instance<GameRepo>(),
+                instance<ImageService>(),
+                instance<AppConfig>(),
+                instance<AuthProvider>(),
                 GameEditValidator()
             )}}
 

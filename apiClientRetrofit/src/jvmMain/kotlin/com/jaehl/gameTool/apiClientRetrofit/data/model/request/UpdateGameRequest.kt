@@ -1,5 +1,7 @@
 package com.jaehl.gameTool.apiClientRetrofit.data.model.request
 
 data class UpdateGameRequest(
-    val name : String
+    val name : String,
+    val icon : Int,
+    val banner : Int
 )

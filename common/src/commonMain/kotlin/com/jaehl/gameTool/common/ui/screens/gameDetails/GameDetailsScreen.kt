@@ -11,14 +11,16 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.kodein.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.jaehl.gameTool.common.ui.componets.AppBar
+import com.jaehl.gameTool.common.ui.componets.ItemIcon
 import com.jaehl.gameTool.common.ui.screens.collectionList.CollectionListScreen
-import com.jaehl.gameTool.common.ui.screens.gameEdit.GameEditScreenModel
+import com.jaehl.gameTool.common.ui.screens.home.GameModel
 import com.jaehl.gameTool.common.ui.screens.itemList.ItemListScreen
 
 class GameDetailsScreen(
@@ -39,7 +41,7 @@ class GameDetailsScreen(
         }
 
         GameDetailsPage(
-            title = screenModel.gameTitle.value,
+            gameModel = screenModel.viewModel.value,
             onBackClick = {
                 navigator.pop()
             },
@@ -70,7 +72,7 @@ class GameDetailsScreen(
 
 @Composable
 fun GameDetailsPage(
-    title : String,
+    gameModel : GameModel,
     onBackClick : () -> Unit,
     onOpenItemsClick : () -> Unit,
     onOpenCollectionsClick : () -> Unit,
@@ -82,7 +84,7 @@ fun GameDetailsPage(
             .background(Color.Gray)
     ) {
         AppBar(
-            title = title,
+            title = gameModel.name,
             backButtonEnabled = true,
             onBackClick = {
                 onBackClick()
@@ -96,16 +98,22 @@ fun GameDetailsPage(
             Card(
                 modifier = Modifier
                     .padding(top = 20.dp)
-                    .width(300.dp)
-                    .height(400.dp)
+                    .width(400.dp)
                     .align(Alignment.CenterHorizontally)
                     .background(MaterialTheme.colors.surface)
             ) {
                 Column(
                     modifier = Modifier
-                        .fillMaxSize(),
+                        .fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    ItemIcon(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(180.dp),
+                        contentScale = ContentScale.FillHeight,
+                        imageResource = gameModel.banner
+                    )
                     Button(
                         onClick = {
                             onOpenItemsClick()

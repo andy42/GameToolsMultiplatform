@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.loadImageBitmap
 import androidx.compose.ui.unit.Dp
 import io.kamel.core.Resource
@@ -21,7 +22,7 @@ import kotlinx.coroutines.Job
 import java.io.File
 
 @Composable
-actual fun ItemIcon(imageResource : ImageResource, modifier : Modifier, size : Dp){
+actual fun ItemIcon(modifier : Modifier, imageResource : ImageResource, contentScale : ContentScale){
     when(imageResource) {
         is ImageResource.ImageLocalResource -> {
             val file = File(imageResource.url)
@@ -32,13 +33,11 @@ actual fun ItemIcon(imageResource : ImageResource, modifier : Modifier, size : D
                 Image(
                     painter = BitmapPainter(image = imageBitmap),
                     contentDescription = "",
-                    modifier = modifier.width(size).height(size)
+                    modifier = modifier
                 )
             } else {
                 Box(
                     modifier = modifier
-                        .width(size)
-                        .height(size)
                 )
             }
         }
@@ -52,9 +51,8 @@ actual fun ItemIcon(imageResource : ImageResource, modifier : Modifier, size : D
                 }
             }
             KamelImage(
-                modifier = modifier
-                    .width(size)
-                    .height(size),
+                modifier = modifier,
+                contentScale = contentScale,
                 resource = painterResource,
                 contentDescription = "Profile",
             )

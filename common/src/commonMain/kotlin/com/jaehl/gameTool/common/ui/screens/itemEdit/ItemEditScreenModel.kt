@@ -45,12 +45,16 @@ class ItemEditScreenModel(
     val viewModel = mutableStateOf(ViewModel())
     private var item : Item? = null
 
+    val showExitSaveDialog = mutableStateOf(false)
+    val closePageEvent = mutableStateOf(false)
+
     private var itemCategoriesFullList = listOf<ItemCategory>()
     val itemCategories = mutableStateListOf<ItemCategory>()
     val items = mutableStateListOf<ItemModel>()
 
     private val recipeMap : HashMap<Int, RecipeViewModel> = hashMapOf()
     private var recipeIndex = 0
+    private var unsavedChanges = false
 
     init {
         itemEditValidator.listener = this
@@ -130,7 +134,6 @@ class ItemEditScreenModel(
             )
         )
 
-
         updateItemCategories()
         this.pageLoading.value = false
     }
@@ -146,6 +149,14 @@ class ItemEditScreenModel(
         )
     }
 
+    fun onBackClick() {
+        if(unsavedChanges){
+            showExitSaveDialog.value = true
+        } else {
+            closePageEvent.value = true
+        }
+    }
+
     private fun onException(t: Throwable){
         System.err.println(t.message)
         pageLoading.value = false
@@ -156,6 +167,7 @@ class ItemEditScreenModel(
             viewModel.value.copy(
                 itemName = TextFieldValue(value = value),
             )
+        unsavedChanges = true
     }
 
     fun onIconChange(filePath : String) {
@@ -164,6 +176,7 @@ class ItemEditScreenModel(
                 icon = ImageResource.ImageLocalResource(filePath),
                 iconError = ""
             )
+        unsavedChanges = true
     }
 
     fun onItemCategoryAdd(itemCategory: ItemCategory) {
@@ -179,6 +192,7 @@ class ItemEditScreenModel(
                 )
             updateItemCategories()
         }
+        unsavedChanges = true
     }
 
     private fun updateRecipeFromMap(){
@@ -199,6 +213,7 @@ class ItemEditScreenModel(
             craftingAtList = craftingAtList
         )
         updateRecipeFromMap()
+        unsavedChanges = true
     }
 
     fun onDeleteCreatedAtItem(recipeId : Int, itemId : Int) = runWithCatch(::onException){
@@ -210,6 +225,7 @@ class ItemEditScreenModel(
             craftingAtList = craftingAtList
         )
         updateRecipeFromMap()
+        unsavedChanges = true
     }
 
     private fun updateRecipeItemAmount(recipeId: Int, recipeViewModel: RecipeViewModel, isInput : Boolean, list : List<ItemAmountViewModel>) {
@@ -223,6 +239,7 @@ class ItemEditScreenModel(
             )
         }
         updateRecipeFromMap()
+        unsavedChanges = true
     }
 
     fun onAddItemAmount(recipeId : Int, isInput : Boolean, itemId : Int) = runWithCatch(::onException){
@@ -235,6 +252,7 @@ class ItemEditScreenModel(
                 amount = 1
             ))
         updateRecipeItemAmount(recipeId, recipe, isInput, list)
+        unsavedChanges = true
     }
 
     fun onUpdateItemAmountItem(recipeId : Int, isInput : Boolean, oldItemId : Int, newItemId : Int) = runWithCatch(::onException) {
@@ -246,6 +264,7 @@ class ItemEditScreenModel(
             itemModel = item.toItemModel(appConfig, authProvider)
         )
         updateRecipeItemAmount(recipeId, recipe, isInput, list)
+        unsavedChanges = true
     }
 
     fun onUpdateItemAmountAmount(recipeId : Int, isInput : Boolean, itemId : Int, amount : String) = runWithCatch(::onException) {
@@ -256,6 +275,7 @@ class ItemEditScreenModel(
             amount = if(amount.isEmpty()) 0 else amount.toInt()
         )
         updateRecipeItemAmount(recipeId, recipe, isInput, list)
+        unsavedChanges = true
     }
 
     fun onDeleteItemAmount(recipeId : Int, isInput : Boolean, itemId : Int) = runWithCatch(::onException) {
@@ -264,6 +284,7 @@ class ItemEditScreenModel(
         val index = list.indexOfFirst { it.itemModel.id == itemId }
         list.removeAt(index)
         updateRecipeItemAmount(recipeId, recipe, isInput, list)
+        unsavedChanges = true
     }
 
     fun onRecipeAdd() = runWithCatch(::onException) {
@@ -282,6 +303,7 @@ class ItemEditScreenModel(
 
         recipeMap[recipe.id] = recipe
         updateRecipeFromMap()
+        unsavedChanges = true
     }
 
     fun onDeleteRecipe(recipeId : Int) = runWithCatch(::onException) {
@@ -294,6 +316,7 @@ class ItemEditScreenModel(
             )
         }
         updateRecipeFromMap()
+        unsavedChanges = true
     }
 
     private suspend fun saveNewItem(){
@@ -323,6 +346,7 @@ class ItemEditScreenModel(
 
         this.config = Config(gameId = config.gameId, itemId = newItem.id)
         loadItem(newItem.id)
+        unsavedChanges = false
     }
 
     private suspend fun updateItem(){
@@ -378,8 +402,8 @@ class ItemEditScreenModel(
                )
            }
        }
-
         loadItem(item.id)
+        unsavedChanges = false
     }
 
     fun save() = launchIo(jobDispatcher, ::onException){

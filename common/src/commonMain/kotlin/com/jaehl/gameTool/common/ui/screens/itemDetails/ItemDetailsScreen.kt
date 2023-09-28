@@ -18,12 +18,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import cafe.adriel.voyager.core.lifecycle.LifecycleEffect
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.kodein.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.jaehl.gameTool.common.ui.AppColor
 import com.jaehl.gameTool.common.ui.componets.*
+import com.jaehl.gameTool.common.ui.screens.collectionDetails.CollectionDetailsScreenModel
 import com.jaehl.gameTool.common.ui.screens.itemEdit.ItemEditScreen
 import com.jaehl.gameTool.common.ui.viewModel.ItemModel
 
@@ -36,13 +38,25 @@ class ItemDetailsScreen(
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val screenModel = rememberScreenModel<ItemDetailsScreenModel>()
+
         LaunchedEffect(itemId){
             screenModel.update(
-                ItemDetailsScreenModel.Config(
+                config = ItemDetailsScreenModel.Config(
                     gameId = gameId,
-                    itemId = itemId)
+                    itemId = itemId),
+                ifItemChanged = true
             )
         }
+
+        LifecycleEffect(
+            onStarted = {
+                screenModel.update(
+                    ItemDetailsScreenModel.Config(
+                        gameId = gameId,
+                        itemId = itemId)
+                )
+            }
+        )
 
         ItemDetailsPage(
             itemId = itemId,
@@ -322,8 +336,10 @@ fun CraftedAtChip(
         verticalAlignment = Alignment.CenterVertically
     ){
         ItemIcon(
-            item.iconPath,
             modifier = Modifier
+                .width(40.dp)
+                .height(40.dp),
+            item.iconPath,
         )
         Text(
             text = item.name,
@@ -350,10 +366,11 @@ fun ItemQuickInfo(item : ItemInfoModel, modifier: Modifier = Modifier) {
                     .background(MaterialTheme.colors.surface)
             ) {
                 ItemIcon(
-                    iconPath,
                     modifier = Modifier
+                        .width(100.dp)
+                        .height(100.dp)
                         .align(Alignment.Center),
-                    size = 100.dp
+                    iconPath
                 )
             }
         }
