@@ -48,8 +48,6 @@ class ItemListScreen(
             }
         )
 
-//        val searchText = remember { mutableStateOf("") }
-//        val categoryFilter = remember { mutableStateOf(ItemListScreenModel.Item_Category_ALL) }
         val isItemCategoryPickerOpen = remember { mutableStateOf(false) }
 
         ItemListPage(
