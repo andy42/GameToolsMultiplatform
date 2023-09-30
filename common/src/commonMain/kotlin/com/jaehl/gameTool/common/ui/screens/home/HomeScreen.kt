@@ -22,6 +22,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.jaehl.gameTool.common.ui.AppColor
 import com.jaehl.gameTool.common.ui.componets.AppBar
+import com.jaehl.gameTool.common.ui.componets.ItemIcon
 import com.jaehl.gameTool.common.ui.screens.gameDetails.GameDetailsScreen
 import com.jaehl.gameTool.common.ui.screens.gameEdit.GameEditScreen
 import com.jaehl.gameTool.common.ui.screens.users.UsersScreen
@@ -90,7 +91,7 @@ fun HomePage(
         ) {
             AdminTools(
                 modifier = Modifier
-                    .width(300.dp)
+                    .width(400.dp)
                     .padding(top = 20.dp)
                     .align(Alignment.CenterHorizontally),
                 onUsersClick = {
@@ -100,7 +101,7 @@ fun HomePage(
             )
             GamesCard(
                 modifier = Modifier
-                    .width(300.dp)
+                    .width(400.dp)
                     .padding(top = 20.dp)
                     .align(Alignment.CenterHorizontally),
                 games = games,
@@ -234,6 +235,13 @@ fun GameRow(
             .background(if(index.mod(2) == 0) AppColor.rowBackgroundEven else AppColor.rowBackgroundOdd),
         verticalAlignment = Alignment.CenterVertically
     ){
+        ItemIcon(
+            modifier = Modifier
+                .width(70.dp)
+                .height(70.dp)
+                .padding(5.dp),
+            imageResource = game.icon
+        )
         Text(
             game.name,
             modifier = Modifier

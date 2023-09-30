@@ -84,7 +84,12 @@ fun ItemPickerRow(
             .background(if(index.mod(2) == 0) AppColor.rowBackgroundEven else AppColor.rowBackgroundOdd),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        ItemIcon(item.iconPath)
+        ItemIcon(
+            modifier = Modifier
+                .width(40.dp)
+                .height(40.dp),
+            item.iconPath
+        )
         Text(
             item.name,
             modifier = Modifier

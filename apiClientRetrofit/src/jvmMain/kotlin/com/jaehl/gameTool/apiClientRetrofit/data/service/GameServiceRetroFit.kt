@@ -13,21 +13,25 @@ class GameServiceRetroFit(
     val authProvider: AuthProvider
 ) : GameService {
 
-    override fun createGame(name: String) : Game{
+    override fun createGame(name: String, icon : Int, banner : Int) : Game{
         return serverApi.createGame(
             bearerToken = authProvider.getBearerToken(),
             data = CreateGameRequest(
-                name = name
+                name = name,
+                icon = icon,
+                banner = banner
             )
         ).baseBody()
     }
 
-    override fun updateGame(id: Int, name: String) : Game{
+    override fun updateGame(id: Int, name: String, icon : Int, banner : Int) : Game{
         return serverApi.updateGame(
             bearerToken = authProvider.getBearerToken(),
             id = id,
             data = UpdateGameRequest(
-                name = name
+                name = name,
+                icon = icon,
+                banner = banner
             )
         ).baseBody()
     }

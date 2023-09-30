@@ -44,12 +44,20 @@ class CollectionEditScreen (
                 )
             )
         }
+
+        LaunchedEffect(screenModel.closePageEvent.value){
+            if(screenModel.closePageEvent.value){
+                navigator.pop()
+            }
+        }
+
         Box {
             CollectionEditPage(
                 title = screenModel.title.value,
                 collectionName = screenModel.collectionName.value,
                 onBackClick = {
-                    navigator.pop()
+                    screenModel.onBackClick()
+                    //navigator.pop()
                 },
                 onSaveClick = {
                     screenModel.save()
@@ -90,6 +98,24 @@ class CollectionEditScreen (
                 }
             )
         }
+
+        if(screenModel.showExitSaveDialog.value){
+            WarningDialog(
+                title = "Unsaved changes",
+                message = "You have unsaved changes, do you want to save changes?",
+                positiveText = "Save",
+                negativeText = "Discard",
+                onPositiveClick = {
+                    screenModel.showExitSaveDialog.value = false
+                    screenModel.save()
+                },
+                onNegativeClick = {
+                    screenModel.showExitSaveDialog.value = false
+                    navigator.pop()
+                }
+            )
+        }
+
         if(isItemPickOpen.value) {
             ItemPickDialog(
                 title = "",
@@ -289,7 +315,12 @@ fun ItemRecipeRow(
                 //modifier = Modifier()
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                ItemIcon(itemViewModel.itemModel.iconPath)
+                ItemIcon(
+                    Modifier
+                        .width(40.dp)
+                        .height(40.dp),
+                    itemViewModel.itemModel.iconPath
+                )
                 Text(
                     itemViewModel.itemModel.name,
                     modifier = Modifier

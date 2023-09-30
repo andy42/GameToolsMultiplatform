@@ -7,8 +7,8 @@ interface GameRepo {
     fun getGames() : List<Game>
     fun getGame(id : Int) : Game
 
-    fun createGame(name : String) : Game
-    fun updateGame(id : Int, name : String) : Game
+    fun createGame(name : String, icon : Int, banner : Int) : Game
+    fun updateGame(id : Int, name : String, icon : Int, banner : Int) : Game
     fun delete(id : Int)
 }
 
@@ -24,12 +24,12 @@ class GameRepoImp(
         return gameService.getGame(id)
     }
 
-    override fun createGame(name: String): Game {
-        return gameService.createGame(name)
+    override fun createGame(name: String, icon : Int, banner : Int): Game {
+        return gameService.createGame(name, icon, banner)
     }
 
-    override fun updateGame(id: Int, name: String): Game {
-        return gameService.updateGame(id, name)
+    override fun updateGame(id: Int, name: String, icon : Int, banner : Int): Game {
+        return gameService.updateGame(id, name, icon, banner)
     }
 
     override fun delete(id: Int) {

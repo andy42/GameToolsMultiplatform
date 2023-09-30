@@ -5,6 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.coroutineScope
 import com.jaehl.gameTool.common.JobDispatcher
+import com.jaehl.gameTool.common.data.AppConfig
+import com.jaehl.gameTool.common.data.AuthProvider
 import com.jaehl.gameTool.common.data.repo.GameRepo
 import com.jaehl.gameTool.common.extensions.postSwap
 import com.jaehl.gameTool.common.ui.screens.launchIo
@@ -12,7 +14,9 @@ import kotlinx.coroutines.launch
 
 class HomeScreenModel(
     val jobDispatcher : JobDispatcher,
-    val gameRepo : GameRepo
+    val gameRepo : GameRepo,
+    val authProvider: AuthProvider,
+    val appConfig: AppConfig
 ) : ScreenModel {
 
     var games = mutableStateListOf<GameModel>()
@@ -28,7 +32,7 @@ class HomeScreenModel(
             onException = ::onException
         ){
             val games = gameRepo.getGames().map {
-                GameModel.create(it)
+                it.toGameModel(appConfig, authProvider)
             }
             this.games.postSwap(games)
             this.pageLoading.value = false

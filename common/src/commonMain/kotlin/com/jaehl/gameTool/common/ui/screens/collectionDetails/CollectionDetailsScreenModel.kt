@@ -52,6 +52,7 @@ class CollectionDetailsScreenModel (
             recipeRepo.preloadRecipes(config.gameId)
             itemRepo.preloadItems(config.gameId)
 
+            groupsMap.clear()
             collectionRepo.getCollectionFlow(config.collectionId).collect{ collection ->
                 title.value = collection.name
 

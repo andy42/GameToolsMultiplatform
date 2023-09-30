@@ -4,7 +4,9 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material.MaterialTheme
@@ -14,6 +16,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.kamel.core.utils.URI
 
@@ -26,9 +29,11 @@ sealed class DragState {
 @Composable
 actual fun ImageEdit(
     modifier : Modifier,
+    title : String,
     icon : ImageResource,
     error : String,
-    onIconChange : (filePath : String) -> Unit
+    onIconChange : (filePath : String) -> Unit,
+    width : Dp, height : Dp
 ) {
     val dragState = remember { mutableStateOf<DragState>(DragState.NonDragging) }
 
@@ -96,16 +101,18 @@ actual fun ImageEdit(
             modifier = borderModifier
         ) {
             ItemIcon(
+                modifier = Modifier
+                    .width(width)
+                    .height(height),
                 if(dragState.value is DragState.Dragging) {
                     (dragState.value as DragState.Dragging).imageResource
                 } else {
                     icon
-                },
-                size = 150.dp
+                }
             )
         }
         Text(
-            "Icon",
+            title,
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(start = 10.dp)

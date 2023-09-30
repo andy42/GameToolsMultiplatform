@@ -36,12 +36,17 @@ class CollectionEditScreenModel (
     val groupList = mutableStateListOf<GroupViewModel>()
     val itemModels = mutableStateListOf<ItemModel>()
 
+    val showExitSaveDialog = mutableStateOf(false)
+    val closePageEvent = mutableStateOf(false)
+
     private var groupAddIndex = 0
     private var groupMap = LinkedHashMap<Int, GroupViewModel>()
+    private var unsavedChanges = false
 
     fun setup(config : Config) {
         this.config = config
 
+        unsavedChanges = false
         launchIo(
             jobDispatcher,
             onException = { t: Throwable ->
@@ -115,6 +120,7 @@ class CollectionEditScreenModel (
         collectionName.value = collectionName.value.copy(
             value = value
         )
+        unsavedChanges = true
     }
 
     fun onAddNewGroupClick() {
@@ -126,11 +132,13 @@ class CollectionEditScreenModel (
         )
         groupMap[newGroup.id] = newGroup
         groupList.swap(groupMap.values)
+        unsavedChanges = true
     }
 
     fun onRemoveGroupClick(groupId : Int) {
         groupMap.remove(groupId)
         groupList.swap(groupMap.values)
+        unsavedChanges = true
     }
 
     fun onGroupNameChange(groupId : Int, value : String) = runWithCatch(onException = ::onException) {
@@ -141,6 +149,7 @@ class CollectionEditScreenModel (
             )
         )
         groupList.swap(groupMap.values)
+        unsavedChanges = true
     }
 
     fun onItemAmountChange(groupId : Int, itemId : Int, value : String) = runWithCatch(onException = ::onException) {
@@ -157,12 +166,14 @@ class CollectionEditScreenModel (
             }
         )
         groupList.swap(groupMap.values)
+        unsavedChanges = true
     }
 
     fun onRemoveItemClick(groupId : Int, itemId : Int) = runWithCatch(onException = ::onException) {
         val group = groupMap[groupId] ?: throw Exception("updateGroupName groupId not found : $groupId")
         group.itemList.remove(itemId)
         groupList.swap(groupMap.values)
+        unsavedChanges = true
     }
 
     fun onAddItemClick(groupId : Int, itemId : Int) = runWithCatch(onException = ::onException) {
@@ -173,6 +184,7 @@ class CollectionEditScreenModel (
             amount = 1
         )
         groupList.swap(groupMap.values)
+        unsavedChanges = true
     }
 
     private suspend fun newCollection() {
@@ -195,6 +207,7 @@ class CollectionEditScreenModel (
         collectionRepo.addCollection(
             data = body
         )
+        unsavedChanges = false
     }
 
     private suspend fun updateCollection(){
@@ -219,6 +232,7 @@ class CollectionEditScreenModel (
             collectionId = collectionId,
             body = body
         )
+        unsavedChanges = false
     }
 
     fun save() = launchIo(
@@ -231,6 +245,14 @@ class CollectionEditScreenModel (
             updateCollection()
         }
 
+    }
+
+    fun onBackClick() {
+        if(unsavedChanges){
+            showExitSaveDialog.value = true
+        } else {
+            closePageEvent.value = true
+        }
     }
 
     data class Config(

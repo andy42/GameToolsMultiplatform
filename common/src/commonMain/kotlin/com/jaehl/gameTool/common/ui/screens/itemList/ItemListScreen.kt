@@ -48,19 +48,17 @@ class ItemListScreen(
             }
         )
 
-        val searchText = remember { mutableStateOf("") }
-        val categoryFilter = remember { mutableStateOf(ItemListScreenModel.Item_Category_ALL) }
         val isItemCategoryPickerOpen = remember { mutableStateOf(false) }
 
         ItemListPage(
             items = screenModel.items,
-            searchText = searchText.value,
-            filterCategory = categoryFilter.value,
+            searchText = screenModel.searchText.value,
+            filterCategory = screenModel.categoryFilter.value,
             onBackClick = {
                 navigator.pop()
             },
             onSearchTextChange = {
-                searchText.value = it
+                screenModel.searchText.value = it
             },
             onCategoryFilterClick = {
                 isItemCategoryPickerOpen.value = true
@@ -84,7 +82,7 @@ class ItemListScreen(
                 title = "Category",
                 categoryList = screenModel.itemCategories,
                 onCategoryClick = { itemCategory ->
-                    categoryFilter.value = itemCategory
+                    screenModel.categoryFilter.value = itemCategory
                     isItemCategoryPickerOpen.value = false
                 },
                 onClose = {
@@ -95,6 +93,7 @@ class ItemListScreen(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ItemListPage(
     items : List<ItemRowModel>,
@@ -126,7 +125,7 @@ fun ItemListPage(
                     Text("Create New")
                 }
             }
-            Row(
+            FlowRow(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 10.dp)
@@ -138,10 +137,11 @@ fun ItemListPage(
                     },
                     label = { Text("Search") },
                     modifier = Modifier
+                        .padding(top = 10.dp, end = 10.dp)
                 )
                 Box(
                     modifier = Modifier
-                        .padding(start = 10.dp)
+                        .padding(top = 10.dp, end = 10.dp)
                 ) {
                     OutlinedTextField(
                         value = filterCategory.name,
@@ -207,7 +207,12 @@ fun ItemRow(
             .background(if(index.mod(2) == 0) AppColor.rowBackgroundEven else AppColor.rowBackgroundOdd),
         verticalAlignment = Alignment.CenterVertically
     ){
-        ItemIcon(item.imageResource)
+        ItemIcon(
+            modifier = Modifier
+                .width(40.dp)
+                .height(40.dp),
+            item.imageResource
+        )
         Text(
             item.name,
             modifier = Modifier
