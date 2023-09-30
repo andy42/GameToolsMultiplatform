@@ -25,7 +25,6 @@ class GameDetailsScreenModel(
 
     var pageLoading = mutableStateOf(false)
 
-    //var gameTitle = mutableStateOf("")
     var viewModel = mutableStateOf(GameModel())
 
     fun setup(config : Config) {
@@ -45,7 +44,6 @@ class GameDetailsScreenModel(
 
             viewModel.value = game.toGameModel(appConfig, authProvider)
 
-            //gameTitle.value = game.name
             this.pageLoading.value = false
         }
     }

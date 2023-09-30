@@ -46,7 +46,6 @@ class GameEditScreen(
             viewModel = screenModel.viewModel.value,
             onBackClick = {
                 screenModel.onBackClick()
-                //navigator.pop()
             },
             onSaveClick = screenModel::onSaveClick,
             onDelete = screenModel::onDelete,

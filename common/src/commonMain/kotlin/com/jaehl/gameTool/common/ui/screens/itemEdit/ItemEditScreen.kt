@@ -66,7 +66,6 @@ class ItemEditScreen(
             title = screenModel.title.value,
             viewModel = screenModel.viewModel.value,
             onBackClick = {
-                //navigator.pop()
                 screenModel.onBackClick()
             },
             onItemNameChange = { value ->
