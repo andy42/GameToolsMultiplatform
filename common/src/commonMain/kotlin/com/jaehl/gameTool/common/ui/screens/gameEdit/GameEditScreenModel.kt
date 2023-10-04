@@ -4,10 +4,10 @@ import androidx.compose.runtime.mutableStateOf
 import cafe.adriel.voyager.core.model.ScreenModel
 import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.AppConfig
-import com.jaehl.gameTool.common.data.AuthProvider
 import com.jaehl.gameTool.common.data.model.Game
 import com.jaehl.gameTool.common.data.model.ImageType
 import com.jaehl.gameTool.common.data.repo.GameRepo
+import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.data.service.ImageService
 import com.jaehl.gameTool.common.ui.componets.ImageResource
 import com.jaehl.gameTool.common.ui.componets.TextFieldValue
@@ -19,7 +19,7 @@ class GameEditScreenModel(
     private val gameRepo: GameRepo,
     private val imageService : ImageService,
     val appConfig : AppConfig,
-    val authProvider: AuthProvider,
+    val tokenProvider: TokenProvider,
     private val gameEditValidator : GameEditValidator
 ) : ScreenModel, GameEditValidator.ValidatorListener {
 
@@ -53,11 +53,11 @@ class GameEditScreenModel(
             showDelete = true,
             icon = ImageResource.ImageApiResource(
                 url = "${appConfig.baseUrl}/images/${game.icon}",
-                authHeader = authProvider.getBearerToken()
+                authHeader = tokenProvider.getBearerRefreshToken()
             ),
             banner = ImageResource.ImageApiResource(
                 url = "${appConfig.baseUrl}/images/${game.banner}",
-                authHeader = authProvider.getBearerToken()
+                authHeader = tokenProvider.getBearerRefreshToken()
             ),
         )
     }

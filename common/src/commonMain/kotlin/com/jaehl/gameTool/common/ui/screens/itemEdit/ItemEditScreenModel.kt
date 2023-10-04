@@ -6,13 +6,13 @@ import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.coroutineScope
 import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.AppConfig
-import com.jaehl.gameTool.common.data.AuthProvider
 import com.jaehl.gameTool.common.data.model.ImageType
 import com.jaehl.gameTool.common.data.model.Item
 import com.jaehl.gameTool.common.data.model.ItemAmount
 import com.jaehl.gameTool.common.data.model.ItemCategory
 import com.jaehl.gameTool.common.data.repo.ItemRepo
 import com.jaehl.gameTool.common.data.repo.RecipeRepo
+import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.data.service.ImageService
 import com.jaehl.gameTool.common.extensions.post
 import com.jaehl.gameTool.common.extensions.postSwap
@@ -21,6 +21,7 @@ import com.jaehl.gameTool.common.extensions.toItemModel
 import com.jaehl.gameTool.common.ui.componets.ImageResource
 import com.jaehl.gameTool.common.ui.componets.TextFieldValue
 import com.jaehl.gameTool.common.ui.screens.launchIo
+import com.jaehl.gameTool.common.ui.screens.launchWithCatch
 import com.jaehl.gameTool.common.ui.screens.runWithCatch
 import com.jaehl.gameTool.common.ui.viewModel.ItemAmountViewModel
 import com.jaehl.gameTool.common.ui.viewModel.ItemModel
@@ -33,7 +34,7 @@ class ItemEditScreenModel(
     val recipeRepo: RecipeRepo,
     val imageService : ImageService,
     val appConfig : AppConfig,
-    val authProvider: AuthProvider,
+    val tokenProvider: TokenProvider,
     val itemEditValidator : ItemEditValidator
 ) : ScreenModel, ItemEditValidator.Listener{
 
@@ -78,7 +79,7 @@ class ItemEditScreenModel(
         }
         launchIo(jobDispatcher, onException = ::onException) {
             itemRepo.getItems(config.gameId).collect {
-                items.postSwap(it.map { it.toItemModel(appConfig, authProvider) })
+                items.postSwap(it.map { it.toItemModel(appConfig, tokenProvider) })
             }
         }
     }
@@ -107,13 +108,13 @@ class ItemEditScreenModel(
                     serverID = recipe.id,
                     isDeleted = false,
                     craftingAtList = recipe.craftedAt.map { itemId ->
-                        itemRepo.getItem(itemId)?.toItemModel(appConfig, authProvider) ?: throw Exception("item not found : $itemId")
+                        itemRepo.getItem(itemId)?.toItemModel(appConfig, tokenProvider) ?: throw Exception("item not found : $itemId")
                     },
                     input = recipe.input.map { itemAmount ->
-                        itemAmount.toItemAmountViewModel(itemRepo, appConfig, authProvider)
+                        itemAmount.toItemAmountViewModel(itemRepo, appConfig, tokenProvider)
                     },
                     output = recipe.output.map { itemAmount ->
-                        itemAmount.toItemAmountViewModel(itemRepo, appConfig, authProvider)
+                        itemAmount.toItemAmountViewModel(itemRepo, appConfig, tokenProvider)
                     }
                 )
             }
@@ -126,7 +127,7 @@ class ItemEditScreenModel(
                 itemName = TextFieldValue(value = item.name),
                 icon = ImageResource.ImageApiResource(
                     url = "${appConfig.baseUrl}/images/${item.image}",
-                    authHeader = authProvider.getBearerToken()
+                    authHeader = tokenProvider.getBearerRefreshToken()
                 ),
                 itemCategories = item.categories,
                 allowAddRecipes = true,
@@ -202,12 +203,12 @@ class ItemEditScreenModel(
             )
     }
 
-    fun onAddCreatedAtItem(recipeId : Int, itemId : Int) = runWithCatch(::onException){
+    fun onAddCreatedAtItem(recipeId : Int, itemId : Int) = launchWithCatch(::onException){
         val recipe = recipeMap[recipeId] ?: throw Exception("recipeId not found $recipeId")
         val craftingAtList = recipe.craftingAtList.toMutableList()
-        if(craftingAtList.firstOrNull { it.id == itemId } != null) return@runWithCatch
+        if(craftingAtList.firstOrNull { it.id == itemId } != null) return@launchWithCatch
         val item = itemRepo.getItem(itemId)?: throw Exception("itemId not found $itemId")
-        craftingAtList.add(item.toItemModel(appConfig, authProvider))
+        craftingAtList.add(item.toItemModel(appConfig, tokenProvider))
 
         recipeMap[recipeId] = recipe.copy(
             craftingAtList = craftingAtList
@@ -242,26 +243,26 @@ class ItemEditScreenModel(
         unsavedChanges = true
     }
 
-    fun onAddItemAmount(recipeId : Int, isInput : Boolean, itemId : Int) = runWithCatch(::onException){
+    fun onAddItemAmount(recipeId : Int, isInput : Boolean, itemId : Int) = launchWithCatch(::onException){
         val recipe = recipeMap[recipeId] ?: throw Exception("recipeId not found $recipeId")
         val list = (if(isInput) recipe.input else recipe.output).toMutableList()
         val item = itemRepo.getItem(itemId)?: throw Exception("itemId not found $itemId")
         list.add(
             ItemAmountViewModel(
-                itemModel = item.toItemModel(appConfig, authProvider),
+                itemModel = item.toItemModel(appConfig, tokenProvider),
                 amount = 1
             ))
         updateRecipeItemAmount(recipeId, recipe, isInput, list)
         unsavedChanges = true
     }
 
-    fun onUpdateItemAmountItem(recipeId : Int, isInput : Boolean, oldItemId : Int, newItemId : Int) = runWithCatch(::onException) {
+    fun onUpdateItemAmountItem(recipeId : Int, isInput : Boolean, oldItemId : Int, newItemId : Int) = launchWithCatch(::onException) {
         val recipe = recipeMap[recipeId] ?: throw Exception("recipeId not found $recipeId")
         val list = (if(isInput) recipe.input else recipe.output).toMutableList()
         val index = list.indexOfFirst { it.itemModel.id == oldItemId }
         val item = itemRepo.getItem(newItemId)?: throw Exception("itemId not found $newItemId")
         list[index] = list[index].copy(
-            itemModel = item.toItemModel(appConfig, authProvider)
+            itemModel = item.toItemModel(appConfig, tokenProvider)
         )
         updateRecipeItemAmount(recipeId, recipe, isInput, list)
         unsavedChanges = true
@@ -287,7 +288,7 @@ class ItemEditScreenModel(
         unsavedChanges = true
     }
 
-    fun onRecipeAdd() = runWithCatch(::onException) {
+    fun onRecipeAdd() = launchWithCatch(::onException) {
         val itemId = config.itemId ?: throw Exception("can not add a recipe that has not been added")
         val item = itemRepo.getItem(itemId) ?: throw Exception("item not found $itemId")
         val recipe = RecipeViewModel(
@@ -296,7 +297,7 @@ class ItemEditScreenModel(
             isDeleted = false,
             output = listOf(
                 ItemAmountViewModel(
-                    itemModel = item.toItemModel(appConfig, authProvider),
+                    itemModel = item.toItemModel(appConfig, tokenProvider),
                     amount = 1
                 ))
             )

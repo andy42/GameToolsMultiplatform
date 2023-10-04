@@ -5,7 +5,7 @@ import com.google.gson.GsonBuilder
 import com.jaehl.gameTool.apiClientRetrofit.data.api.ServerApi
 import com.jaehl.gameTool.apiClientRetrofit.data.service.*
 import com.jaehl.gameTool.common.data.AppConfig
-import com.jaehl.gameTool.common.data.AuthProvider
+import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.data.service.*
 import okhttp3.OkHttpClient
 import org.kodein.di.DI
@@ -57,35 +57,35 @@ object ApiClientRetrofitModule {
         bind<GameService> { provider {
             GameServiceRetroFit(
                 instance<ServerApi>(),
-                instance<AuthProvider>()
+                instance<TokenProvider>()
             )
         }}
 
         bind<ItemService> { provider {
             ItemServiceRetroFit(
                 instance<ServerApi>(),
-                instance<AuthProvider>()
+                instance<TokenProvider>()
             )
         }}
 
         bind<ImageService> { provider {
             ImageServiceRetroFit(
                 instance<ServerApi>(),
-                instance<AuthProvider>()
+                instance<TokenProvider>()
             )
         }}
 
         bind<RecipeService> { provider {
             RecipeServiceRetroFit(
                 instance<ServerApi>(),
-                instance<AuthProvider>()
+                instance<TokenProvider>()
             )
         }}
 
         bind<CollectionService> { provider {
             CollectionServiceRetroFit(
                 instance<ServerApi>(),
-                instance<AuthProvider>()
+                instance<TokenProvider>()
             )
         }}
 

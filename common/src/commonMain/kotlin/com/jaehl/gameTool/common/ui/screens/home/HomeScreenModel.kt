@@ -3,19 +3,17 @@ package com.jaehl.gameTool.common.ui.screens.home
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import cafe.adriel.voyager.core.model.ScreenModel
-import cafe.adriel.voyager.core.model.coroutineScope
 import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.AppConfig
-import com.jaehl.gameTool.common.data.AuthProvider
 import com.jaehl.gameTool.common.data.repo.GameRepo
+import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.extensions.postSwap
 import com.jaehl.gameTool.common.ui.screens.launchIo
-import kotlinx.coroutines.launch
 
 class HomeScreenModel(
     val jobDispatcher : JobDispatcher,
     val gameRepo : GameRepo,
-    val authProvider: AuthProvider,
+    val tokenProvider: TokenProvider,
     val appConfig: AppConfig
 ) : ScreenModel {
 
@@ -32,7 +30,7 @@ class HomeScreenModel(
             onException = ::onException
         ){
             val games = gameRepo.getGames().map {
-                it.toGameModel(appConfig, authProvider)
+                it.toGameModel(appConfig, tokenProvider)
             }
             this.games.postSwap(games)
             this.pageLoading.value = false

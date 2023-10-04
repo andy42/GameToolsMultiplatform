@@ -9,19 +9,19 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
 interface CollectionRepo {
-    fun getCollections(gameId : Int) : Flow<List<Collection>>
-    fun getCollectionFlow(collectionId : Int) : Flow<Collection>
-    fun getCollection(collectionId : Int) : Collection
-    fun updateCollection(collectionId: Int, body : UpdateCollectionRequest) : Collection
+    suspend fun getCollections(gameId : Int) : Flow<List<Collection>>
+    suspend fun getCollectionFlow(collectionId : Int) : Flow<Collection>
+    suspend fun getCollection(collectionId : Int) : Collection
+    suspend fun updateCollection(collectionId: Int, body : UpdateCollectionRequest) : Collection
 
-    fun addCollection(data : NewCollectionRequest) : Collection
-    fun deleteCollection(collectionId : Int)
+    suspend fun addCollection(data : NewCollectionRequest) : Collection
+    suspend fun deleteCollection(collectionId : Int)
 
-    fun addGroup(collectionId : Int) : Collection.Group
-    fun deleteGroup(collectionId : Int, groupId : Int)
+    suspend fun addGroup(collectionId : Int) : Collection.Group
+    suspend fun deleteGroup(collectionId : Int, groupId : Int)
 
-    fun addUpdateItemAmount(collectionId : Int, groupId : Int, itemId : Int, amount : Int) : Collection.ItemAmount
-    fun deleteItemAmount(collectionId : Int, groupId : Int, itemId : Int)
+    suspend fun addUpdateItemAmount(collectionId : Int, groupId : Int, itemId : Int, amount : Int) : Collection.ItemAmount
+    suspend fun deleteItemAmount(collectionId : Int, groupId : Int, itemId : Int)
 }
 
 class CollectionRepoImp(
@@ -32,7 +32,7 @@ class CollectionRepoImp(
     private val collectionMap = LinkedHashMap<Int, Collection>()
     private var loadedGameId : Int = -1
 
-    override fun getCollections(gameId : Int) = flow {
+    override suspend fun getCollections(gameId : Int) = flow {
 
         if(loadedGameId ==gameId ) {
             emit(collectionMap.values.toList())
@@ -47,7 +47,7 @@ class CollectionRepoImp(
        emit(collections)
     }
 
-    override fun getCollectionFlow(collectionId: Int): Flow<Collection> = flow {
+    override suspend fun getCollectionFlow(collectionId: Int): Flow<Collection> = flow {
         collectionMap[collectionId]?.let {
             emit(it)
         }
@@ -57,30 +57,30 @@ class CollectionRepoImp(
         emit(collection)
     }
 
-    override fun getCollection(collectionId: Int): Collection {
+    override suspend fun getCollection(collectionId: Int): Collection {
         val collection = collectionService.getCollection(collectionId)
         collectionMap[collection.id] = collection
         return collection
     }
 
-    override fun deleteCollection(collectionId: Int) {
+    override suspend fun deleteCollection(collectionId: Int) {
         collectionService.deleteCollection(collectionId)
         collectionMap.remove(collectionId)
     }
 
-    override fun updateCollection(collectionId: Int, body: UpdateCollectionRequest) : Collection {
+    override suspend fun updateCollection(collectionId: Int, body: UpdateCollectionRequest) : Collection {
         val collection = collectionService.updateCollection(collectionId, body)
         collectionMap[collection.id] = collection
         return collection
     }
 
-    override fun addCollection(data: NewCollectionRequest): Collection {
+    override suspend fun addCollection(data: NewCollectionRequest): Collection {
         val collection = collectionService.addCollection(data)
         collectionMap[collection.id] = collection
         return collection
     }
 
-    override fun addGroup(collectionId: Int): Collection.Group {
+    override suspend fun addGroup(collectionId: Int): Collection.Group {
         val group = collectionService.addGroup(collectionId)
         val collection = collectionMap[collectionId] ?: throw Exception("addGroup collection not found : $collectionId")
         val groups = collection.groups.toMutableList()
@@ -92,7 +92,7 @@ class CollectionRepoImp(
         return group
     }
 
-    override fun deleteGroup(collectionId : Int, groupId: Int) {
+    override suspend fun deleteGroup(collectionId : Int, groupId: Int) {
         collectionService.deleteGroup(collectionId, groupId)
 
         val collection = collectionMap[collectionId] ?: throw Exception("deleteGroup collection not found : $collectionId")
@@ -104,7 +104,7 @@ class CollectionRepoImp(
         )
     }
 
-    override fun addUpdateItemAmount(collectionId : Int, groupId: Int, itemId: Int, amount: Int): Collection.ItemAmount {
+    override suspend fun addUpdateItemAmount(collectionId : Int, groupId: Int, itemId: Int, amount: Int): Collection.ItemAmount {
         val itemAmount = collectionService.addUpdateItemAmount(collectionId, groupId, itemId, amount)
 
         val collection = collectionMap[collectionId] ?: throw Exception("addUpdateItemAmount collection not found : $collectionId")
@@ -125,7 +125,7 @@ class CollectionRepoImp(
         return itemAmount
     }
 
-    override fun deleteItemAmount(collectionId : Int, groupId: Int, itemId: Int) {
+    override suspend fun deleteItemAmount(collectionId : Int, groupId: Int, itemId: Int) {
         return collectionService.deleteItemAmount(collectionId, groupId, itemId)
     }
 }

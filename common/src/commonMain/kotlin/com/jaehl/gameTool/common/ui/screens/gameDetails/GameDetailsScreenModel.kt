@@ -5,8 +5,8 @@ import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.coroutineScope
 import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.AppConfig
-import com.jaehl.gameTool.common.data.AuthProvider
 import com.jaehl.gameTool.common.data.repo.GameRepo
+import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.ui.screens.home.GameModel
 import com.jaehl.gameTool.common.ui.screens.home.toGameModel
 import com.jaehl.gameTool.common.ui.screens.launchIo
@@ -17,7 +17,7 @@ class GameDetailsScreenModel(
     val jobDispatcher : JobDispatcher,
     val gameRepo: GameRepo,
     val itemImporter : ItemImporter,
-    val authProvider: AuthProvider,
+    val tokenProvider: TokenProvider,
     val appConfig: AppConfig
 ) : ScreenModel {
 
@@ -42,7 +42,7 @@ class GameDetailsScreenModel(
 
             val game = gameRepo.getGame(config.gameId)
 
-            viewModel.value = game.toGameModel(appConfig, authProvider)
+            viewModel.value = game.toGameModel(appConfig, tokenProvider)
 
             this.pageLoading.value = false
         }

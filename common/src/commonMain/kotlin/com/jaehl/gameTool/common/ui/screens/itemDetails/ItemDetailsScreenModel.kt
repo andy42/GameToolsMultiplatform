@@ -6,11 +6,11 @@ import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.coroutineScope
 import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.AppConfig
-import com.jaehl.gameTool.common.data.AuthProvider
 import com.jaehl.gameTool.common.data.model.Item
 import com.jaehl.gameTool.common.data.model.ItemRecipeNode
 import com.jaehl.gameTool.common.data.repo.ItemRepo
 import com.jaehl.gameTool.common.data.repo.RecipeRepo
+import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.ui.screens.launchIo
 import com.jaehl.gameTool.common.extensions.postSwap
 import com.jaehl.gameTool.common.extensions.toItemModel
@@ -26,7 +26,7 @@ import kotlinx.coroutines.launch
 
 class ItemDetailsScreenModel(
     val jobDispatcher : JobDispatcher,
-    val authProvider: AuthProvider,
+    val tokenProvider: TokenProvider,
     val itemRepo: ItemRepo,
     val recipeRepo: RecipeRepo,
     val appConfig: AppConfig,
@@ -62,7 +62,7 @@ class ItemDetailsScreenModel(
         ){
             val item = itemRepo.getItem(config.itemId) ?: throw ItemNotFoundException(config.itemId)
 
-            itemInfo.value = item.toItemInfoModel(appConfig, authProvider)
+            itemInfo.value = item.toItemInfoModel(appConfig, tokenProvider)
 
             recipeRepo.preloadRecipes(config.gameId)
 
@@ -70,7 +70,7 @@ class ItemDetailsScreenModel(
             recipeRepo.getRecipesForOutput(config.itemId).mapNotNull { recipe ->
                 val node = itemRecipeNodeUtil.buildTree(
                     ItemAmountViewModel(
-                        itemModel = item.toItemModel(appConfig, authProvider),
+                        itemModel = item.toItemModel(appConfig, tokenProvider),
                         amount = recipe.output.first { it.itemId == config.itemId}.amount
                     ),
                     recipeId = recipe.id
@@ -82,7 +82,7 @@ class ItemDetailsScreenModel(
                     node = node,
                     baseIngredients = baseIngredients,
                     craftedAt = node.recipe?.craftedAt?.mapNotNull {
-                        itemRepo.getItem(it)?.toItemModel(appConfig, authProvider)
+                        itemRepo.getItem(it)?.toItemModel(appConfig, tokenProvider)
                     } ?: listOf()
                 )
             }.forEach {
@@ -148,13 +148,13 @@ data class ItemInfoModel(
     val categories : List<String> = listOf()
 )
 
-fun Item.toItemInfoModel(appConfig: AppConfig, authProvider: AuthProvider) : ItemInfoModel {
+suspend fun Item.toItemInfoModel(appConfig: AppConfig, tokenProvider: TokenProvider) : ItemInfoModel {
     return ItemInfoModel(
         id = this.id,
         name = this.name,
         iconPath = ImageResource.ImageApiResource(
             url = "${appConfig.baseUrl}/images/${this.image}",
-            authHeader = authProvider.getBearerToken()
+            authHeader = tokenProvider.getBearerRefreshToken()
         ),
         categories = this.categories.map {
             it.name

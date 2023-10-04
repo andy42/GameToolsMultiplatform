@@ -1,12 +1,12 @@
 package com.jaehl.gameTool.common.ui.util
 
 import com.jaehl.gameTool.common.data.AppConfig
-import com.jaehl.gameTool.common.data.AuthProvider
 import com.jaehl.gameTool.common.data.model.ItemAmount
 import com.jaehl.gameTool.common.data.model.ItemRecipeNode
 import com.jaehl.gameTool.common.data.model.Recipe
 import com.jaehl.gameTool.common.data.repo.ItemRepo
 import com.jaehl.gameTool.common.data.repo.RecipeRepo
+import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.extensions.toItemModel
 import com.jaehl.gameTool.common.ui.viewModel.ItemAmountViewModel
 import java.lang.ref.WeakReference
@@ -16,12 +16,12 @@ class ItemRecipeNodeUtil(
     private val itemRepo : ItemRepo,
     private val recipeRepo : RecipeRepo,
     private val appConfig : AppConfig,
-    private val authProvider: AuthProvider
+    private val tokenProvider: TokenProvider
 ) {
     private suspend fun itemAmountViewModel(itemAmount : ItemAmount, multiplier : Int = 1) : ItemAmountViewModel{
         val item = itemRepo.getItem(itemAmount.itemId) ?: throw ItemNotFoundException(itemAmount.itemId)
         return ItemAmountViewModel(
-            itemModel = item.toItemModel(appConfig, authProvider),
+            itemModel = item.toItemModel(appConfig, tokenProvider),
             amount = itemAmount.amount * multiplier
         )
     }

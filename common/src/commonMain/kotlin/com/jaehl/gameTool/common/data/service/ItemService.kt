@@ -4,17 +4,17 @@ import com.jaehl.gameTool.common.data.model.Item
 import com.jaehl.gameTool.common.data.model.ItemCategory
 
 interface ItemService {
-    fun getItem(id : Int) : Item
-    fun getItems(gameId : Int) : List<Item>
-    fun getItems() : List<Item>
-    fun addItem(
+    suspend fun getItem(id : Int) : Item
+    suspend fun getItems(gameId : Int) : List<Item>
+    suspend fun getItems() : List<Item>
+    suspend fun addItem(
         game : Int,
         name : String,
         categories : List<Int>,
         image : Int
     ) : Item
 
-    fun updateItem(
+    suspend fun updateItem(
         itemId : Int,
         game: Int,
         name : String,
@@ -22,6 +22,6 @@ interface ItemService {
         image : Int
     ) : Item
 
-    fun getItemCategories() : List<ItemCategory>
-    fun addItemCategories(name : String) : ItemCategory
+    suspend fun getItemCategories() : List<ItemCategory>
+    suspend fun addItemCategories(name : String) : ItemCategory
 }

@@ -15,8 +15,12 @@ object DataModule {
 
         bind<UserRepo> { singleton {  UserRepoImp(
             instance<UserService>(),
-            instance<AuthProvider>()
+            instance<AuthLocalStore>()
         ) }}
+
+        bind<TokenProvider> { provider {
+            instance<UserRepo>() as TokenProvider
+        }}
 
         bind<GameRepo> { singleton {  GameRepoImp(
             instance<GameService>()
@@ -41,8 +45,8 @@ object DataModule {
             }
         }
 
-        bind<AuthProvider> { singleton {
-            AuthProviderImp()
+        bind<AuthLocalStore> { singleton {
+            AuthLocalStoreImp()
         }}
 
         bind<ItemImporter> { singleton { ItemImporter(
@@ -55,7 +59,7 @@ object DataModule {
             instance<ItemRepo>(),
             instance<RecipeRepo>(),
             instance<AppConfig>(),
-            instance<AuthProvider>()
+            instance<TokenProvider>()
         ) }}
 
         bind<ItemRecipeInverter> { singleton {

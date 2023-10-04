@@ -2,15 +2,14 @@ package com.jaehl.gameTool.common.ui.screens.itemList
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.coroutineScope
 import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.AppConfig
-import com.jaehl.gameTool.common.data.AuthProvider
 import com.jaehl.gameTool.common.data.model.Item
 import com.jaehl.gameTool.common.data.model.ItemCategory
 import com.jaehl.gameTool.common.data.repo.ItemRepo
+import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.ui.screens.launchIo
 import com.jaehl.gameTool.common.extensions.postSwap
 import com.jaehl.gameTool.common.ui.componets.ImageResource
@@ -18,9 +17,9 @@ import kotlinx.coroutines.launch
 
 class ItemListScreenModel(
     val jobDispatcher : JobDispatcher,
-    val authProvider: AuthProvider,
+    val tokenProvider: TokenProvider,
     val appConfig: AppConfig,
-    val itemRepo: ItemRepo
+    val itemRepo: ItemRepo,
 ) : ScreenModel {
 
     private lateinit var config : Config
@@ -51,7 +50,7 @@ class ItemListScreenModel(
             itemRepo.getItems(config.gameId).collect { newItems ->
                 this.items.postSwap(
                     newItems.map {item ->
-                        item.toItemRowModel(appConfig, authProvider)
+                        item.toItemRowModel(appConfig, tokenProvider)
                     }
                 )
             }
@@ -82,14 +81,14 @@ class ItemListScreenModel(
     }
 }
 
-fun Item.toItemRowModel(appConfig: AppConfig, authProvider: AuthProvider) : ItemRowModel {
+suspend fun Item.toItemRowModel(appConfig: AppConfig, tokenProvider: TokenProvider) : ItemRowModel {
     return ItemRowModel(
         id = this.id,
         name = this.name,
         itemCategories = this.categories,
         imageResource = ImageResource.ImageApiResource(
             url = "${appConfig.baseUrl}/images/${this.image}",
-            authHeader = authProvider.getBearerToken()
+            authHeader = tokenProvider.getBearerRefreshToken()
         )
     )
 }

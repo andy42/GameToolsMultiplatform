@@ -24,7 +24,7 @@ class ItemImporter(
         ).toFile()
     }
 
-    fun import(gameId : Int){
+    suspend fun import(gameId : Int){
 
         val categoriesResponse = itemService.getItemCategories()
         val categoriesMap = mutableMapOf<String, Int>()

@@ -2,7 +2,6 @@ package com.jaehl.gameTool.common.di
 
 import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.AppConfig
-import com.jaehl.gameTool.common.data.AuthProvider
 import com.jaehl.gameTool.common.data.repo.*
 import com.jaehl.gameTool.common.data.service.ImageService
 import com.jaehl.gameTool.common.ui.screens.collectionDetails.CollectionDetailsScreenModel
@@ -46,7 +45,7 @@ object ScreenModule {
             HomeScreenModel(
                 instance<JobDispatcher>(),
                 instance<GameRepo>(),
-                instance<AuthProvider>(),
+                instance<TokenProvider>(),
                 instance<AppConfig>(),
             )}}
 
@@ -55,7 +54,7 @@ object ScreenModule {
                 instance<JobDispatcher>(),
                 instance<GameRepo>(),
                 instance<ItemImporter>(),
-                instance<AuthProvider>(),
+                instance<TokenProvider>(),
                 instance<AppConfig>(),
             )}}
 
@@ -65,14 +64,14 @@ object ScreenModule {
                 instance<GameRepo>(),
                 instance<ImageService>(),
                 instance<AppConfig>(),
-                instance<AuthProvider>(),
+                instance<TokenProvider>(),
                 GameEditValidator()
             )}}
 
         bind<ItemListScreenModel> { provider {
             ItemListScreenModel(
                 instance<JobDispatcher>(),
-                instance<AuthProvider>(),
+                instance<TokenProvider>(),
                 appConfig = instance<AppConfig>(),
                 itemRepo = instance<ItemRepo>()
             )}}
@@ -80,7 +79,7 @@ object ScreenModule {
         bind<ItemDetailsScreenModel> { provider {
             ItemDetailsScreenModel(
                 instance<JobDispatcher>(),
-                instance<AuthProvider>(),
+                instance<TokenProvider>(),
                 itemRepo = instance<ItemRepo>(),
                 instance<RecipeRepo>(),
                 instance<AppConfig>(),
@@ -96,7 +95,7 @@ object ScreenModule {
                 recipeRepo = instance<RecipeRepo>(),
                 imageService = instance<ImageService>(),
                 instance<AppConfig>(),
-                instance<AuthProvider>(),
+                instance<TokenProvider>(),
                 ItemEditValidator()
             )}}
 
@@ -107,7 +106,7 @@ object ScreenModule {
                 instance<ItemRepo>(),
                 instance<RecipeRepo>(),
                 instance<AppConfig>(),
-                instance<AuthProvider>(),
+                instance<TokenProvider>(),
                 instance<ItemRecipeNodeUtil>(),
                 instance<ItemRecipeInverter>()
             )}}
@@ -118,7 +117,7 @@ object ScreenModule {
                 instance<CollectionRepo>(),
                 instance<ItemRepo>(),
                 instance<AppConfig>(),
-                instance<AuthProvider>(),
+                instance<TokenProvider>(),
             )}}
 
         bind<CollectionListScreenModel> { provider {

@@ -1,58 +1,57 @@
 package com.jaehl.gameTool.apiClientRetrofit.data.service
 
 import com.jaehl.gameTool.apiClientRetrofit.data.api.ServerApi
-import com.jaehl.gameTool.apiClientRetrofit.data.model.baseBody
 import com.jaehl.gameTool.apiClientRetrofit.data.model.request.CreateGameRequest
 import com.jaehl.gameTool.apiClientRetrofit.data.model.request.UpdateGameRequest
 import com.jaehl.gameTool.common.data.model.Game
-import com.jaehl.gameTool.common.data.AuthProvider
+import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.data.service.GameService
 
 class GameServiceRetroFit(
     val serverApi : ServerApi,
-    val authProvider: AuthProvider
+    val tokenProvider : TokenProvider
 ) : GameService {
 
-    override fun createGame(name: String, icon : Int, banner : Int) : Game{
+    override suspend fun createGame(name: String, icon : Int, banner : Int) : Game{
         return serverApi.createGame(
-            bearerToken = authProvider.getBearerToken(),
+            bearerToken = tokenProvider.getBearerAccessToken(),
             data = CreateGameRequest(
                 name = name,
                 icon = icon,
                 banner = banner
             )
-        ).baseBody()
+        ).data
     }
 
-    override fun updateGame(id: Int, name: String, icon : Int, banner : Int) : Game{
+    override suspend fun updateGame(id: Int, name: String, icon : Int, banner : Int) : Game{
         return serverApi.updateGame(
-            bearerToken = authProvider.getBearerToken(),
+            bearerToken = tokenProvider.getBearerAccessToken(),
             id = id,
             data = UpdateGameRequest(
                 name = name,
                 icon = icon,
                 banner = banner
             )
-        ).baseBody()
+        ).data
     }
 
-    override fun deleteGame(id: Int) {
+    override suspend fun deleteGame(id: Int) {
         serverApi.deleteGame(
-            bearerToken = authProvider.getBearerToken(),
+            bearerToken = tokenProvider.getBearerAccessToken(),
             id = id
-        ).execute()
+        )
     }
 
-    override fun getGame(id: Int): Game {
+    override suspend fun getGame(id: Int): Game {
         return serverApi.getGame(
-            bearerToken = authProvider.getBearerToken(),
+            bearerToken = tokenProvider.getBearerAccessToken(),
             id = id
-        ).baseBody()
+        ).data
     }
 
-    override fun getGames(): List<Game> {
+    override suspend fun getGames(): List<Game> {
         return serverApi.getGames(
-            bearerToken = authProvider.getBearerToken()
-        ).baseBody()
+            bearerToken = tokenProvider.getBearerAccessToken()
+        ).data
     }
 }

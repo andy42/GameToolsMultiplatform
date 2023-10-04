@@ -1,88 +1,87 @@
 package com.jaehl.gameTool.apiClientRetrofit.data.service
 
 import com.jaehl.gameTool.apiClientRetrofit.data.api.ServerApi
-import com.jaehl.gameTool.apiClientRetrofit.data.model.baseBody
 import com.jaehl.gameTool.apiClientRetrofit.data.model.request.AddCollectionGroupRequest
 import com.jaehl.gameTool.apiClientRetrofit.data.model.request.AddCollectionItemAmountRequest
-import com.jaehl.gameTool.common.data.AuthProvider
 import com.jaehl.gameTool.common.data.model.Collection
 import com.jaehl.gameTool.common.data.model.request.NewCollectionRequest
 import com.jaehl.gameTool.common.data.model.request.UpdateCollectionRequest
+import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.data.service.CollectionService
 
 class CollectionServiceRetroFit (
     val serverApi : ServerApi,
-    val authProvider: AuthProvider
+    val tokenProvider : TokenProvider
 ) : CollectionService {
 
-    override fun getCollections(gameId: Int): List<Collection> {
+    override suspend fun getCollections(gameId: Int): List<Collection> {
         return serverApi.getCollections(
-            bearerToken = authProvider.getBearerToken(),
+            bearerToken = tokenProvider.getBearerAccessToken(),
             gameId = gameId
-        ).baseBody()
+        ).data
     }
 
-    override fun getCollection(collectionId: Int): Collection {
+    override suspend fun getCollection(collectionId: Int): Collection {
         return serverApi.getCollection(
-            bearerToken = authProvider.getBearerToken(),
+            bearerToken = tokenProvider.getBearerAccessToken(),
             id = collectionId
-        ).baseBody()
+        ).data
     }
 
-    override fun addCollection(data : NewCollectionRequest): Collection {
+    override suspend fun addCollection(data : NewCollectionRequest): Collection {
         return serverApi.addCollection(
-            bearerToken = authProvider.getBearerToken(),
+            bearerToken = tokenProvider.getBearerAccessToken(),
             data = data
-        ).baseBody()
+        ).data
     }
 
-    override fun deleteCollection(collectionId: Int) {
+    override suspend fun deleteCollection(collectionId: Int) {
         serverApi.deleteCollection(
-            bearerToken = authProvider.getBearerToken(),
+            bearerToken = tokenProvider.getBearerAccessToken(),
             id = collectionId
-        ).execute()
+        )
     }
 
-    override fun updateCollection(collectionId: Int, data: UpdateCollectionRequest): Collection {
+    override suspend fun updateCollection(collectionId: Int, data: UpdateCollectionRequest): Collection {
         return serverApi.updateCollection(
-            bearerToken = authProvider.getBearerToken(),
+            bearerToken = tokenProvider.getBearerAccessToken(),
             collectionId = collectionId,
             data = data
-        ).baseBody()
+        ).data
     }
 
-    override fun addGroup(collectionId: Int): Collection.Group {
+    override suspend fun addGroup(collectionId: Int): Collection.Group {
         return serverApi.addCollectionGroup(
-            bearerToken = authProvider.getBearerToken(),
+            bearerToken = tokenProvider.getBearerAccessToken(),
             collectionId = collectionId,
             data = AddCollectionGroupRequest(name = "")
-        ).baseBody()
+        ).data
     }
 
-    override fun deleteGroup(collectionId: Int, groupId: Int) {
+    override suspend fun deleteGroup(collectionId: Int, groupId: Int) {
         serverApi.deleteCollectionGroup(
-            bearerToken = authProvider.getBearerToken(),
+            bearerToken = tokenProvider.getBearerAccessToken(),
             collectionId = collectionId,
             groupId = groupId
-        ).execute()
+        )
     }
 
-    override fun addUpdateItemAmount(collectionId: Int, groupId: Int, itemId: Int, amount: Int): Collection.ItemAmount {
+    override suspend fun addUpdateItemAmount(collectionId: Int, groupId: Int, itemId: Int, amount: Int): Collection.ItemAmount {
         return serverApi.addUpdateItemAmount(
-            bearerToken = authProvider.getBearerToken(),
+            bearerToken = tokenProvider.getBearerAccessToken(),
             collectionId = collectionId,
             groupId = groupId,
             itemId = itemId,
             data = AddCollectionItemAmountRequest(amount = amount)
-        ).baseBody()
+        ).data
     }
 
-    override fun deleteItemAmount(collectionId: Int, groupId: Int, itemId: Int) {
+    override suspend fun deleteItemAmount(collectionId: Int, groupId: Int, itemId: Int) {
         serverApi.deleteItemAmount(
-            bearerToken = authProvider.getBearerToken(),
+            bearerToken = tokenProvider.getBearerAccessToken(),
             collectionId = collectionId,
             groupId = groupId,
             itemId = itemId
-        ).execute()
+        )
     }
 }

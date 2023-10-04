@@ -4,17 +4,17 @@ import com.jaehl.gameTool.common.data.model.ItemAmount
 import com.jaehl.gameTool.common.data.model.Recipe
 
 interface RecipeService {
-    fun getRecipes(gameId : Int) : List<Recipe>
-    fun getRecipes() : List<Recipe>
-    fun getRecipe(recipeId : Int) : Recipe
-    fun createRecipes(
+    suspend fun getRecipes(gameId : Int) : List<Recipe>
+    suspend fun getRecipes() : List<Recipe>
+    suspend fun getRecipe(recipeId : Int) : Recipe
+    suspend fun createRecipes(
         gameId : Int,
         craftedAt : List<Int>,
         input : List<ItemAmount>,
         output : List<ItemAmount>
     ) : Recipe
 
-    fun updateRecipes(
+    suspend fun updateRecipes(
         recipeId : Int,
         gameId : Int,
         craftedAt : List<Int>,
@@ -22,5 +22,5 @@ interface RecipeService {
         output : List<ItemAmount>
     ) : Recipe
 
-    fun deleteRecipe(recipeId : Int)
+    suspend fun deleteRecipe(recipeId : Int)
 }

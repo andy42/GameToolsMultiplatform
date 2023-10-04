@@ -15,16 +15,16 @@ class ServerBackup(
     val authProvider: AuthProvider
 ) {
     fun backup() {
-        val basePath = ""
-        val games = gameService.getGames()
-        val items = itemService.getItems()
-        val itemCategories = itemService.getItemCategories()
-        val images = imageService.getImages()
-        images.forEach { imageMetaData ->
-            val imageData = imageService.getImage(imageMetaData.id)
-            val imageType = ImageType.from(imageMetaData.imageType)
-            File("$basePath/images/${imageMetaData.id}.${imageType.fileExtension}").writeBytes(imageData)
-        }
-        val recipes = recipeService.getRecipes()
+//        val basePath = ""
+//        val games = gameService.getGames()
+//        val items = itemService.getItems()
+//        val itemCategories = itemService.getItemCategories()
+//        val images = imageService.getImages()
+//        images.forEach { imageMetaData ->
+//            val imageData = imageService.getImage(imageMetaData.id)
+//            val imageType = ImageType.from(imageMetaData.imageType)
+//            File("$basePath/images/${imageMetaData.id}.${imageType.fileExtension}").writeBytes(imageData)
+//        }
+//        val recipes = recipeService.getRecipes()
     }
 }

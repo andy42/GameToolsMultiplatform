@@ -5,39 +5,39 @@ import com.jaehl.gameTool.apiClientRetrofit.data.model.baseBody
 import com.jaehl.gameTool.apiClientRetrofit.data.model.request.AddRecipeRequest
 import com.jaehl.gameTool.apiClientRetrofit.data.model.request.RecipeAmountRequest
 import com.jaehl.gameTool.apiClientRetrofit.data.model.request.UpdateRecipeRequest
-import com.jaehl.gameTool.common.data.AuthProvider
 import com.jaehl.gameTool.common.data.model.ItemAmount
 import com.jaehl.gameTool.common.data.model.Recipe
+import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.data.service.RecipeService
 
 class RecipeServiceRetroFit(
     val serverApi : ServerApi,
-    val authProvider: AuthProvider
+    val tokenProvider : TokenProvider
 ) : RecipeService {
 
-    override fun getRecipes(gameId: Int): List<Recipe> {
+    override suspend fun getRecipes(gameId: Int): List<Recipe> {
         return serverApi.getRecipes(
-            bearerToken = authProvider.getBearerToken(),
+            bearerToken = tokenProvider.getBearerAccessToken(),
             gameId = gameId
-        ).baseBody()
+        ).data
     }
 
-    override fun getRecipes(): List<Recipe> {
+    override suspend fun getRecipes(): List<Recipe> {
         return serverApi.getRecipes(
-            bearerToken = authProvider.getBearerToken(),
-        ).baseBody()
+            bearerToken = tokenProvider.getBearerAccessToken(),
+        ).data
     }
 
-    override fun getRecipe(recipeId: Int): Recipe {
+    override suspend fun getRecipe(recipeId: Int): Recipe {
         return serverApi.getRecipe(
-            bearerToken = authProvider.getBearerToken(),
+            bearerToken = tokenProvider.getBearerAccessToken(),
             id = recipeId
-        ).baseBody()
+        ).data
     }
 
-    override fun createRecipes(gameId : Int, craftedAt: List<Int>, input: List<ItemAmount>, output: List<ItemAmount>): Recipe {
+    override suspend fun createRecipes(gameId : Int, craftedAt: List<Int>, input: List<ItemAmount>, output: List<ItemAmount>): Recipe {
         return serverApi.addRecipe(
-            bearerToken = authProvider.getBearerToken(),
+            bearerToken = tokenProvider.getBearerAccessToken(),
             data = AddRecipeRequest(
                 gameId = gameId,
                 craftedAt = craftedAt,
@@ -50,10 +50,10 @@ class RecipeServiceRetroFit(
                     amount = it.amount)
                 },
             )
-        ).baseBody()
+        ).data
     }
 
-    override fun updateRecipes(
+    override suspend fun updateRecipes(
         recipeId: Int,
         gameId: Int,
         craftedAt: List<Int>,
@@ -61,7 +61,7 @@ class RecipeServiceRetroFit(
         output: List<ItemAmount>
     ): Recipe {
         return serverApi.updateRecipe(
-            bearerToken = authProvider.getBearerToken(),
+            bearerToken = tokenProvider.getBearerAccessToken(),
             id = recipeId,
             data = UpdateRecipeRequest(
                 gameId = gameId,
@@ -75,13 +75,13 @@ class RecipeServiceRetroFit(
                     amount = it.amount)
                 },
             )
-        ).baseBody()
+        ).data
     }
 
-    override fun deleteRecipe(recipeId: Int) {
+    override suspend fun deleteRecipe(recipeId: Int) {
         serverApi.deleteRecipe(
-            bearerToken = authProvider.getBearerToken(),
+            bearerToken = tokenProvider.getBearerAccessToken(),
             id = recipeId
-        ).execute()
+        )
     }
 }
