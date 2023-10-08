@@ -18,7 +18,7 @@ class ImageServiceRetroFit(
     val serverApi : ServerApi,
     val tokenProvider : TokenProvider
 ) : ImageService {
-    override suspend fun addImage(imageFile: File, imageType : ImageType, description : String): Image {
+    override suspend fun addImage(imageFile: File, imageType : ImageType, description : String): ImageMetaData {
 
         val requestFile: RequestBody = imageFile
             .asRequestBody("image/png".toMediaType())
@@ -45,7 +45,7 @@ class ImageServiceRetroFit(
 
     override suspend fun getImage(id: Int): ByteArray {
         val image : ResponseBody? = serverApi.getImage(
-            bearerToken = tokenProvider.getBearerAccessToken(),
+            bearerToken = tokenProvider.getBearerRefreshToken(),
             id = id
         )
 

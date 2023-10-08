@@ -89,5 +89,12 @@ object ApiClientRetrofitModule {
             )
         }}
 
+        bind<BackupService> { provider {
+            BackupServiceRetroFit(
+                instance<ServerApi>(),
+                instance<TokenProvider>()
+            )
+        }}
+
     }
 }

@@ -4,6 +4,7 @@ import com.jaehl.gameTool.apiClientRetrofit.data.api.ServerApi
 import com.jaehl.gameTool.apiClientRetrofit.data.model.request.AddCollectionGroupRequest
 import com.jaehl.gameTool.apiClientRetrofit.data.model.request.AddCollectionItemAmountRequest
 import com.jaehl.gameTool.common.data.model.Collection
+import com.jaehl.gameTool.common.data.model.request.NewAdminCollectionRequest
 import com.jaehl.gameTool.common.data.model.request.NewCollectionRequest
 import com.jaehl.gameTool.common.data.model.request.UpdateCollectionRequest
 import com.jaehl.gameTool.common.data.repo.TokenProvider
@@ -13,6 +14,12 @@ class CollectionServiceRetroFit (
     val serverApi : ServerApi,
     val tokenProvider : TokenProvider
 ) : CollectionService {
+
+    override suspend fun getCollections(): List<Collection> {
+        return serverApi.getCollections(
+            bearerToken = tokenProvider.getBearerAccessToken()
+        ).data
+    }
 
     override suspend fun getCollections(gameId: Int): List<Collection> {
         return serverApi.getCollections(
@@ -30,6 +37,13 @@ class CollectionServiceRetroFit (
 
     override suspend fun addCollection(data : NewCollectionRequest): Collection {
         return serverApi.addCollection(
+            bearerToken = tokenProvider.getBearerAccessToken(),
+            data = data
+        ).data
+    }
+
+    override suspend fun addAdminCollection(data: NewAdminCollectionRequest): Collection {
+        return serverApi.addAdminCollection(
             bearerToken = tokenProvider.getBearerAccessToken(),
             data = data
         ).data

@@ -342,7 +342,7 @@ class ItemEditScreenModel(
             game = config.gameId,
             name = viewModel.value.itemName.value,
             categories = viewModel.value.itemCategories.map { it.id },
-            image = image.imageId
+            image = image.id
         )
 
         this.config = Config(gameId = config.gameId, itemId = newItem.id)
@@ -369,7 +369,7 @@ class ItemEditScreenModel(
                 imageFile = imageFile,
                 imageType = imageType,
                 description = viewModel.value.itemName.value
-            ).imageId
+            ).id
         }
 
         val item = itemRepo.updateItem(

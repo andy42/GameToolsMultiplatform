@@ -23,6 +23,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.jaehl.gameTool.common.ui.AppColor
 import com.jaehl.gameTool.common.ui.componets.AppBar
 import com.jaehl.gameTool.common.ui.componets.ItemIcon
+import com.jaehl.gameTool.common.ui.screens.backupList.BackupListScreen
 import com.jaehl.gameTool.common.ui.screens.gameDetails.GameDetailsScreen
 import com.jaehl.gameTool.common.ui.screens.gameEdit.GameEditScreen
 import com.jaehl.gameTool.common.ui.screens.users.UsersScreen
@@ -42,6 +43,8 @@ class HomeScreen : Screen {
 
         HomePage(
             games = screenModel.games,
+            showAdminTools = screenModel.showAdminTools.value,
+            showEditGames = screenModel.showEditGames.value,
             onUserClick = {
                 navigator.push(UsersScreen())
             },
@@ -58,8 +61,10 @@ class HomeScreen : Screen {
                     gameId = gameId
                 ))
             },
-            onCreateBackupClick = {
-                TODO("create backup")
+            onBackupClick = {
+                navigator.push(
+                    BackupListScreen()
+                )
             }
         )
     }
@@ -68,11 +73,13 @@ class HomeScreen : Screen {
 @Composable
 fun HomePage(
     games: List<GameModel>,
+    showAdminTools : Boolean,
+    showEditGames : Boolean,
     onUserClick : () -> Unit,
     onCreateGameClick : () -> Unit,
     onGameClick : (gameId: Int) -> Unit,
     onGameEditClick : (gameId: Int) -> Unit,
-    onCreateBackupClick : () -> Unit
+    onBackupClick : () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -89,22 +96,25 @@ fun HomePage(
                 .fillMaxHeight()
 
         ) {
-            AdminTools(
-                modifier = Modifier
-                    .width(400.dp)
-                    .padding(top = 20.dp)
-                    .align(Alignment.CenterHorizontally),
-                onUsersClick = {
-                    onUserClick()
-                },
-                onCreateBackupClick = onCreateBackupClick
-            )
+            if(showAdminTools) {
+                AdminTools(
+                    modifier = Modifier
+                        .width(400.dp)
+                        .padding(top = 20.dp)
+                        .align(Alignment.CenterHorizontally),
+                    onUsersClick = {
+                        onUserClick()
+                    },
+                    onBackupClick = onBackupClick
+                )
+            }
             GamesCard(
                 modifier = Modifier
                     .width(400.dp)
                     .padding(top = 20.dp)
                     .align(Alignment.CenterHorizontally),
                 games = games,
+                showEditGames = showEditGames,
                 onCreateGameClick = onCreateGameClick,
                 onGameClick = { gameId ->
                     onGameClick(gameId)
@@ -121,7 +131,7 @@ fun HomePage(
 fun AdminTools(
     modifier: Modifier,
     onUsersClick : () -> Unit,
-    onCreateBackupClick : () -> Unit
+    onBackupClick : () -> Unit
 ) {
     Card(
         modifier = modifier
@@ -155,10 +165,10 @@ fun AdminTools(
                     modifier = Modifier
                         .padding(start = 10.dp),
                     onClick = {
-                        onCreateBackupClick()
+                        onBackupClick()
                     }
                 ){
-                    Text("create Backup")
+                    Text("Backups")
                 }
                 Button(
                     modifier = Modifier
@@ -179,6 +189,7 @@ fun AdminTools(
 fun GamesCard(
     modifier: Modifier,
     games: List<GameModel>,
+    showEditGames : Boolean,
     onCreateGameClick : () -> Unit,
     onGameClick : (gameId: Int) -> Unit,
     onGameEditClick : (gameId: Int) -> Unit
@@ -207,14 +218,16 @@ fun GamesCard(
                     fontWeight = FontWeight.SemiBold,
                     text = "Games"
                 )
-                IconButton(content = {
-                    Icon(Icons.Outlined.Add, "Add Game", tint = MaterialTheme.colors.onSecondary)
-                }, onClick = {
-                    onCreateGameClick()
-                })
+                if(showEditGames) {
+                    IconButton(content = {
+                        Icon(Icons.Outlined.Add, "Add Game", tint = MaterialTheme.colors.onSecondary)
+                    }, onClick = {
+                        onCreateGameClick()
+                    })
+                }
             }
             games.forEachIndexed{ index, gameModel ->
-                GameRow(index, gameModel, onGameClick, onGameEditClick)
+                GameRow(index, gameModel, showEditGames, onGameClick, onGameEditClick)
             }
         }
     }
@@ -224,6 +237,7 @@ fun GamesCard(
 fun GameRow(
     index : Int,
     game : GameModel,
+    showEditGames : Boolean,
     onGameClick : (gameId: Int) -> Unit,
     onGameEditClick : (gameId: Int) -> Unit
 ) {
@@ -248,10 +262,12 @@ fun GameRow(
                 .weight(1f)
                 .padding(start = 10.dp)
         )
-        IconButton(content = {
-            Icon(Icons.Outlined.Edit, "Edit", tint = Color.Black)
-        }, onClick = {
-            onGameEditClick(game.id)
-        })
+        if(showEditGames) {
+            IconButton(content = {
+                Icon(Icons.Outlined.Edit, "Edit", tint = Color.Black)
+            }, onClick = {
+                onGameEditClick(game.id)
+            })
+        }
     }
 }

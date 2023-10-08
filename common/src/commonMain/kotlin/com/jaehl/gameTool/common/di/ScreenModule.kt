@@ -4,6 +4,7 @@ import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.AppConfig
 import com.jaehl.gameTool.common.data.repo.*
 import com.jaehl.gameTool.common.data.service.ImageService
+import com.jaehl.gameTool.common.ui.screens.backupList.BackupListScreenModel
 import com.jaehl.gameTool.common.ui.screens.collectionDetails.CollectionDetailsScreenModel
 import com.jaehl.gameTool.common.ui.screens.collectionList.CollectionListScreenModel
 import com.jaehl.gameTool.common.ui.screens.gameDetails.GameDetailsScreenModel
@@ -22,6 +23,7 @@ import com.jaehl.gameTool.common.ui.screens.gameEdit.GameEditValidator
 import com.jaehl.gameTool.common.ui.screens.itemEdit.ItemEditValidator
 import com.jaehl.gameTool.common.ui.util.ItemRecipeInverter
 import com.jaehl.gameTool.common.ui.util.ItemRecipeNodeUtil
+import com.jaehl.gameTool.common.ui.util.ServerBackup
 import org.kodein.di.*
 
 object ScreenModule {
@@ -45,8 +47,10 @@ object ScreenModule {
             HomeScreenModel(
                 instance<JobDispatcher>(),
                 instance<GameRepo>(),
+                instance<UserRepo>(),
                 instance<TokenProvider>(),
                 instance<AppConfig>(),
+                instance<ServerBackup>()
             )}}
 
         bind<GameDetailsScreenModel> { provider {
@@ -124,6 +128,12 @@ object ScreenModule {
             CollectionListScreenModel(
                 instance<JobDispatcher>(),
                 instance<CollectionRepo>()
+            )}}
+
+        bind<BackupListScreenModel> { provider {
+            BackupListScreenModel(
+                instance<JobDispatcher>(),
+                instance<BackupRepo>()
             )}}
     }
 }

@@ -77,7 +77,7 @@ class ItemImporter(
                 game = gameId,
                 name = itemData.name,
                 categories = itemData.categories.map { categoriesMap[it] ?: -1 },
-                image = imageResponse.imageId
+                image = imageResponse.id
             )
             itemData.serverId = item.id
         }

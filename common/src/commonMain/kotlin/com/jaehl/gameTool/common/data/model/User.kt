@@ -3,14 +3,17 @@ package com.jaehl.gameTool.common.data.model
 import com.google.gson.annotations.SerializedName
 
 data class User(
-    val id : String,
+    val id : Int,
     val userName : String,
+    val email : String,
     val role : Role
 ) {
     enum class Role{
         @SerializedName("User")
         User,
         @SerializedName("Admin")
-        Admin
+        Admin,
+        @SerializedName("Contributor")
+        Contributor
     }
 }

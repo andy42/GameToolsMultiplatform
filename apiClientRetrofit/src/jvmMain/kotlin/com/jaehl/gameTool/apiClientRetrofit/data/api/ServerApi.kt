@@ -4,12 +4,12 @@ import com.jaehl.gameTool.apiClientRetrofit.data.model.Response
 import com.jaehl.gameTool.apiClientRetrofit.data.model.request.*
 import com.jaehl.gameTool.common.data.model.*
 import com.jaehl.gameTool.common.data.model.Collection
+import com.jaehl.gameTool.common.data.model.request.NewAdminCollectionRequest
 import com.jaehl.gameTool.common.data.model.request.NewCollectionRequest
 import com.jaehl.gameTool.common.data.model.request.UpdateCollectionRequest
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
-import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -126,7 +126,7 @@ interface ServerApi {
         @Header("Authorization") bearerToken : String,
         @PartMap() partMap: MutableMap<String,RequestBody>,
         @Part image: MultipartBody.Part
-    ) : Response<Image>
+    ) : Response<ImageMetaData>
 
     @GET("images/{id}")
     suspend fun getImage(
@@ -177,6 +177,11 @@ interface ServerApi {
 
     @GET("collections")
     suspend fun getCollections(
+        @Header("Authorization") bearerToken : String
+    ) : Response<List<Collection>>
+
+    @GET("collections")
+    suspend fun getCollections(
         @Header("Authorization") bearerToken : String,
         @Query("gameId") gameId : Int
     ) : Response<List<Collection>>
@@ -192,6 +197,13 @@ interface ServerApi {
         @Header("Authorization") bearerToken : String,
         @Body data : NewCollectionRequest
     ) : Response<Collection>
+
+    @POST("admin/collections/New")
+    suspend fun addAdminCollection(
+        @Header("Authorization") bearerToken : String,
+        @Body data : NewAdminCollectionRequest
+    ) : Response<Collection>
+
 
     @POST("collections/{collectionId}")
     suspend fun updateCollection(
@@ -222,7 +234,7 @@ interface ServerApi {
 
 
     @POST("collections/{collectionId}/{groupId}/{itemId}")
-    fun addUpdateItemAmount(
+    suspend fun addUpdateItemAmount(
         @Header("Authorization") bearerToken : String,
         @Path("collectionId") collectionId : Int,
         @Path("groupId") groupId : Int,
@@ -231,10 +243,26 @@ interface ServerApi {
     ) : Response<Collection.ItemAmount>
 
     @DELETE("collections/{collectionId}/{groupId}/{itemId}")
-    fun deleteItemAmount(
+    suspend fun deleteItemAmount(
         @Header("Authorization") bearerToken : String,
         @Path("collectionId") collectionId : Int,
         @Path("groupId") groupId : Int,
         @Path("itemId") itemId : Int,
+    )
+
+    @GET("admin/backups")
+    suspend fun getBackups(
+        @Header("Authorization") bearerToken : String,
+    ) : Response<List<Backup>>
+
+    @POST("admin/backups/create")
+    suspend fun createBackup(
+        @Header("Authorization") bearerToken : String,
+    ) : Response<Backup>
+
+    @POST("admin/backups/apply/{backupId}")
+    suspend fun applyBackup(
+        @Header("Authorization") bearerToken : String,
+        @Path("backupId") backupId : String,
     )
 }

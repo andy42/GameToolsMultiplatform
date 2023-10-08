@@ -105,7 +105,7 @@ class GameEditScreenModel(
                 imageFile = imageFile,
                 imageType = imageType,
                 description = "${viewModel.name.value}_icon"
-            ).imageId
+            ).id
         }
 
         var bannerImage = game?.banner ?: -1
@@ -116,7 +116,7 @@ class GameEditScreenModel(
                 imageFile = imageFile,
                 imageType = imageType,
                 description = "${viewModel.name.value}_icon"
-            ).imageId
+            ).id
         }
 
 
