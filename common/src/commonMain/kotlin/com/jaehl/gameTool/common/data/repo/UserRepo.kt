@@ -98,8 +98,6 @@ class UserRepoImp(
         authLocalStore.saveToken(UserTokens("", ""))
     }
 
-
-
     companion object {
         private const val BEARER_TOKEN = "Bearer"
     }

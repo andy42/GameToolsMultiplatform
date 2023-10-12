@@ -79,8 +79,6 @@ fun AccountDetailsPage(
                 .fillMaxHeight()
 
         ) {
-
-
             UserCard(
                 modifier = Modifier
                     .width(400.dp)

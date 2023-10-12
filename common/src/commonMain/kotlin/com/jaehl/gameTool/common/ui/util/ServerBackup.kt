@@ -197,26 +197,6 @@ class ServerBackup(
         }
     }
 
-//    data class UserServer(
-//        val serverId : Int,
-//        val localId : Int,
-//        val user: User
-//    )
-//
-//    data class GameSever(
-//        val serverId : Int,
-//        val localId : Int,
-//        val game : Game
-//    )
-//
-//    data class ItemServer(
-//        val serverId : Int,
-//        val localId : Int,
-//        val item: Item
-//    )
-
-
-
     companion object {
         private val projectUserDir = "gameToolsApiBackup"
     }

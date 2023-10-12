@@ -3,7 +3,6 @@ package com.jaehl.gameTool.common.data
 import com.jaehl.gameTool.common.data.model.UserTokens
 
 interface AuthLocalStore {
-    //suspend fun getBearerToken() : String
     suspend fun getUserTokens() : UserTokens
     suspend fun saveToken(userTokens : UserTokens)
 }
