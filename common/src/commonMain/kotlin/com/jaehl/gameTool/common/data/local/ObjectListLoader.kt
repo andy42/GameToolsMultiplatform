@@ -6,6 +6,7 @@ import com.google.gson.GsonBuilder
 import java.io.File
 import java.lang.reflect.Type
 import java.nio.file.Paths
+import kotlin.io.path.createDirectories
 import kotlin.io.path.createDirectory
 import kotlin.io.path.exists
 
@@ -26,12 +27,14 @@ class  ObjectListJsonLoader<T>(
     private fun getFile() : File {
         val directory = Paths.get(System.getProperty("user.home"), projectUserDir)
         if( !directory.exists()){
-            directory.createDirectory()
+            directory.createDirectories()
         }
-        return Paths.get(System.getProperty("user.home"),
+
+        val path = Paths.get(System.getProperty("user.home"),
             projectUserDir,
             listFilePath
-        ).toFile()
+        )
+        return path.toFile()
     }
 
     override fun load() : List<T> {

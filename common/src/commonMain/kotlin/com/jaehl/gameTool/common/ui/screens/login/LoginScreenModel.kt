@@ -3,6 +3,7 @@ package com.jaehl.gameTool.common.ui.screens.login
 import androidx.compose.runtime.mutableStateOf
 import cafe.adriel.voyager.core.model.ScreenModel
 import com.jaehl.gameTool.common.JobDispatcher
+import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.data.repo.UserRepo
 import com.jaehl.gameTool.common.ui.componets.TextFieldValue
 import com.jaehl.gameTool.common.ui.screens.launchIo
@@ -22,6 +23,7 @@ data class RegisterViewModel(
 class LoginScreenModel(
     val jobDispatcher : JobDispatcher,
     val userRepo : UserRepo,
+    val tokenProvider : TokenProvider,
     val loginValidator : LoginValidator,
     val registerValidator: RegisterValidator
 ) : ScreenModel, LoginValidator.LoginValidatorListener, RegisterValidator.RegisterValidatorListener {
@@ -41,6 +43,14 @@ class LoginScreenModel(
     init {
         loginValidator.listener = this
         registerValidator.listener = this
+    }
+
+    fun setup() = launchIo(jobDispatcher, ::onException) {
+        launchIo(jobDispatcher, ::onException) {
+            if(tokenProvider.isRefreshTokenValid()) {
+                navigateToHome.value = true
+            }
+        }
     }
 
     override fun onDispose() {

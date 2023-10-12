@@ -4,12 +4,12 @@ import com.jaehl.gameTool.apiClientRetrofit.data.model.Response
 import com.jaehl.gameTool.apiClientRetrofit.data.model.request.*
 import com.jaehl.gameTool.common.data.model.*
 import com.jaehl.gameTool.common.data.model.Collection
+import com.jaehl.gameTool.common.data.model.request.NewAdminCollectionRequest
 import com.jaehl.gameTool.common.data.model.request.NewCollectionRequest
 import com.jaehl.gameTool.common.data.model.request.UpdateCollectionRequest
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
-import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -24,214 +24,251 @@ import retrofit2.http.Query
 interface ServerApi {
 
     @POST("user/login")
-    fun login(
+    suspend fun login(
         @Body data : LoginRequest
-    ) : Call<Response<AccessToken>>
+    ) : Response<UserTokens>
+
+    @POST("user/refresh")
+    suspend fun refreshTokens(
+        @Header("Authorization") bearerToken : String
+    ) : Response<UserTokens>
 
     @POST("user/register")
-    fun register(
+    suspend fun register(
         @Body data : RegisterRequest
-    ) : Call<Response<AccessToken>>
+    ) : Response<UserTokens>
 
     @GET("user/me")
-    fun getUserSelf(
+    suspend fun getUserSelf(
         @Header("Authorization") bearerToken : String,
-    ) : Call<Response<User>>
+    ) : Response<User>
 
     @GET("user")
-    fun getUsers(
+    suspend fun getUsers(
         @Header("Authorization") bearerToken : String,
-    ) : Call<Response<List<User>>>
+    ) : Response<List<User>>
+
+    @POST("user/changeRole")
+    suspend fun changeUserRole(
+        @Header("Authorization") bearerToken : String,
+        @Body data : UserChangeRoleRequest
+    ) : Response<User>
 
     @POST("games/new")
-    fun createGame(
+    suspend fun createGame(
         @Header("Authorization") bearerToken : String,
         @Body data : CreateGameRequest
-    ) : Call<Response<Game>>
+    ) : Response<Game>
 
     @POST("games/{id}")
-    fun updateGame(
+    suspend fun updateGame(
         @Header("Authorization") bearerToken : String,
         @Path("id") id : Int,
         @Body data : UpdateGameRequest
-    ) : Call<Response<Game>>
+    ) : Response<Game>
 
     @DELETE("games/{id}")
-    fun deleteGame(
+    suspend fun deleteGame(
         @Header("Authorization") bearerToken : String,
         @Path("id") id : Int,
-    ) : Call<Unit>
+    )
 
     @GET("games/{id}")
-    fun getGame(
+    suspend fun getGame(
         @Header("Authorization") bearerToken : String,
         @Path("id") id : Int,
-    ) : Call<Response<Game>>
+    ) : Response<Game>
 
     @GET("games")
-    fun getGames(
+    suspend fun getGames(
         @Header("Authorization") bearerToken : String,
-    ) : Call<Response<List<Game>>>
+    ) : Response<List<Game>>
 
 
     @GET("items")
-    fun getItems(
+    suspend fun getItems(
         @Header("Authorization") bearerToken : String,
         @Query("gameId") gameId : Int
-    ) : Call<Response<List<Item>>>
+    ) : Response<List<Item>>
 
     @GET("items")
-    fun getItems(
+    suspend fun getItems(
         @Header("Authorization") bearerToken : String,
-    ) : Call<Response<List<Item>>>
+    ) : Response<List<Item>>
 
     @GET("items/{id}")
-    fun getItem(
+    suspend fun getItem(
         @Header("Authorization") bearerToken : String,
         @Path("id") id : Int
-    ) : Call<Response<Item>>
+    ) : Response<Item>
 
     @POST("items/new")
-    fun addItem(
+    suspend fun addItem(
         @Header("Authorization") bearerToken : String,
         @Body data : AddItemRequest
-    ) : Call<Response<Item>>
+    ) : Response<Item>
 
     @POST("items/{id}")
-    fun updateItem(
+    suspend fun updateItem(
         @Header("Authorization") bearerToken : String,
         @Path("id") id : Int,
         @Body data : UpdateItemRequest
-    ) : Call<Response<Item>>
+    ) : Response<Item>
 
     @GET("items/Categories")
-    fun getItemCategories(
+    suspend fun getItemCategories(
         @Header("Authorization") bearerToken : String
-    ) : Call<Response<List<ItemCategory>>>
+    ) : Response<List<ItemCategory>>
 
     @POST("items/Categories/new")
-    fun addItemCategories(
+    suspend fun addItemCategories(
         @Header("Authorization") bearerToken : String,
         @Body data : AddItemCategoriesRequest
-    ) : Call<Response<ItemCategory>>
+    ) : Response<ItemCategory>
 
     @Multipart
     @POST("images/new")
-    fun addImage(
+    suspend fun addImage(
         @Header("Authorization") bearerToken : String,
         @PartMap() partMap: MutableMap<String,RequestBody>,
         @Part image: MultipartBody.Part
-    ) : Call<Response<Image>>
+    ) : Response<ImageMetaData>
 
     @GET("images/{id}")
-    fun getImage(
+    suspend fun getImage(
         @Header("Authorization") bearerToken : String,
         @Path("id") id : Int,
-    ) : Call<ResponseBody>
+    ) : ResponseBody
 
     @GET("images")
-    fun getImages(
+    suspend fun getImages(
         @Header("Authorization") bearerToken : String
-    ) : Call<Response<List<ImageMetaData>>>
+    ) : Response<List<ImageMetaData>>
 
     @POST("recipes/new")
-    fun addRecipe(
+    suspend fun addRecipe(
         @Header("Authorization") bearerToken : String,
         @Body data : AddRecipeRequest
-    ) : Call<Response<Recipe>>
+    ) : Response<Recipe>
 
     @POST("recipes/{id}")
-    fun updateRecipe(
+    suspend fun updateRecipe(
         @Header("Authorization") bearerToken : String,
         @Path("id") id : Int,
         @Body data : UpdateRecipeRequest
-    ) : Call<Response<Recipe>>
+    ) : Response<Recipe>
 
     @DELETE("recipes/{id}")
-    fun deleteRecipe(
+    suspend fun deleteRecipe(
         @Header("Authorization") bearerToken : String,
         @Path("id") id : Int
-    ) : Call<Unit>
+    )
 
     @GET("recipes")
-    fun getRecipes(
+    suspend fun getRecipes(
         @Header("Authorization") bearerToken : String,
         @Query("gameId") gameId : Int
-    ) : Call<Response<List<Recipe>>>
+    ) : Response<List<Recipe>>
 
     @GET("recipes")
-    fun getRecipes(
+    suspend fun getRecipes(
         @Header("Authorization") bearerToken : String,
-    ) : Call<Response<List<Recipe>>>
+    ) : Response<List<Recipe>>
 
     @GET("recipes/{id}")
-    fun getRecipe(
+    suspend fun getRecipe(
         @Header("Authorization") bearerToken : String,
         @Path("id") id : Int
-    ) : Call<Response<Recipe>>
+    ) : Response<Recipe>
 
     @GET("collections")
-    fun getCollections(
+    suspend fun getCollections(
+        @Header("Authorization") bearerToken : String
+    ) : Response<List<Collection>>
+
+    @GET("collections")
+    suspend fun getCollections(
         @Header("Authorization") bearerToken : String,
         @Query("gameId") gameId : Int
-    ) : Call<Response<List<Collection>>>
+    ) : Response<List<Collection>>
 
     @GET("collections/{id}")
-    fun getCollection(
+    suspend fun getCollection(
         @Header("Authorization") bearerToken : String,
         @Path("id") id : Int
-    ) : Call<Response<Collection>>
+    ) : Response<Collection>
 
     @POST("collections/new")
-    fun addCollection(
+    suspend fun addCollection(
         @Header("Authorization") bearerToken : String,
         @Body data : NewCollectionRequest
-    ) : Call<Response<Collection>>
+    ) : Response<Collection>
+
+    @POST("admin/collections/New")
+    suspend fun addAdminCollection(
+        @Header("Authorization") bearerToken : String,
+        @Body data : NewAdminCollectionRequest
+    ) : Response<Collection>
+
 
     @POST("collections/{collectionId}")
-    fun updateCollection(
+    suspend fun updateCollection(
         @Header("Authorization") bearerToken : String,
         @Path("collectionId") collectionId : Int,
         @Body data : UpdateCollectionRequest
-    ) : Call<Response<Collection>>
+    ) : Response<Collection>
 
     @DELETE("collections/{id}")
-    fun deleteCollection(
+    suspend fun deleteCollection(
         @Header("Authorization") bearerToken : String,
         @Path("id") id : Int
-    ) : Call<Unit>
+    )
 
     @POST("collections/{collectionId}/new")
-    fun addCollectionGroup(
+    suspend fun addCollectionGroup(
         @Header("Authorization") bearerToken : String,
         @Path("collectionId") collectionId : Int,
         @Body data : AddCollectionGroupRequest
-    ) : Call<Response<Collection.Group>>
+    ) : Response<Collection.Group>
 
     @DELETE("collections/{collectionId}/{groupId}")
-    fun deleteCollectionGroup(
+    suspend fun deleteCollectionGroup(
         @Header("Authorization") bearerToken : String,
         @Path("collectionId") collectionId : Int,
         @Path("groupId") groupId : Int
-    ) : Call<Unit>
+    )
 
 
     @POST("collections/{collectionId}/{groupId}/{itemId}")
-    fun addUpdateItemAmount(
+    suspend fun addUpdateItemAmount(
         @Header("Authorization") bearerToken : String,
         @Path("collectionId") collectionId : Int,
         @Path("groupId") groupId : Int,
         @Path("itemId") itemId : Int,
         @Body data : AddCollectionItemAmountRequest
-    ) : Call<Response<Collection.ItemAmount>>
+    ) : Response<Collection.ItemAmount>
 
     @DELETE("collections/{collectionId}/{groupId}/{itemId}")
-    fun deleteItemAmount(
+    suspend fun deleteItemAmount(
         @Header("Authorization") bearerToken : String,
         @Path("collectionId") collectionId : Int,
         @Path("groupId") groupId : Int,
         @Path("itemId") itemId : Int,
-    ) : Call<Unit>
+    )
 
+    @GET("admin/backups")
+    suspend fun getBackups(
+        @Header("Authorization") bearerToken : String,
+    ) : Response<List<Backup>>
 
+    @POST("admin/backups/create")
+    suspend fun createBackup(
+        @Header("Authorization") bearerToken : String,
+    ) : Response<Backup>
+
+    @POST("admin/backups/apply/{backupId}")
+    suspend fun applyBackup(
+        @Header("Authorization") bearerToken : String,
+        @Path("backupId") backupId : String,
+    )
 }

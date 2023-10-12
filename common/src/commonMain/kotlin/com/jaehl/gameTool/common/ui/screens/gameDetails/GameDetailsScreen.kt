@@ -129,16 +129,7 @@ fun GameDetailsPage(
                     ) {
                         Text("Collections")
                     }
-
-//                    Button(
-//                        onClick = {
-//                            testImport()
-//                        }
-//                    ) {
-//                        Text("import")
-//                    }
                 }
-
             }
         }
     }

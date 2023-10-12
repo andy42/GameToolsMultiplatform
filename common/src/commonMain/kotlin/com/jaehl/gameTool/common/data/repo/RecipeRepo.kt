@@ -9,17 +9,17 @@ import java.lang.Exception
 interface RecipeRepo {
     suspend fun preloadRecipes(gameId : Int)
     suspend fun getRecipes(gameId : Int) : List<Recipe>
-    fun getRecipe(id : Int) : Recipe
-    fun getRecipesForOutput(inputItemId : Int) : List<Recipe>
+    suspend fun getRecipe(id : Int) : Recipe
+    suspend fun getRecipesForOutput(inputItemId : Int) : List<Recipe>
 
-    fun createRecipes(
+    suspend fun createRecipes(
         gameId : Int,
         craftedAt : List<Int>,
         input : List<ItemAmount>,
         output : List<ItemAmount>
     ) : Recipe
 
-    fun updateRecipes(
+    suspend fun updateRecipes(
         recipeId : Int,
         gameId : Int,
         craftedAt : List<Int>,
@@ -27,7 +27,7 @@ interface RecipeRepo {
         output : List<ItemAmount>
     ) : Recipe
 
-    fun deleteRecipe(recipeId : Int)
+    suspend fun deleteRecipe(recipeId : Int)
 }
 
 class RecipeRepoImp(
@@ -64,7 +64,7 @@ class RecipeRepoImp(
         }
     }
 
-    private fun updateFromServer(gameId : Int){
+    private suspend fun updateFromServer(gameId : Int){
 
         val recipes = recipeService.getRecipes(gameId = gameId)
         loadedGameId = gameId
@@ -87,15 +87,15 @@ class RecipeRepoImp(
         return recipeService.getRecipes(gameId)
     }
 
-    override fun getRecipe(id: Int): Recipe {
+    override suspend fun getRecipe(id: Int): Recipe {
         return recipeMap[id] ?: throw Exception("Recipe not found")
     }
 
-    override fun getRecipesForOutput(inputItemId: Int): List<Recipe> {
+    override suspend fun getRecipesForOutput(inputItemId: Int): List<Recipe> {
         return recipeOutputMap[inputItemId] ?: listOf()
     }
 
-    override fun createRecipes(
+    override suspend fun createRecipes(
         gameId: Int,
         craftedAt: List<Int>,
         input: List<ItemAmount>,
@@ -112,7 +112,7 @@ class RecipeRepoImp(
         return recipe
     }
 
-    override fun updateRecipes(
+    override suspend fun updateRecipes(
         recipeId: Int,
         gameId : Int,
         craftedAt: List<Int>,
@@ -131,7 +131,7 @@ class RecipeRepoImp(
         return recipe
     }
 
-    override fun deleteRecipe(recipeId: Int) {
+    override suspend fun deleteRecipe(recipeId: Int) {
         recipeService.deleteRecipe(recipeId)
         recipeMap.remove(recipeId)
         updateOutputMap()

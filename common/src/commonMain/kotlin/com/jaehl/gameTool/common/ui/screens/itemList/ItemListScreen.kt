@@ -10,7 +10,6 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -54,6 +53,7 @@ class ItemListScreen(
             items = screenModel.items,
             searchText = screenModel.searchText.value,
             filterCategory = screenModel.categoryFilter.value,
+            showEditItems = screenModel.showEditItems.value,
             onBackClick = {
                 navigator.pop()
             },
@@ -99,6 +99,7 @@ fun ItemListPage(
     items : List<ItemRowModel>,
     searchText : String,
     filterCategory : ItemCategory,
+    showEditItems : Boolean,
     onBackClick : ()-> Unit,
     onSearchTextChange : (value : String) -> Unit,
     onCategoryFilterClick : () -> Unit,
@@ -116,13 +117,15 @@ fun ItemListPage(
         )
 
         Column(modifier = Modifier.padding(20.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Button(onClick = {
-                    onItemEditClick(null)
-                }) {
-                    Text("Create New")
+            if(showEditItems) {
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Button(onClick = {
+                        onItemEditClick(null)
+                    }) {
+                        Text("Create New")
+                    }
                 }
             }
             FlowRow(
@@ -168,6 +171,7 @@ fun ItemListPage(
                         }
                     }
                 ,
+                showEditItems,
                 onItemClick,
                 onItemEditClick)
         }
@@ -177,6 +181,7 @@ fun ItemListPage(
 @Composable
 fun ItemList(
     itemList : List<ItemRowModel>,
+    showEditItems : Boolean,
     onItemClick : (itemId : Int) -> Unit,
     onItemEditClick : (itemId : Int?) -> Unit
 ){
@@ -184,7 +189,7 @@ fun ItemList(
         val state  = rememberLazyListState()
         LazyColumn(state = state) {
             itemsIndexed(itemList) { index, item ->
-                ItemRow(index, item, onItemClick, onItemEditClick)
+                ItemRow(index, item, showEditItems, onItemClick, onItemEditClick)
             }
         }
         CustomVerticalScrollbar(
@@ -198,6 +203,7 @@ fun ItemList(
 fun ItemRow(
     index : Int,
     item : ItemRowModel,
+    showEditItems : Boolean,
     onItemClick : (itemId : Int) -> Unit,
     onItemEditClick : (itemId : Int?) -> Unit
 ){
@@ -219,10 +225,12 @@ fun ItemRow(
                 .weight(1f)
                 .padding(start = 10.dp)
         )
-        IconButton(content = {
-            Icon(Icons.Outlined.Edit, "edit", tint = Color.Black)
-        }, onClick = {
-            onItemEditClick(item.id)
-        })
+        if(showEditItems) {
+            IconButton(content = {
+                Icon(Icons.Outlined.Edit, "edit", tint = Color.Black)
+            }, onClick = {
+                onItemEditClick(item.id)
+            })
+        }
     }
 }

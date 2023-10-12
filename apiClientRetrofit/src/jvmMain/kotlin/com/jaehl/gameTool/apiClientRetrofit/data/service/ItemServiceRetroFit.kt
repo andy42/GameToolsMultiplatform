@@ -5,51 +5,51 @@ import com.jaehl.gameTool.apiClientRetrofit.data.model.baseBody
 import com.jaehl.gameTool.apiClientRetrofit.data.model.request.AddItemCategoriesRequest
 import com.jaehl.gameTool.apiClientRetrofit.data.model.request.AddItemRequest
 import com.jaehl.gameTool.apiClientRetrofit.data.model.request.UpdateItemRequest
-import com.jaehl.gameTool.common.data.AuthProvider
 import com.jaehl.gameTool.common.data.model.Item
 import com.jaehl.gameTool.common.data.model.ItemCategory
+import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.data.service.ItemService
 
 class ItemServiceRetroFit(
     val serverApi : ServerApi,
-    val authProvider: AuthProvider
+    val tokenProvider : TokenProvider
 ) : ItemService {
 
-    override fun getItem(id: Int): Item {
+    override suspend fun getItem(id: Int): Item {
         return serverApi.getItem(
-            bearerToken = authProvider.getBearerToken(),
+            bearerToken = tokenProvider.getBearerAccessToken(),
             id = id
-        ).baseBody()
+        ).data
     }
 
-    override fun getItems(gameId: Int): List<Item> {
+    override suspend fun getItems(gameId: Int): List<Item> {
         return serverApi.getItems(
-            bearerToken = authProvider.getBearerToken(),
+            bearerToken = tokenProvider.getBearerAccessToken(),
             gameId = gameId
-        ).baseBody()
+        ).data
     }
 
-    override fun getItems(): List<Item> {
+    override suspend fun getItems(): List<Item> {
         return serverApi.getItems(
-            bearerToken = authProvider.getBearerToken(),
-        ).baseBody()
+            bearerToken = tokenProvider.getBearerAccessToken(),
+        ).data
     }
 
-    override fun addItem(game: Int, name: String, categories: List<Int>, image: Int): Item {
+    override suspend fun addItem(game: Int, name: String, categories: List<Int>, image: Int): Item {
         return serverApi.addItem(
-            bearerToken = authProvider.getBearerToken(),
+            bearerToken = tokenProvider.getBearerAccessToken(),
             data = AddItemRequest(
                 game = game,
                 name = name,
                 categories = categories,
                 image = image
             )
-        ).baseBody()
+        ).data
     }
 
-    override fun updateItem(itemId : Int, game: Int, name: String, categories: List<Int>, image: Int): Item {
+    override suspend fun updateItem(itemId : Int, game: Int, name: String, categories: List<Int>, image: Int): Item {
         return serverApi.updateItem(
-            bearerToken = authProvider.getBearerToken(),
+            bearerToken = tokenProvider.getBearerAccessToken(),
             id = itemId,
             data = UpdateItemRequest(
                 game = game,
@@ -57,19 +57,19 @@ class ItemServiceRetroFit(
                 categories = categories,
                 image = image
             )
-        ).baseBody()
+        ).data
     }
 
-    override fun getItemCategories(): List<ItemCategory> {
+    override suspend fun getItemCategories(): List<ItemCategory> {
         return serverApi.getItemCategories(
-            bearerToken = authProvider.getBearerToken()
-        ).baseBody()
+            bearerToken = tokenProvider.getBearerAccessToken()
+        ).data
     }
 
-    override fun addItemCategories(name: String) : ItemCategory {
+    override suspend fun addItemCategories(name: String) : ItemCategory {
         return serverApi.addItemCategories(
-            bearerToken = authProvider.getBearerToken(),
+            bearerToken = tokenProvider.getBearerAccessToken(),
             data =  AddItemCategoriesRequest(name = name)
-        ).baseBody()
+        ).data
     }
 }

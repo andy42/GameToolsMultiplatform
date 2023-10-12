@@ -24,7 +24,7 @@ class ItemImporter(
         ).toFile()
     }
 
-    fun import(gameId : Int){
+    suspend fun import(gameId : Int){
 
         val categoriesResponse = itemService.getItemCategories()
         val categoriesMap = mutableMapOf<String, Int>()
@@ -32,10 +32,12 @@ class ItemImporter(
             categoriesMap[it.name] = it.id
         }
 
+        val gameFolderName = "tribes_of_midgard"
+
         val itemLoader = ObjectListJsonLoader<ItemData>(
             type = object : TypeToken<Array<ItemData>>() {}.type,
             projectUserDir = "gameTools",
-            listFilePath = "starfield_artemis/items.json"
+            listFilePath = "$gameFolderName/items.json"
         )
 
         val itemLocalMap = mutableMapOf<String, ItemData>()
@@ -77,7 +79,7 @@ class ItemImporter(
                 game = gameId,
                 name = itemData.name,
                 categories = itemData.categories.map { categoriesMap[it] ?: -1 },
-                image = imageResponse.imageId
+                image = imageResponse.id
             )
             itemData.serverId = item.id
         }
@@ -85,7 +87,7 @@ class ItemImporter(
         ObjectListJsonLoader<RecipeData>(
             type = object : TypeToken<Array<RecipeData>>() {}.type,
             projectUserDir = "gameTools",
-            listFilePath = "starfield_artemis/recipes.json"
+            listFilePath = "$gameFolderName/recipes.json"
         ).load().forEach { recipeData ->
             val input = recipeData.input.mapNotNull {
                 ItemAmount(

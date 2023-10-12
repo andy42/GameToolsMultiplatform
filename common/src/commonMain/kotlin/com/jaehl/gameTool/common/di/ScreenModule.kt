@@ -2,9 +2,10 @@ package com.jaehl.gameTool.common.di
 
 import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.AppConfig
-import com.jaehl.gameTool.common.data.AuthProvider
 import com.jaehl.gameTool.common.data.repo.*
 import com.jaehl.gameTool.common.data.service.ImageService
+import com.jaehl.gameTool.common.ui.screens.accountDetails.AccountDetailsScreenModel
+import com.jaehl.gameTool.common.ui.screens.backupList.BackupListScreenModel
 import com.jaehl.gameTool.common.ui.screens.collectionDetails.CollectionDetailsScreenModel
 import com.jaehl.gameTool.common.ui.screens.collectionList.CollectionListScreenModel
 import com.jaehl.gameTool.common.ui.screens.gameDetails.GameDetailsScreenModel
@@ -23,6 +24,7 @@ import com.jaehl.gameTool.common.ui.screens.gameEdit.GameEditValidator
 import com.jaehl.gameTool.common.ui.screens.itemEdit.ItemEditValidator
 import com.jaehl.gameTool.common.ui.util.ItemRecipeInverter
 import com.jaehl.gameTool.common.ui.util.ItemRecipeNodeUtil
+import com.jaehl.gameTool.common.ui.util.ServerBackup
 import org.kodein.di.*
 
 object ScreenModule {
@@ -32,6 +34,7 @@ object ScreenModule {
             LoginScreenModel(
                 instance<JobDispatcher>(),
                 instance<UserRepo>(),
+                instance<TokenProvider>(),
                 LoginValidator(),
                 RegisterValidator()
             )}}
@@ -46,8 +49,10 @@ object ScreenModule {
             HomeScreenModel(
                 instance<JobDispatcher>(),
                 instance<GameRepo>(),
-                instance<AuthProvider>(),
+                instance<UserRepo>(),
+                instance<TokenProvider>(),
                 instance<AppConfig>(),
+                instance<ServerBackup>()
             )}}
 
         bind<GameDetailsScreenModel> { provider {
@@ -55,7 +60,7 @@ object ScreenModule {
                 instance<JobDispatcher>(),
                 instance<GameRepo>(),
                 instance<ItemImporter>(),
-                instance<AuthProvider>(),
+                instance<TokenProvider>(),
                 instance<AppConfig>(),
             )}}
 
@@ -65,23 +70,25 @@ object ScreenModule {
                 instance<GameRepo>(),
                 instance<ImageService>(),
                 instance<AppConfig>(),
-                instance<AuthProvider>(),
+                instance<TokenProvider>(),
                 GameEditValidator()
             )}}
 
         bind<ItemListScreenModel> { provider {
             ItemListScreenModel(
                 instance<JobDispatcher>(),
-                instance<AuthProvider>(),
+                instance<TokenProvider>(),
                 appConfig = instance<AppConfig>(),
-                itemRepo = instance<ItemRepo>()
+                itemRepo = instance<ItemRepo>(),
+                userRepo = instance<UserRepo>()
             )}}
 
         bind<ItemDetailsScreenModel> { provider {
             ItemDetailsScreenModel(
                 instance<JobDispatcher>(),
-                instance<AuthProvider>(),
+                instance<TokenProvider>(),
                 itemRepo = instance<ItemRepo>(),
+                userRepo = instance<UserRepo>(),
                 instance<RecipeRepo>(),
                 instance<AppConfig>(),
                 instance<ItemRecipeNodeUtil>(),
@@ -96,7 +103,7 @@ object ScreenModule {
                 recipeRepo = instance<RecipeRepo>(),
                 imageService = instance<ImageService>(),
                 instance<AppConfig>(),
-                instance<AuthProvider>(),
+                instance<TokenProvider>(),
                 ItemEditValidator()
             )}}
 
@@ -107,7 +114,7 @@ object ScreenModule {
                 instance<ItemRepo>(),
                 instance<RecipeRepo>(),
                 instance<AppConfig>(),
-                instance<AuthProvider>(),
+                instance<TokenProvider>(),
                 instance<ItemRecipeNodeUtil>(),
                 instance<ItemRecipeInverter>()
             )}}
@@ -118,7 +125,7 @@ object ScreenModule {
                 instance<CollectionRepo>(),
                 instance<ItemRepo>(),
                 instance<AppConfig>(),
-                instance<AuthProvider>(),
+                instance<TokenProvider>(),
             )}}
 
         bind<CollectionListScreenModel> { provider {
@@ -126,5 +133,21 @@ object ScreenModule {
                 instance<JobDispatcher>(),
                 instance<CollectionRepo>()
             )}}
+
+        bind<BackupListScreenModel> { provider {
+            BackupListScreenModel(
+                instance<JobDispatcher>(),
+                instance<BackupRepo>()
+            )}}
+
+        bind<AccountDetailsScreenModel> {
+            provider {
+                AccountDetailsScreenModel(
+                    instance<JobDispatcher>(),
+                    instance<TokenProvider>(),
+                    instance<UserRepo>()
+                )
+            }
+        }
     }
 }

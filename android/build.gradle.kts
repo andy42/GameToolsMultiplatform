@@ -15,6 +15,7 @@ kotlin {
                 implementation(project(":common"))
                 implementation(project(":apiClientRetrofit"))
                 implementation("org.kodein.di:kodein-di-framework-compose:$kodeinVersion")
+                implementation("androidx.datastore:datastore-preferences:1.0.0")
             }
         }
     }

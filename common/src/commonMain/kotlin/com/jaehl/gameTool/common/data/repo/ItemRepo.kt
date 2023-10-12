@@ -8,20 +8,20 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
 interface ItemRepo {
-    fun getItems(gameId : Int) : Flow<List<Item>>
-    fun getItemFlow(id : Int) : Flow<Item>
-    fun getItem(id : Int) : Item?
+    suspend fun getItems(gameId : Int) : Flow<List<Item>>
+    suspend fun getItemFlow(id : Int) : Flow<Item>
+    suspend fun getItem(id : Int) : Item?
 
-    fun preloadItems(gameId : Int)
+    suspend fun preloadItems(gameId : Int)
 
-    fun addItem(
+    suspend fun addItem(
         game : Int,
         name : String,
         categories : List<Int>,
         image : Int
     ) : Item
 
-    fun updateItem(
+    suspend fun updateItem(
         itemId : Int,
         game: Int,
         name : String,
@@ -29,7 +29,7 @@ interface ItemRepo {
         image : Int
     ) : Item
 
-    fun getItemCategories(gameId : Int) : Flow<List<ItemCategory>>
+    suspend fun getItemCategories(gameId : Int) : Flow<List<ItemCategory>>
 }
 
 //TODO add local caching
@@ -41,7 +41,7 @@ class ItemRepoImp(
     private val itemsMap = hashMapOf<Int, Item>()
     private val itemCategoriesMap = hashMapOf<Int, ItemCategory>()
 
-    override fun getItems(gameId : Int) = flow {
+    override suspend fun getItems(gameId : Int) = flow {
         val items = itemService.getItems(gameId)
         itemsMap.clear()
         items.forEach {
@@ -50,7 +50,7 @@ class ItemRepoImp(
         emit(items)
     }
 
-    override fun preloadItems(gameId: Int) {
+    override suspend fun preloadItems(gameId: Int) {
         val items = itemService.getItems(gameId)
         itemsMap.clear()
         items.forEach {
@@ -58,7 +58,7 @@ class ItemRepoImp(
         }
     }
 
-    override fun getItem(id: Int): Item? {
+    override suspend fun getItem(id: Int): Item? {
         val item = itemsMap[id]
         if(item == null){
             val newItem = itemService.getItem(id)
@@ -69,11 +69,11 @@ class ItemRepoImp(
         }
     }
 
-    override fun getItemFlow(id: Int) = flow {
+    override suspend fun getItemFlow(id: Int) = flow {
         emit(itemService.getItem(id))
     }
 
-    override fun addItem(
+    override suspend fun addItem(
         game : Int,
         name : String,
         categories : List<Int>,
@@ -89,7 +89,7 @@ class ItemRepoImp(
         return item
     }
 
-    override fun updateItem(
+    override suspend fun updateItem(
         itemId : Int,
         game: Int,
         name : String,
@@ -107,7 +107,7 @@ class ItemRepoImp(
         return item
     }
 
-    override fun getItemCategories(gameId: Int) = flow {
+    override suspend fun getItemCategories(gameId: Int) = flow {
         emit(itemCategoriesMap.values.toList())
 
         val itemCategories = itemService.getItemCategories()

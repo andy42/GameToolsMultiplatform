@@ -3,14 +3,15 @@ package com.jaehl.gameTool.common.ui.screens.itemDetails
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import cafe.adriel.voyager.core.model.ScreenModel
-import cafe.adriel.voyager.core.model.coroutineScope
 import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.AppConfig
-import com.jaehl.gameTool.common.data.AuthProvider
 import com.jaehl.gameTool.common.data.model.Item
 import com.jaehl.gameTool.common.data.model.ItemRecipeNode
+import com.jaehl.gameTool.common.data.model.User
 import com.jaehl.gameTool.common.data.repo.ItemRepo
 import com.jaehl.gameTool.common.data.repo.RecipeRepo
+import com.jaehl.gameTool.common.data.repo.TokenProvider
+import com.jaehl.gameTool.common.data.repo.UserRepo
 import com.jaehl.gameTool.common.ui.screens.launchIo
 import com.jaehl.gameTool.common.extensions.postSwap
 import com.jaehl.gameTool.common.extensions.toItemModel
@@ -22,12 +23,12 @@ import com.jaehl.gameTool.common.ui.util.ItemRecipeNodeUtil
 import com.jaehl.gameTool.common.ui.viewModel.ItemAmountViewModel
 import com.jaehl.gameTool.common.ui.viewModel.ItemModel
 import com.jaehl.gameTool.common.ui.viewModel.RecipeSettings
-import kotlinx.coroutines.launch
 
 class ItemDetailsScreenModel(
     val jobDispatcher : JobDispatcher,
-    val authProvider: AuthProvider,
+    val tokenProvider: TokenProvider,
     val itemRepo: ItemRepo,
+    val userRepo: UserRepo,
     val recipeRepo: RecipeRepo,
     val appConfig: AppConfig,
     val itemRecipeNodeUtil : ItemRecipeNodeUtil,
@@ -35,6 +36,8 @@ class ItemDetailsScreenModel(
 ) : ScreenModel {
 
     private lateinit var config : Config
+
+    var showEditItems = mutableStateOf(false)
 
     var recipeSettingDialogState = mutableStateOf<RecipeSettingDialogState>(RecipeSettingDialogState.Closed)
 
@@ -50,19 +53,25 @@ class ItemDetailsScreenModel(
         }
 
         this.config = config
-        coroutineScope.launch {
-            dataRefresh()
-        }
+        dataRefresh()
     }
 
-    suspend fun dataRefresh() {
+    fun dataRefresh() {
+        launchIo(jobDispatcher, ::onException){
+            userRepo.getUserSelf().let { user ->
+                showEditItems.value = listOf(
+                    User.Role.Admin,
+                    User.Role.Contributor
+                ).contains(user.role)
+            }
+        }
         launchIo(
             jobDispatcher,
             onException = ::onException
         ){
             val item = itemRepo.getItem(config.itemId) ?: throw ItemNotFoundException(config.itemId)
 
-            itemInfo.value = item.toItemInfoModel(appConfig, authProvider)
+            itemInfo.value = item.toItemInfoModel(appConfig, tokenProvider)
 
             recipeRepo.preloadRecipes(config.gameId)
 
@@ -70,7 +79,7 @@ class ItemDetailsScreenModel(
             recipeRepo.getRecipesForOutput(config.itemId).mapNotNull { recipe ->
                 val node = itemRecipeNodeUtil.buildTree(
                     ItemAmountViewModel(
-                        itemModel = item.toItemModel(appConfig, authProvider),
+                        itemModel = item.toItemModel(appConfig, tokenProvider),
                         amount = recipe.output.first { it.itemId == config.itemId}.amount
                     ),
                     recipeId = recipe.id
@@ -82,7 +91,7 @@ class ItemDetailsScreenModel(
                     node = node,
                     baseIngredients = baseIngredients,
                     craftedAt = node.recipe?.craftedAt?.mapNotNull {
-                        itemRepo.getItem(it)?.toItemModel(appConfig, authProvider)
+                        itemRepo.getItem(it)?.toItemModel(appConfig, tokenProvider)
                     } ?: listOf()
                 )
             }.forEach {
@@ -148,13 +157,13 @@ data class ItemInfoModel(
     val categories : List<String> = listOf()
 )
 
-fun Item.toItemInfoModel(appConfig: AppConfig, authProvider: AuthProvider) : ItemInfoModel {
+suspend fun Item.toItemInfoModel(appConfig: AppConfig, tokenProvider: TokenProvider) : ItemInfoModel {
     return ItemInfoModel(
         id = this.id,
         name = this.name,
         iconPath = ImageResource.ImageApiResource(
             url = "${appConfig.baseUrl}/images/${this.image}",
-            authHeader = authProvider.getBearerToken()
+            authHeader = tokenProvider.getBearerRefreshToken()
         ),
         categories = this.categories.map {
             it.name

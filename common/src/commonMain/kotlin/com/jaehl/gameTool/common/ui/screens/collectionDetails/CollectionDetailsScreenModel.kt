@@ -5,13 +5,13 @@ import androidx.compose.runtime.mutableStateOf
 import cafe.adriel.voyager.core.model.ScreenModel
 import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.AppConfig
-import com.jaehl.gameTool.common.data.AuthProvider
 import com.jaehl.gameTool.common.data.model.Collection
 import com.jaehl.gameTool.common.data.model.ItemAmount
 import com.jaehl.gameTool.common.data.model.ItemRecipeNode
 import com.jaehl.gameTool.common.data.repo.CollectionRepo
 import com.jaehl.gameTool.common.data.repo.ItemRepo
 import com.jaehl.gameTool.common.data.repo.RecipeRepo
+import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.extensions.postSwap
 import com.jaehl.gameTool.common.extensions.toItemModel
 import com.jaehl.gameTool.common.ui.screens.launchIo
@@ -27,7 +27,7 @@ class CollectionDetailsScreenModel (
     val itemRepo : ItemRepo,
     val recipeRepo: RecipeRepo,
     val appConfig : AppConfig,
-    val authProvider: AuthProvider,
+    val tokenProvider: TokenProvider,
     val itemRecipeNodeUtil : ItemRecipeNodeUtil,
     var itemRecipeInverter : ItemRecipeInverter
 ) : ScreenModel {
@@ -60,7 +60,7 @@ class CollectionDetailsScreenModel (
                     val items = group.itemAmounts.mapNotNull { itemIngredient ->
                         val item = itemRepo.getItem(itemIngredient.itemId) ?: return@mapNotNull null
                         ItemAmountViewModel(
-                            item.toItemModel(appConfig, authProvider),
+                            item.toItemModel(appConfig, tokenProvider),
                             itemIngredient.amount
                         )
                     }
@@ -71,7 +71,7 @@ class CollectionDetailsScreenModel (
                     group.toGroupsViewModel(
                         itemRepo,
                         appConfig,
-                        authProvider,
+                        tokenProvider,
                         nodes,
                         baseNodes
                     )
@@ -160,10 +160,10 @@ class CollectionDetailsScreenModel (
     }
 }
 
-fun Collection.Group.toGroupsViewModel(
+suspend fun Collection.Group.toGroupsViewModel(
     itemRepo : ItemRepo,
     appConfig : AppConfig,
-    authProvider: AuthProvider,
+    tokenProvider: TokenProvider,
     nodes : List<ItemRecipeNode>,
     baseNodes : List<ItemRecipeNode>,
 ) : CollectionDetailsScreenModel.GroupsViewModel {
@@ -176,7 +176,7 @@ fun Collection.Group.toGroupsViewModel(
         ),
         itemList = this.itemAmounts.map {
             ItemAmountViewModel(
-                itemModel = itemRepo.getItem(it.itemId)?.toItemModel(appConfig, authProvider) ?: throw Exception("Item Not Found : ${it.itemId}"),
+                itemModel = itemRepo.getItem(it.itemId)?.toItemModel(appConfig, tokenProvider) ?: throw Exception("Item Not Found : ${it.itemId}"),
                 amount = it.amount
             )
         },

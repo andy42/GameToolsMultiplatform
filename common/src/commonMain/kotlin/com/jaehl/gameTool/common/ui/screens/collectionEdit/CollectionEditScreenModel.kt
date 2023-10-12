@@ -5,12 +5,12 @@ import androidx.compose.runtime.mutableStateOf
 import cafe.adriel.voyager.core.model.ScreenModel
 import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.AppConfig
-import com.jaehl.gameTool.common.data.AuthProvider
 import com.jaehl.gameTool.common.data.model.Collection
 import com.jaehl.gameTool.common.data.model.request.NewCollectionRequest
 import com.jaehl.gameTool.common.data.model.request.UpdateCollectionRequest
 import com.jaehl.gameTool.common.data.repo.CollectionRepo
 import com.jaehl.gameTool.common.data.repo.ItemRepo
+import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.extensions.postSwap
 import com.jaehl.gameTool.common.extensions.swap
 import com.jaehl.gameTool.common.extensions.toItemModel
@@ -26,7 +26,7 @@ class CollectionEditScreenModel (
     private val collectionRepo: CollectionRepo,
     private val itemRepo : ItemRepo,
     val appConfig : AppConfig,
-    val authProvider: AuthProvider
+    val tokenProvider: TokenProvider
 ) : ScreenModel {
 
     private lateinit var config : Config
@@ -68,7 +68,7 @@ class CollectionEditScreenModel (
             itemRepo.getItems(config.gameId).collect { itemList ->
                 itemModels.postSwap(
                     itemList.map { item ->
-                        item.toItemModel(appConfig, authProvider)
+                        item.toItemModel(appConfig, tokenProvider)
                     }
                 )
             }
@@ -95,7 +95,7 @@ class CollectionEditScreenModel (
             group.itemAmounts.forEach { itemAmount ->
                 itemAmountMap[itemAmount.itemId] = ItemAmountViewModel(
                     itemModel = itemRepo.getItem(
-                            itemAmount.itemId)?.toItemModel(appConfig, authProvider) ?: throw Exception("Item Not Found : ${itemAmount.itemId}"
+                            itemAmount.itemId)?.toItemModel(appConfig, tokenProvider) ?: throw Exception("Item Not Found : ${itemAmount.itemId}"
                         ),
                     amount = itemAmount.amount
                 )
@@ -176,11 +176,11 @@ class CollectionEditScreenModel (
         unsavedChanges = true
     }
 
-    fun onAddItemClick(groupId : Int, itemId : Int) = runWithCatch(onException = ::onException) {
+    fun onAddItemClick(groupId : Int, itemId : Int) = launchWithCatch(onException = ::onException) {
         val group = groupMap[groupId] ?: throw Exception("onAddItemClick groupId not found : $groupId")
         val item = itemRepo.getItem(itemId) ?: throw Exception("onAddItemClick itemId not found : $itemId")
         group.itemList[itemId] = ItemAmountViewModel(
-            itemModel = item.toItemModel(appConfig, authProvider),
+            itemModel = item.toItemModel(appConfig, tokenProvider),
             amount = 1
         )
         groupList.swap(groupMap.values)

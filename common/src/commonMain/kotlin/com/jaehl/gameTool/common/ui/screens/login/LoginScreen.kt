@@ -9,11 +9,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import cafe.adriel.voyager.core.lifecycle.LifecycleEffect
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.kodein.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.jaehl.gameTool.common.ui.componets.StyledOutlinedTextField
+import com.jaehl.gameTool.common.ui.componets.StyledPasswordOutlinedTextField
 import com.jaehl.gameTool.common.ui.screens.home.HomeScreen
 
 class LoginScreen : Screen{
@@ -23,9 +25,16 @@ class LoginScreen : Screen{
         val navigator = LocalNavigator.currentOrThrow
         val screenModel = rememberScreenModel<LoginScreenModel>()
 
-        if(screenModel.navigateToHome.value) {
-            LaunchedEffect(Unit){
+        LifecycleEffect(
+            onStarted = {
+                screenModel.setup()
+            }
+        )
+
+        LaunchedEffect(screenModel.navigateToHome.value){
+            if(screenModel.navigateToHome.value) {
                 navigator.push(HomeScreen())
+                screenModel.navigateToHome.value = false
             }
         }
 
@@ -134,7 +143,7 @@ fun LoginBox(modifier: Modifier,
                 screenModel.onLoginUserNameChange(value)
             }
         )
-        StyledOutlinedTextField(
+        StyledPasswordOutlinedTextField(
             loginViewModel.password,
             modifier = Modifier
                 .padding(top = 5.dp),
@@ -188,7 +197,7 @@ fun RegisterBox(modifier: Modifier,
                 screenModel.onRegisterEmailChange(value)
             }
         )
-        StyledOutlinedTextField(
+        StyledPasswordOutlinedTextField(
             registerViewModel.password,
             modifier = Modifier
                 .padding(top = 5.dp),
@@ -199,7 +208,7 @@ fun RegisterBox(modifier: Modifier,
             }
         )
 
-        StyledOutlinedTextField(
+        StyledPasswordOutlinedTextField(
             registerViewModel.reEnterPassword,
             modifier = Modifier
                 .padding(top = 5.dp),

@@ -1,11 +1,10 @@
 package com.jaehl.gameTool.apiClientRetrofit.data.service
 
 import com.jaehl.gameTool.apiClientRetrofit.data.api.ServerApi
-import com.jaehl.gameTool.apiClientRetrofit.data.model.baseBody
-import com.jaehl.gameTool.common.data.AuthProvider
 import com.jaehl.gameTool.common.data.model.Image
 import com.jaehl.gameTool.common.data.model.ImageMetaData
 import com.jaehl.gameTool.common.data.model.ImageType
+import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.data.service.ImageService
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
@@ -17,9 +16,9 @@ import java.io.File
 
 class ImageServiceRetroFit(
     val serverApi : ServerApi,
-    val authProvider: AuthProvider
+    val tokenProvider : TokenProvider
 ) : ImageService {
-    override fun addImage(imageFile: File, imageType : ImageType, description : String): Image {
+    override suspend fun addImage(imageFile: File, imageType : ImageType, description : String): ImageMetaData {
 
         val requestFile: RequestBody = imageFile
             .asRequestBody("image/png".toMediaType())
@@ -32,23 +31,23 @@ class ImageServiceRetroFit(
         map["imageType"] = imageType.value.toString().toRequestBody("text/plain".toMediaType())
 
         return serverApi.addImage(
-            bearerToken = authProvider.getBearerToken(),
+            bearerToken = tokenProvider.getBearerAccessToken(),
             image = multipartImage,
             partMap = map
-        ).baseBody()
+        ).data
     }
 
-    override fun getImages(): List<ImageMetaData> {
+    override suspend fun getImages(): List<ImageMetaData> {
         return serverApi.getImages(
-            bearerToken = authProvider.getBearerToken(),
-        ).baseBody()
+            bearerToken = tokenProvider.getBearerAccessToken(),
+        ).data
     }
 
-    override fun getImage(id: Int): ByteArray {
+    override suspend fun getImage(id: Int): ByteArray {
         val image : ResponseBody? = serverApi.getImage(
-            bearerToken = authProvider.getBearerToken(),
+            bearerToken = tokenProvider.getBearerRefreshToken(),
             id = id
-        ).execute().body()
+        )
 
         return image?.bytes() ?: throw Exception("Image error")
     }
