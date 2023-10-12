@@ -50,10 +50,6 @@ object DataModule {
             instance<BackupService>()
         ) }}
 
-        bind<AuthLocalStore> { singleton {
-            AuthLocalStoreImp()
-        }}
-
         bind<ItemImporter> { singleton { ItemImporter(
             instance<ItemService>(),
             instance<ImageService>(),

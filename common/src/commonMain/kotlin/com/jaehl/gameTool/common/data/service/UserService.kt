@@ -9,4 +9,5 @@ interface UserService {
     suspend fun register(userName : String, email : String, password : String) : UserTokens
     suspend fun getSelf(bearerToken: String) : User
     suspend fun getUsers(bearerToken: String) : List<User>
+    suspend fun changeUserRole(bearerToken: String, userId : Int, role: User.Role) : User
 }

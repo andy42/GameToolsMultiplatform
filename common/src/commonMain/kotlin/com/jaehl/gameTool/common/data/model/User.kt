@@ -14,6 +14,8 @@ data class User(
         @SerializedName("Admin")
         Admin,
         @SerializedName("Contributor")
-        Contributor
+        Contributor,
+        @SerializedName("Unverified")
+        Unverified
     }
 }

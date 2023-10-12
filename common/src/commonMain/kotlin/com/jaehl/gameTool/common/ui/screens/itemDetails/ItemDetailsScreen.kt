@@ -11,6 +11,7 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,9 +26,9 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.jaehl.gameTool.common.ui.AppColor
 import com.jaehl.gameTool.common.ui.componets.*
-import com.jaehl.gameTool.common.ui.screens.collectionDetails.CollectionDetailsScreenModel
 import com.jaehl.gameTool.common.ui.screens.itemEdit.ItemEditScreen
 import com.jaehl.gameTool.common.ui.viewModel.ItemModel
+import kotlinx.coroutines.launch
 
 class ItemDetailsScreen(
     private val gameId : Int,
@@ -38,6 +39,8 @@ class ItemDetailsScreen(
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val screenModel = rememberScreenModel<ItemDetailsScreenModel>()
+        val scrollState : ScrollState = rememberScrollState()
+        val coroutineScope = rememberCoroutineScope()
 
         LaunchedEffect(itemId){
             screenModel.update(
@@ -46,6 +49,9 @@ class ItemDetailsScreen(
                     itemId = itemId),
                 ifItemChanged = true
             )
+            coroutineScope.launch {
+                scrollState.animateScrollTo(0)
+            }
         }
 
         LifecycleEffect(
@@ -62,6 +68,8 @@ class ItemDetailsScreen(
             itemId = itemId,
             itemInfo = screenModel.itemInfo.value,
             recipes = screenModel.recipeModels,
+            showEditItems = screenModel.showEditItems.value,
+            scrollState = scrollState,
             onBackClick = {
                 navigator.pop()
             },
@@ -126,12 +134,13 @@ fun ItemDetailsPage(
     itemId : Int,
     itemInfo : ItemInfoModel,
     recipes : List<RecipeViewModel>,
+    showEditItems : Boolean,
+    scrollState : ScrollState,
     onBackClick : ()-> Unit,
     onItemClick : (clickedItemId : Int) -> Unit,
     onEditClick : () -> Unit,
     onRecipeSettingsClick : (recipeId : Int) -> Unit
 ) {
-    val state : ScrollState = rememberScrollState()
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -144,11 +153,13 @@ fun ItemDetailsPage(
                 onBackClick()
             },
             actions = {
-                IconButton(content = {
-                    Icon(Icons.Outlined.Edit, "Edit", tint = MaterialTheme.colors.onPrimary)
-                }, onClick = {
-                    onEditClick()
-                })
+                if(showEditItems) {
+                    IconButton(content = {
+                        Icon(Icons.Outlined.Edit, "Edit", tint = MaterialTheme.colors.onPrimary)
+                    }, onClick = {
+                        onEditClick()
+                    })
+                }
             }
         )
         Box(
@@ -157,7 +168,7 @@ fun ItemDetailsPage(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .verticalScroll(state)
+                    .verticalScroll(scrollState)
                     .padding(20.dp)
             ) {
                 Box(
@@ -185,7 +196,7 @@ fun ItemDetailsPage(
             }
             CustomVerticalScrollbar(
                 modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                scrollState = state
+                scrollState = scrollState
             )
         }
     }

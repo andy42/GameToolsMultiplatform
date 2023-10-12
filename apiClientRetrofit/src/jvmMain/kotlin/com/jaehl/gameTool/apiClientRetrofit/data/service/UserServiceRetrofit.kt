@@ -2,9 +2,9 @@ package com.jaehl.gameTool.apiClientRetrofit.data.service
 
 import com.jaehl.gameTool.apiClientRetrofit.data.api.ServerApi
 import com.jaehl.gameTool.common.data.model.User
-import com.jaehl.gameTool.apiClientRetrofit.data.model.baseBody
 import com.jaehl.gameTool.apiClientRetrofit.data.model.request.LoginRequest
 import com.jaehl.gameTool.apiClientRetrofit.data.model.request.RegisterRequest
+import com.jaehl.gameTool.apiClientRetrofit.data.model.request.UserChangeRoleRequest
 import com.jaehl.gameTool.common.data.model.UserTokens
 import com.jaehl.gameTool.common.data.service.UserService
 
@@ -47,6 +47,16 @@ class UserServiceRetrofit(
     override suspend fun getUsers(bearerToken: String): List<User> {
         return serverApi.getUsers(
             bearerToken = bearerToken
+        ).data
+    }
+
+    override suspend fun changeUserRole(bearerToken: String, userId: Int, role: User.Role) : User {
+        return serverApi.changeUserRole(
+            bearerToken = bearerToken,
+            data = UserChangeRoleRequest(
+                userId = userId,
+                role = role.name,
+            )
         ).data
     }
 }

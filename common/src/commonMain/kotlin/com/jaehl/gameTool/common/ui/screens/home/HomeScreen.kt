@@ -5,9 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,6 +21,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.jaehl.gameTool.common.ui.AppColor
 import com.jaehl.gameTool.common.ui.componets.AppBar
 import com.jaehl.gameTool.common.ui.componets.ItemIcon
+import com.jaehl.gameTool.common.ui.screens.accountDetails.AccountDetailsScreen
 import com.jaehl.gameTool.common.ui.screens.backupList.BackupListScreen
 import com.jaehl.gameTool.common.ui.screens.gameDetails.GameDetailsScreen
 import com.jaehl.gameTool.common.ui.screens.gameEdit.GameEditScreen
@@ -45,7 +44,10 @@ class HomeScreen : Screen {
             games = screenModel.games,
             showAdminTools = screenModel.showAdminTools.value,
             showEditGames = screenModel.showEditGames.value,
-            onUserClick = {
+            onAccountClick = {
+                navigator.push(AccountDetailsScreen())
+            },
+            onUsersClick = {
                 navigator.push(UsersScreen())
             },
             onCreateGameClick = {
@@ -75,7 +77,8 @@ fun HomePage(
     games: List<GameModel>,
     showAdminTools : Boolean,
     showEditGames : Boolean,
-    onUserClick : () -> Unit,
+    onAccountClick : () -> Unit,
+    onUsersClick : () -> Unit,
     onCreateGameClick : () -> Unit,
     onGameClick : (gameId: Int) -> Unit,
     onGameEditClick : (gameId: Int) -> Unit,
@@ -88,7 +91,14 @@ fun HomePage(
             .background(Color.Gray)
     ) {
         AppBar(
-            title = "Home"
+            title = "Home",
+            actions = {
+                IconButton(content = {
+                    Icon(Icons.Outlined.AccountBox, "Settings", tint = Color.White)
+                }, onClick = {
+                    onAccountClick()
+                })
+            }
         )
         Column(
             modifier = Modifier
@@ -103,7 +113,7 @@ fun HomePage(
                         .padding(top = 20.dp)
                         .align(Alignment.CenterHorizontally),
                     onUsersClick = {
-                        onUserClick()
+                        onUsersClick()
                     },
                     onBackupClick = onBackupClick
                 )
@@ -212,7 +222,7 @@ fun GamesCard(
             ) {
                 Text(
                     modifier = Modifier
-                        .padding(start = 10.dp),
+                        .padding(start = 10.dp, top = 12.dp, bottom = 12.dp),
                     color = MaterialTheme.colors.onSecondary,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,

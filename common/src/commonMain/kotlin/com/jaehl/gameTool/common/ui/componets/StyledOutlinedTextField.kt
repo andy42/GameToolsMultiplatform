@@ -6,6 +6,7 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -15,6 +16,7 @@ fun StyledOutlinedTextField(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     readOnly: Boolean = false,
+    visualTransformation : VisualTransformation = VisualTransformation.None,
     label: @Composable (() -> Unit)? = null,
 ) {
     OutlinedTextField(
@@ -24,7 +26,8 @@ fun StyledOutlinedTextField(
         isError = textFieldValue.hasError(),
         enabled = enabled,
         readOnly = readOnly,
-        onValueChange = onValueChange
+        onValueChange = onValueChange,
+        visualTransformation = visualTransformation
     )
     if(textFieldValue.hasError()){
         Text(

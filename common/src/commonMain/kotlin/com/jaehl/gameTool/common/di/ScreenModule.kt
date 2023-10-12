@@ -4,6 +4,7 @@ import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.AppConfig
 import com.jaehl.gameTool.common.data.repo.*
 import com.jaehl.gameTool.common.data.service.ImageService
+import com.jaehl.gameTool.common.ui.screens.accountDetails.AccountDetailsScreenModel
 import com.jaehl.gameTool.common.ui.screens.backupList.BackupListScreenModel
 import com.jaehl.gameTool.common.ui.screens.collectionDetails.CollectionDetailsScreenModel
 import com.jaehl.gameTool.common.ui.screens.collectionList.CollectionListScreenModel
@@ -33,6 +34,7 @@ object ScreenModule {
             LoginScreenModel(
                 instance<JobDispatcher>(),
                 instance<UserRepo>(),
+                instance<TokenProvider>(),
                 LoginValidator(),
                 RegisterValidator()
             )}}
@@ -77,7 +79,8 @@ object ScreenModule {
                 instance<JobDispatcher>(),
                 instance<TokenProvider>(),
                 appConfig = instance<AppConfig>(),
-                itemRepo = instance<ItemRepo>()
+                itemRepo = instance<ItemRepo>(),
+                userRepo = instance<UserRepo>()
             )}}
 
         bind<ItemDetailsScreenModel> { provider {
@@ -85,6 +88,7 @@ object ScreenModule {
                 instance<JobDispatcher>(),
                 instance<TokenProvider>(),
                 itemRepo = instance<ItemRepo>(),
+                userRepo = instance<UserRepo>(),
                 instance<RecipeRepo>(),
                 instance<AppConfig>(),
                 instance<ItemRecipeNodeUtil>(),
@@ -135,5 +139,15 @@ object ScreenModule {
                 instance<JobDispatcher>(),
                 instance<BackupRepo>()
             )}}
+
+        bind<AccountDetailsScreenModel> {
+            provider {
+                AccountDetailsScreenModel(
+                    instance<JobDispatcher>(),
+                    instance<TokenProvider>(),
+                    instance<UserRepo>()
+                )
+            }
+        }
     }
 }

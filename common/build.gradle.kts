@@ -3,6 +3,7 @@ plugins {
     //kotlin("native.cocoapods")
     id("com.android.library")
     id("org.jetbrains.compose")
+    kotlin("plugin.serialization") version "1.9.10"
 }
 
 val voyagerVersion = findProperty("voyager.version") as String
@@ -66,6 +67,7 @@ kotlin {
                 implementation("media.kamel:kamel-image:$mediaKamelversion")
 
                 implementation("org.jetbrains.compose.ui:ui-tooling-preview:$composeVersion")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
             }
         }
         val androidMain by getting {

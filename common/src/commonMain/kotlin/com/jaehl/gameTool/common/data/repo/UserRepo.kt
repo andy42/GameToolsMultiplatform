@@ -4,7 +4,9 @@ import com.jaehl.gameTool.common.data.AuthLocalStore
 import com.jaehl.gameTool.common.data.model.User
 import com.jaehl.gameTool.common.data.service.UserService
 import com.auth0.jwt.JWT
+import com.auth0.jwt.exceptions.JWTDecodeException
 import com.jaehl.gameTool.common.data.AuthException
+import com.jaehl.gameTool.common.data.model.UserTokens
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.*
@@ -14,11 +16,14 @@ interface UserRepo {
     suspend fun register(userName : String, email : String, password : String)
     suspend fun getUserSelf() : User
     suspend fun getUsers() : List<User>
+    suspend fun changeUserRole(userId : Int, role: User.Role) : User
 }
 
 interface TokenProvider {
     suspend fun getBearerRefreshToken() : String
     suspend fun getBearerAccessToken() : String
+    suspend fun isRefreshTokenValid() : Boolean
+    suspend fun clearTokens()
 }
 
 class UserRepoImp(
@@ -39,35 +44,61 @@ class UserRepoImp(
     }
 
     override suspend fun getUserSelf(): User {
-        return userService.getSelf(bearerToken = authLocalStore.getBearerToken())
+        return userService.getSelf(bearerToken = getBearerAccessToken())
     }
 
     override suspend fun getUsers(): List<User> {
-        return userService.getUsers(bearerToken = authLocalStore.getBearerToken())
+        return userService.getUsers(bearerToken = getBearerAccessToken())
+    }
+
+    override suspend fun changeUserRole(userId: Int, role: User.Role): User {
+        return userService.changeUserRole(
+            bearerToken = getBearerAccessToken(),
+            userId = userId,
+            role = role
+        )
     }
 
     override suspend fun getBearerRefreshToken(): String {
         val userTokens = authLocalStore.getUserTokens()
-        val refreshToken = JWT.decode(userTokens.refreshToken)
-        if(refreshToken.expiresAt.before(Date())) throw AuthException()
+        if(!isTokenValid(userTokens.refreshToken)) throw AuthException()
         return "$BEARER_TOKEN ${userTokens.refreshToken}"
     }
 
     private val accessTokenMutex = Mutex()
 
+    private fun isTokenValid(token : String) : Boolean {
+        try {
+            return JWT.decode(token).expiresAt.after(Date())
+        }
+        catch (t: JWTDecodeException){
+            return false
+        }
+    }
+
     override suspend fun getBearerAccessToken(): String {
         accessTokenMutex.withLock {
             val userTokens = authLocalStore.getUserTokens()
-            val accessToken = JWT.decode(userTokens.accessToken)
-            if (accessToken.expiresAt.before(Date())) {
+            if (isTokenValid(userTokens.accessToken)) {
+                return "$BEARER_TOKEN ${userTokens.accessToken}"
+            } else {
                 val response = userService.refreshTokens(getBearerRefreshToken())
                 authLocalStore.saveToken(response)
                 return "$BEARER_TOKEN ${response.accessToken}"
-            } else {
-                return "$BEARER_TOKEN ${userTokens.accessToken}"
             }
         }
     }
+
+    override suspend fun isRefreshTokenValid() : Boolean{
+        val userTokens = authLocalStore.getUserTokens()
+        return isTokenValid(userTokens.refreshToken)
+    }
+
+    override suspend fun clearTokens() {
+        authLocalStore.saveToken(UserTokens("", ""))
+    }
+
+
 
     companion object {
         private const val BEARER_TOKEN = "Bearer"

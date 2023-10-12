@@ -5,6 +5,7 @@ val kodeinVersion = findProperty("kodein.version") as String
 plugins {
     kotlin("multiplatform")
     id("org.jetbrains.compose")
+    kotlin("plugin.serialization") version "1.9.10"
 }
 
 kotlin {
@@ -17,6 +18,7 @@ kotlin {
                 implementation(project(":apiClientRetrofit"))
 
                 implementation("org.kodein.di:kodein-di-framework-compose:$kodeinVersion")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
             }
         }
     }
@@ -24,7 +26,7 @@ kotlin {
 
 compose.desktop {
     application {
-        mainClass = "MainKt"
+        mainClass = "com.jaehl.gameTool.desktop.MainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
