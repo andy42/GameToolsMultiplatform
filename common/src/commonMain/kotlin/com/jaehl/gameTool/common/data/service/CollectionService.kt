@@ -21,4 +21,13 @@ interface CollectionService {
 
     suspend fun addUpdateItemAmount(collectionId: Int, groupId: Int, itemId : Int, amount : Int) : Collection.ItemAmount
     suspend fun deleteItemAmount(collectionId: Int, groupId: Int, itemId : Int)
+
+    suspend fun updateGroupPreferences(
+        collectionId: Int,
+        groupId: Int,
+        showBaseIngredients: Boolean,
+        collapseIngredients: Boolean,
+        costReduction: Float,
+        itemRecipePreferenceMap : Map<Int, Int?>
+    ): Collection.Group
 }

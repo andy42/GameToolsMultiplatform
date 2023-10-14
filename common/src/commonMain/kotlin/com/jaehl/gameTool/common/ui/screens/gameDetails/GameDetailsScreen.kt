@@ -2,10 +2,7 @@ package com.jaehl.gameTool.common.ui.screens.gameDetails
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -115,6 +112,8 @@ fun GameDetailsPage(
                         imageResource = gameModel.banner
                     )
                     Button(
+                        modifier = Modifier
+                            .width(200.dp),
                         onClick = {
                             onOpenItemsClick()
                         }
@@ -123,6 +122,8 @@ fun GameDetailsPage(
                     }
 
                     Button(
+                        modifier = Modifier
+                            .width(200.dp),
                         onClick = {
                             onOpenCollectionsClick()
                         }

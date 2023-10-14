@@ -38,11 +38,21 @@ class ItemRecipeNodeUtil(
         return ceil(itemAmount.amount/recipeItemAmount.amount.toDouble()).toInt()
     }
 
-    suspend fun buildTree(itemAmount : ItemAmount, parentNode : ItemRecipeNode? = null, recipeId : Int? = null) : ItemRecipeNode?{
-        return buildTree(itemAmountViewModel(itemAmount), parentNode, recipeId)
+    suspend fun buildTree(
+        itemAmount : ItemAmount,
+        parentNode : ItemRecipeNode? = null,
+        recipeId : Int? = null,
+        itemRecipePreferenceMap : Map<Int, Int?> = hashMapOf()
+    ) : ItemRecipeNode?{
+        return buildTree(itemAmountViewModel(itemAmount), parentNode, recipeId, itemRecipePreferenceMap)
     }
 
-    suspend fun buildTree(itemAmount : ItemAmountViewModel, parentNode : ItemRecipeNode? = null, recipeId : Int? = null) : ItemRecipeNode?{
+    suspend fun buildTree(
+        itemAmount : ItemAmountViewModel,
+        parentNode : ItemRecipeNode? = null,
+        recipeId : Int? = null,
+        itemRecipePreferenceMap : Map<Int, Int?> = hashMapOf()
+    ) : ItemRecipeNode?{
 //        if (itemAmount.item.categories.contains(ItemCategory.Resources) && recipeId == null){
 //            return ItemRecipeNode(
 //                recipe = null,
@@ -50,7 +60,6 @@ class ItemRecipeNodeUtil(
 //                itemAmount = itemAmount)
 //        }
         val recipes = recipeRepo.getRecipesForOutput(itemAmount.itemModel.id)
-
         if(recipes.isEmpty()){
             return ItemRecipeNode(
                 recipe = null,
@@ -58,10 +67,27 @@ class ItemRecipeNodeUtil(
                 itemAmount = itemAmount)
         }
 
-        val recipe = if(recipeId == null){
+        var selectedRecipeId = recipes.firstOrNull()?.id
+        if(recipeId != null){
+            selectedRecipeId = recipeId
+        }
+        else if(itemRecipePreferenceMap.containsKey(itemAmount.itemModel.id)){
+            selectedRecipeId = itemRecipePreferenceMap[itemAmount.itemModel.id]
+        }
+
+        if(selectedRecipeId == null){
+            return ItemRecipeNode(
+                recipe = null,
+                parentNode = WeakReference(parentNode),
+                itemAmount = itemAmount,
+                recipeCount = recipes.size
+            )
+        }
+
+        val recipe = if(selectedRecipeId == null){
             recipes.firstOrNull() ?: return null
         } else {
-            recipes.firstOrNull { it.id ==recipeId } ?: return null
+            recipes.firstOrNull { it.id ==selectedRecipeId } ?: return null
         }
 
         val recipeOutputAmount = getOutputItemAmountFor(itemAmount.itemModel.id, recipe)
@@ -72,7 +98,7 @@ class ItemRecipeNodeUtil(
             parentNode = WeakReference(parentNode),
             itemAmount = itemAmount,
             byProducts = getByProductFor(itemAmount, recipe, recipeMultiplier),
-            alternativeRecipe = (recipes.size > 1)
+            recipeCount = recipes.size
         )
 
         val inputs = recipe.input.mapNotNull { inputItemAmount ->
@@ -81,7 +107,8 @@ class ItemRecipeNodeUtil(
                     inputItemAmount,
                     recipeMultiplier
                 ),
-                node)
+                node,
+                itemRecipePreferenceMap = itemRecipePreferenceMap)
         }
 
         node.inputs = ArrayList(inputs)

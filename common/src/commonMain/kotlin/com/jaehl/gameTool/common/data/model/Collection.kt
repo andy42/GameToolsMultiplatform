@@ -12,7 +12,11 @@ data class Collection(
     data class Group(
         val id : Int,
         val name : String,
-        val itemAmounts : List<ItemAmount>
+        val itemAmounts : List<ItemAmount>,
+        val showBaseIngredients: Boolean,
+        val collapseIngredients: Boolean,
+        val costReduction: Float,
+        val itemRecipePreferenceMap: Map<Int, Int?>
     )
 
     data class ItemAmount(

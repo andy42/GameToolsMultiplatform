@@ -12,7 +12,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,7 +26,6 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.jaehl.gameTool.common.ui.componets.*
 import com.jaehl.gameTool.common.ui.screens.collectionEdit.CollectionEditScreen
 import com.jaehl.gameTool.common.ui.screens.itemDetails.ItemDetailsScreen
-import com.jaehl.gameTool.common.ui.screens.itemDetails.ItemDetailsScreenModel
 import com.jaehl.gameTool.common.ui.viewModel.ItemAmountViewModel
 
 class CollectionDetailsScreen(
@@ -73,22 +71,47 @@ class CollectionDetailsScreen(
                 )
             },
             onRecipeSettingDialogStateClick = screenModel::onRecipeSettingDialogStateClick,
+            onRecipeChangeClick = {itemId, groupId ->
+                screenModel.onRecipeChangeClick(itemId,groupId)
+            }
         )
 
-        if(screenModel.recipeSettingDialogState.value is CollectionDetailsScreenModel.RecipeSettingDialogState.Open ){
-            val recipeSettingDialogState = screenModel.recipeSettingDialogState.value as CollectionDetailsScreenModel.RecipeSettingDialogState.Open
+        val dialogState = screenModel.dialogState.value
+        if(dialogState is CollectionDetailsScreenModel.DialogState.RecipeSettingsDialog ){
+            //val dialogState = screenModel.dialogState.value as CollectionDetailsScreenModel.DialogState.RecipeSettingsDialog
             RecipeSettingsDialog(
                 title = "Recipe Settings",
-                recipeSettings = recipeSettingDialogState.settings,
+                recipeSettings = dialogState.settings,
                 onClose = {
-                    screenModel.onRecipeSettingDialogStateClose()
+                    screenModel.onCloseDialog()
                 },
                 onRecipeSettingsChange = {
                     screenModel.onRecipeSettingsChange(
-                        recipeSettingDialogState.groupId,
+                        dialogState.groupId,
                         it
                     )
                 }
+            )
+        }
+
+        if(dialogState is CollectionDetailsScreenModel.DialogState.RecipePickerDialog ){
+            RecipePickerDialog(
+                title = "Pick Recipe",
+                recipePickerData = dialogState.recipePickerData,
+                onClose = {
+                    screenModel.onCloseDialog()
+                },
+                onRecipeClick = { recipeId ->
+                    screenModel.onRecipePickerSelectedClick(dialogState, recipeId)
+                },
+                onRecipeConfirmClick = {
+                    screenModel.onGroupItemRecipeChanged(
+                        itemId = dialogState.itemId,
+                        groupId = dialogState.groupId,
+                        recipeId = dialogState.recipePickerData.selectedRecipeId
+                    )
+                }
+
             )
         }
     }
@@ -135,6 +158,7 @@ fun CollectionDetailsPage(
     onEditClick : () -> Unit,
     onItemClick : (clickedItemId : Int) -> Unit,
     onRecipeSettingDialogStateClick : (groupId : Int) -> Unit,
+    onRecipeChangeClick : (itemId : Int, groupId : Int) -> Unit
 ){
     val state : ScrollState = rememberScrollState()
 
@@ -166,13 +190,14 @@ fun CollectionDetailsPage(
                     .verticalScroll(state)
                     .padding(20.dp)
             ) {
-                groupsList.forEachIndexed { index, groupsViewModel ->
+                groupsList.sortedBy { it.id }.forEachIndexed { index, groupsViewModel ->
                     Section(
                         modifier = Modifier
                             .padding(bottom = 20.dp),
                         group = groupsViewModel,
                         onItemClick = onItemClick,
-                        onRecipeSettingDialogStateClick = onRecipeSettingDialogStateClick
+                        onRecipeSettingDialogStateClick = onRecipeSettingDialogStateClick,
+                        onRecipeChangeClick = onRecipeChangeClick
                     )
                 }
             }
@@ -191,7 +216,8 @@ fun Section(
     modifier: Modifier,
     group : CollectionDetailsScreenModel.GroupsViewModel,
     onItemClick : (itemId : Int) -> Unit,
-    onRecipeSettingDialogStateClick : (groupId : Int) -> Unit
+    onRecipeSettingDialogStateClick : (groupId : Int) -> Unit,
+    onRecipeChangeClick : (itemId : Int, groupId : Int) -> Unit
 ){
     Column(
         modifier = modifier
@@ -227,29 +253,43 @@ fun Section(
 
         }
         FlowRow {
-            group.itemList.forEach{ item ->
-                Item(item, onItemClick)
+            group.itemList.forEach{ itemViewModel ->
+                Item(itemViewModel = itemViewModel, groupId = group.id, onItemClick, onRecipeChangeClick)
             }
         }
         RecipeNodes(
             Modifier.padding(top = 10.dp, bottom = 10.dp),
             group.recipeSettings.collapseIngredients,
             if(group.recipeSettings.showBaseIngredients) group.baseNodes else group.nodes,
-            onItemClick = onItemClick
+            onItemClick = onItemClick,
+            onRecipeChange = { itemId ->
+                onRecipeChangeClick(itemId, group.id)
+            }
         )
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun Item(itemViewModel : ItemAmountViewModel, onItemClick : (itemId : Int) -> Unit){
+fun Item(
+    itemViewModel : ItemAmountViewModel,
+    groupId: Int,
+    onItemClick : (itemId : Int) -> Unit,
+    onItemRecipeChangeClick : (itemId : Int, groupId : Int) -> Unit,
+){
     Column(
         modifier = Modifier
             .padding(end = 10.dp, top = 10.dp)
             .clip(RoundedCornerShape(10.dp))
             .background(Color.White)
-            .clickable {
-                onItemClick(itemViewModel.itemModel.id)
-            }
+            .combinedClickable (
+                onClick = {
+                    onItemClick(itemViewModel.itemModel.id)
+                },
+                onLongClick = {
+                    onItemRecipeChangeClick(itemViewModel.itemModel.id, groupId)
+                }
+            )
             .padding(10.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {

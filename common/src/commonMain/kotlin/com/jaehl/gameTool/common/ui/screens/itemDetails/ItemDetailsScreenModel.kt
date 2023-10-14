@@ -14,8 +14,10 @@ import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.data.repo.UserRepo
 import com.jaehl.gameTool.common.ui.screens.launchIo
 import com.jaehl.gameTool.common.extensions.postSwap
+import com.jaehl.gameTool.common.extensions.toItemAmountViewModel
 import com.jaehl.gameTool.common.extensions.toItemModel
 import com.jaehl.gameTool.common.ui.componets.ImageResource
+import com.jaehl.gameTool.common.ui.componets.RecipePickerData
 import com.jaehl.gameTool.common.ui.screens.runWithCatch
 import com.jaehl.gameTool.common.ui.util.ItemNotFoundException
 import com.jaehl.gameTool.common.ui.util.ItemRecipeInverter
@@ -39,13 +41,17 @@ class ItemDetailsScreenModel(
 
     var showEditItems = mutableStateOf(false)
 
-    var recipeSettingDialogState = mutableStateOf<RecipeSettingDialogState>(RecipeSettingDialogState.Closed)
+    var dialogState = mutableStateOf<DialogState>(DialogState.Closed)
 
     var pageLoading = mutableStateOf<Boolean>(false)
     var itemInfo = mutableStateOf(ItemInfoModel())
 
+    private val itemRecipePreferenceMap =  hashMapOf<Int, Int?>()
+
     private val recipeMap = hashMapOf<Int, RecipeViewModel>()
     var recipeModels = mutableStateListOf<RecipeViewModel>()
+
+    private val recipePreferencesMap = hashMapOf<Int, RecipeSettings>()
 
     fun update(config : Config, ifItemChanged : Boolean = false) {
         if(ifItemChanged && this.config.itemId == config.itemId){
@@ -53,6 +59,8 @@ class ItemDetailsScreenModel(
         }
 
         this.config = config
+        itemRecipePreferenceMap.clear()
+        recipePreferencesMap.clear()
         dataRefresh()
     }
 
@@ -78,17 +86,23 @@ class ItemDetailsScreenModel(
             recipeMap.clear()
             recipeRepo.getRecipesForOutput(config.itemId).mapNotNull { recipe ->
                 val node = itemRecipeNodeUtil.buildTree(
-                    ItemAmountViewModel(
+                    itemAmount= ItemAmountViewModel(
                         itemModel = item.toItemModel(appConfig, tokenProvider),
                         amount = recipe.output.first { it.itemId == config.itemId}.amount
                     ),
-                    recipeId = recipe.id
+                    parentNode = null,
+                    recipeId = recipe.id,
+                    itemRecipePreferenceMap = itemRecipePreferenceMap
                 ) ?: return@mapNotNull null
 
                 val baseIngredients = itemRecipeInverter.invertItemRecipes(listOf(node))
                 RecipeViewModel(
                     id = recipe.id,
                     node = node,
+                    recipeSettings = recipePreferencesMap[recipe.id] ?: RecipeSettings(
+                        showBaseIngredients = false,
+                        collapseIngredients = true
+                    ),
                     baseIngredients = baseIngredients,
                     craftedAt = node.recipe?.craftedAt?.mapNotNull {
                         itemRepo.getItem(it)?.toItemModel(appConfig, tokenProvider)
@@ -115,14 +129,14 @@ class ItemDetailsScreenModel(
 
     fun onRecipeSettingClick(recipeId : Int) = runWithCatch(::onException ) {
         val recipe = recipeMap[recipeId] ?: throw Exception("recipeId not found : $recipeId")
-        recipeSettingDialogState.value = RecipeSettingDialogState.Open(
+        dialogState.value = DialogState.RecipeSettingDialog(
             recipeId = recipeId,
             recipeSettings = recipe.recipeSettings
         )
     }
 
-    fun onRecipeSettingDialogStateClose(){
-        recipeSettingDialogState.value = RecipeSettingDialogState.Closed
+    fun onCloseDialog(){
+        dialogState.value = DialogState.Closed
     }
 
     fun onRecipeSettingsChange(recipeId : Int, recipeSettings : RecipeSettings) = launchIo(jobDispatcher, ::onException) {
@@ -131,8 +145,9 @@ class ItemDetailsScreenModel(
         ) ?: throw Exception("recipeId not found : $recipeId")
 
         recipeMap[recipeId] = recipe
+        recipePreferencesMap[recipeId] = recipeSettings
 
-        recipeSettingDialogState.value = RecipeSettingDialogState.Open(
+        dialogState.value = DialogState.RecipeSettingDialog(
             recipeId = recipeId,
             recipeSettings = recipe.recipeSettings
         )
@@ -140,12 +155,59 @@ class ItemDetailsScreenModel(
 
     }
 
-    sealed class RecipeSettingDialogState{
-        data object Closed : RecipeSettingDialogState()
-        data class Open(
+    private suspend fun getRecipeIdForItem(itemId : Int, itemRecipePreferenceMap: Map<Int, Int?>) : Int? {
+        if(itemRecipePreferenceMap.containsKey(itemId)) {
+            return itemRecipePreferenceMap[itemId]
+        } else {
+            return recipeRepo.getRecipesForOutput(itemId).firstOrNull()?.id
+        }
+    }
+
+    fun onRecipeChangeClick(itemId : Int, recipeId : Int) = launchIo(jobDispatcher, ::onException){
+        val recipePickerData = RecipePickerData(
+            selectedRecipeId = getRecipeIdForItem(itemId, itemRecipePreferenceMap),
+            recipes = recipeRepo.getRecipesForOutput(itemId)
+                .map { recipe ->
+                    RecipePickerData.RecipeViewModel(
+                        id = recipe.id,
+                        input = recipe.input.map {
+                            it.toItemAmountViewModel(itemRepo, appConfig, tokenProvider)
+                        },
+                        output = recipe.output.map {
+                            it.toItemAmountViewModel(itemRepo, appConfig, tokenProvider)
+                        }
+                    )
+                }
+        )
+        dialogState.value = DialogState.RecipePickerDialog(
+            itemId = itemId,
+            recipePickerData = recipePickerData
+        )
+    }
+
+    fun onRecipePickerSelectedClick(dialogState : DialogState.RecipePickerDialog, recipeId : Int?) {
+        this.dialogState.value = dialogState.copy(
+            recipePickerData = dialogState.recipePickerData.copy(
+                selectedRecipeId = recipeId
+            )
+        )
+    }
+
+    fun onItemRecipeChanged(itemId : Int, recipeId : Int?) = launchIo(jobDispatcher, ::onException){
+        itemRecipePreferenceMap[itemId] = recipeId
+        dataRefresh()
+    }
+
+    sealed class DialogState{
+        data object Closed : DialogState()
+        data class RecipeSettingDialog(
             val recipeId : Int,
             val recipeSettings : RecipeSettings
-        ): RecipeSettingDialogState()
+        ): DialogState()
+        data class RecipePickerDialog(
+            val itemId : Int,
+            val recipePickerData : RecipePickerData
+        ) : DialogState()
     }
 
 }

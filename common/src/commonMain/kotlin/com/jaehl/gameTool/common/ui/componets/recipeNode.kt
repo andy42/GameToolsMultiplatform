@@ -35,7 +35,6 @@ fun RecipeNodes(
     collapseList : Boolean,
     recipeNodes : List<ItemRecipeNode>,
     depth : Int = 0,
-    //background : Color = Color.White,
     onItemClick : ((itemId : Int) -> Unit)? = null,
     onRecipeChange : ((itemId : Int) -> Unit)? = null
 ) {
@@ -49,7 +48,6 @@ fun RecipeNodes(
                 recipeNode = itemRecipeNode,
                 depth = depth,
                 sectionIndex = index,
-                //background = backgroundColor(null, index),
                 onItemClick = onItemClick,
                 onRecipeChange = onRecipeChange
             )
@@ -64,7 +62,6 @@ fun RecipeNode(
     recipeNode : ItemRecipeNode,
     depth : Int = 0,
     sectionIndex : Int? = null,
-    //background : Color? = null,
     onItemClick : ((itemId : Int) -> Unit)? = null,
     onRecipeChange : ((itemId : Int) -> Unit)? = null
 ) {
@@ -73,7 +70,7 @@ fun RecipeNode(
         RecipeItemAmount(
             Modifier,
             recipeNode.itemAmount,
-            recipeNode.alternativeRecipe,
+            recipeNode.recipeCount,
             depth,
             backgroundColor(sectionIndex ?: -1),
             onItemClick,
@@ -85,7 +82,7 @@ fun RecipeNode(
                 RecipeItemAmount(
                     Modifier,
                     itemAmount,
-                    false,
+                    0,
                     depth + 1,
                     byProductsBackgroundColor(sectionIndex ?: -1),
                     onItemClick,
@@ -113,7 +110,7 @@ fun RecipeNode(
 fun RecipeItemAmount(
     modifier : Modifier,
     itemAmount : ItemAmountViewModel,
-    alternativeRecipe : Boolean = false,
+    recipeCount : Int = 0,
     depth : Int = 0,
     background : Color,
     onItemClick : ((itemId : Int) -> Unit)? = null,
@@ -164,7 +161,7 @@ fun RecipeItemAmount(
                 .weight(1f)
                 .padding(start = 10.dp)
         )
-        if(alternativeRecipe) {
+        if(recipeCount > 0) {
             IconButton(content = {
                 Icon(Icons.Outlined.Edit, "Change recipe", tint = MaterialTheme.colors.onSurface)
             }, onClick = {

@@ -22,6 +22,15 @@ interface CollectionRepo {
 
     suspend fun addUpdateItemAmount(collectionId : Int, groupId : Int, itemId : Int, amount : Int) : Collection.ItemAmount
     suspend fun deleteItemAmount(collectionId : Int, groupId : Int, itemId : Int)
+
+    suspend fun updateGroupPreferences(
+        collectionId : Int,
+        groupId : Int,
+        showBaseIngredients : Boolean,
+        collapseIngredients : Boolean,
+        costReduction : Float,
+        itemRecipePreferenceMap : Map<Int, Int?>
+    ) : Collection.Group
 }
 
 class CollectionRepoImp(
@@ -40,9 +49,6 @@ class CollectionRepoImp(
 
         collectionMap.clear()
         val collections = collectionService.getCollections(gameId)
-        collections.forEach { collection ->
-            collectionMap[collection.id] = collection
-        }
 
        emit(collections)
     }
@@ -127,5 +133,32 @@ class CollectionRepoImp(
 
     override suspend fun deleteItemAmount(collectionId : Int, groupId: Int, itemId: Int) {
         return collectionService.deleteItemAmount(collectionId, groupId, itemId)
+    }
+
+    override suspend fun updateGroupPreferences(
+        collectionId: Int,
+        groupId: Int,
+        showBaseIngredients: Boolean,
+        collapseIngredients: Boolean,
+        costReduction: Float,
+        itemRecipePreferenceMap : Map<Int, Int?>
+    ): Collection.Group {
+        val group = collectionService.updateGroupPreferences(
+            collectionId = collectionId,
+            groupId = groupId,
+            showBaseIngredients = showBaseIngredients,
+            collapseIngredients = collapseIngredients,
+            costReduction = costReduction,
+            itemRecipePreferenceMap = itemRecipePreferenceMap,
+        )
+        val collection = collectionMap[collectionId] ?: return group
+        val groups = collection.groups.toMutableList()
+        val groupIndex = groups.indexOfFirst { it.id ==  groupId}
+        groups[groupIndex] = group
+
+        collectionMap[collectionId] = collection.copy(
+            groups = groups
+        )
+        return group
     }
 }
