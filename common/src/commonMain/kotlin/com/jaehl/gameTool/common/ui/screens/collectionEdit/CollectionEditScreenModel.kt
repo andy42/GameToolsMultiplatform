@@ -65,7 +65,7 @@ class CollectionEditScreenModel (
             jobDispatcher,
             onException = {}
         ) {
-            itemRepo.getItems(config.gameId).collect { itemList ->
+            itemRepo.getItemsFlow(config.gameId).collect { itemList ->
                 itemModels.postSwap(
                     itemList.map { item ->
                         item.toItemModel(appConfig, tokenProvider)

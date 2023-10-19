@@ -40,7 +40,7 @@ fun main() = application {
             }}
             import(DataModule.create())
             import(ScreenModule.create())
-            import(ApiClientRetrofitModule.create())
+            import(ApiClientRetrofitModule.create(trustAllCerts = true))
         }
         App(di)
     }

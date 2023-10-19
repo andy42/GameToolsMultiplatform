@@ -44,6 +44,7 @@ class HomeScreen : Screen {
             games = screenModel.games,
             showAdminTools = screenModel.showAdminTools.value,
             showEditGames = screenModel.showEditGames.value,
+            userUnverified = screenModel.userUnverified.value,
             onAccountClick = {
                 navigator.push(AccountDetailsScreen())
             },
@@ -77,6 +78,7 @@ fun HomePage(
     games: List<GameModel>,
     showAdminTools : Boolean,
     showEditGames : Boolean,
+    userUnverified : Boolean,
     onAccountClick : () -> Unit,
     onUsersClick : () -> Unit,
     onCreateGameClick : () -> Unit,
@@ -118,21 +120,75 @@ fun HomePage(
                     onBackupClick = onBackupClick
                 )
             }
-            GamesCard(
+            if(userUnverified) {
+                UserMessage(
+                    modifier = Modifier
+                        .width(400.dp)
+                        .padding(20.dp)
+                        .align(Alignment.CenterHorizontally),
+                    title = "User warning",
+                    message = "Your account is unverified, please contact an admin to verified your account."
+                )
+            }
+            else {
+                GamesCard(
+                    modifier = Modifier
+                        .width(400.dp)
+                        .padding(top = 20.dp)
+                        .align(Alignment.CenterHorizontally),
+                    games = games,
+                    showEditGames = showEditGames,
+                    onCreateGameClick = onCreateGameClick,
+                    onGameClick = { gameId ->
+                        onGameClick(gameId)
+                    },
+                    onGameEditClick = { gameId ->
+                        onGameEditClick(gameId)
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun UserMessage(
+    modifier: Modifier,
+    title : String,
+    message : String
+) {
+    Card(
+        modifier = modifier
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            Row(
                 modifier = Modifier
-                    .width(400.dp)
-                    .padding(top = 20.dp)
-                    .align(Alignment.CenterHorizontally),
-                games = games,
-                showEditGames = showEditGames,
-                onCreateGameClick = onCreateGameClick,
-                onGameClick = { gameId ->
-                    onGameClick(gameId)
-                },
-                onGameEditClick = { gameId ->
-                    onGameEditClick(gameId)
-                }
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colors.secondary),
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    modifier = Modifier
+                        .padding(start = 10.dp, top = 12.dp, bottom = 12.dp),
+                    color = MaterialTheme.colors.onSecondary,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    text = title
+                )
+            }
+            Text(
+                modifier = Modifier
+                    .padding(start = 10.dp, top = 12.dp, bottom = 12.dp),
+                color = MaterialTheme.colors.onSurface,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                text = message
             )
+
         }
     }
 }

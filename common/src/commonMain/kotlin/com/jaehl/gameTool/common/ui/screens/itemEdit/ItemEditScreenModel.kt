@@ -10,12 +10,12 @@ import com.jaehl.gameTool.common.data.model.ImageType
 import com.jaehl.gameTool.common.data.model.Item
 import com.jaehl.gameTool.common.data.model.ItemAmount
 import com.jaehl.gameTool.common.data.model.ItemCategory
+import com.jaehl.gameTool.common.data.repo.GameRepo
 import com.jaehl.gameTool.common.data.repo.ItemRepo
 import com.jaehl.gameTool.common.data.repo.RecipeRepo
 import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.data.service.ImageService
 import com.jaehl.gameTool.common.extensions.post
-import com.jaehl.gameTool.common.extensions.postSwap
 import com.jaehl.gameTool.common.extensions.toItemAmountViewModel
 import com.jaehl.gameTool.common.extensions.toItemModel
 import com.jaehl.gameTool.common.ui.componets.ImageResource
@@ -32,6 +32,7 @@ class ItemEditScreenModel(
     val jobDispatcher : JobDispatcher,
     val itemRepo: ItemRepo,
     val recipeRepo: RecipeRepo,
+    val gameRepo: GameRepo,
     val imageService : ImageService,
     val appConfig : AppConfig,
     val tokenProvider: TokenProvider,
@@ -46,16 +47,17 @@ class ItemEditScreenModel(
     val viewModel = mutableStateOf(ViewModel())
     private var item : Item? = null
 
-    val showExitSaveDialog = mutableStateOf(false)
     val closePageEvent = mutableStateOf(false)
 
     private var itemCategoriesFullList = listOf<ItemCategory>()
-    val itemCategories = mutableStateListOf<ItemCategory>()
-    val items = mutableStateListOf<ItemModel>()
+
+    private var items = listOf <ItemModel>()
 
     private val recipeMap : HashMap<Int, RecipeViewModel> = hashMapOf()
     private var recipeIndex = 0
     private var unsavedChanges = false
+
+    val dialogConfig = mutableStateOf<DialogConfig>(DialogConfig.Closed)
 
     init {
         itemEditValidator.listener = this
@@ -72,24 +74,13 @@ class ItemEditScreenModel(
         }
 
         launchIo(jobDispatcher, onException = ::onException) {
-                itemRepo.getItemCategories(config.gameId).collect {
-                    itemCategoriesFullList = it
-                    updateItemCategories()
-                }
+            itemCategoriesFullList = gameRepo.getGame(config.gameId).itemCategories
         }
         launchIo(jobDispatcher, onException = ::onException) {
-            itemRepo.getItems(config.gameId).collect {
-                items.postSwap(it.map { it.toItemModel(appConfig, tokenProvider) })
+            itemRepo.getItemsFlow(config.gameId).collect {
+                items = it.map { it.toItemModel(appConfig, tokenProvider) }
             }
         }
-    }
-
-    suspend fun updateItemCategories(){
-        itemCategories.postSwap(
-            itemCategoriesFullList.filter {
-                !viewModel.value.itemCategories.contains(it)
-            }
-        )
     }
 
     suspend fun loadItem(itemId : Int) {
@@ -135,7 +126,6 @@ class ItemEditScreenModel(
             )
         )
 
-        updateItemCategories()
         this.pageLoading.value = false
     }
 
@@ -152,10 +142,14 @@ class ItemEditScreenModel(
 
     fun onBackClick() {
         if(unsavedChanges){
-            showExitSaveDialog.value = true
+            dialogConfig.value = DialogConfig.SaveWarningDialog
         } else {
             closePageEvent.value = true
         }
+    }
+
+    fun closeDialog() {
+        dialogConfig.value = DialogConfig.Closed
     }
 
     private fun onException(t: Throwable){
@@ -191,9 +185,54 @@ class ItemEditScreenModel(
                 viewModel.value.copy(
                     itemCategories = itemCategories
                 )
-            updateItemCategories()
+            //updateItemCategories()
         }
         unsavedChanges = true
+    }
+
+    fun openDialogItemCategoryPicker() = launchIo(jobDispatcher, ::onException) {
+        dialogConfig.value = DialogConfig.DialogItemCategoryPicker(
+            itemCategories = (itemCategoriesFullList)
+                .filter {
+                    !viewModel.value.itemCategories.contains(it)
+                }
+        )
+    }
+
+    fun onDialogItemCategoryPickerSearchTextChange(searchText : String) {
+        val dialogItemCategoryPicker = dialogConfig.value as? DialogConfig.DialogItemCategoryPicker ?: return
+        dialogConfig.value = dialogItemCategoryPicker.copy(
+            searchText = searchText
+        )
+    }
+
+    fun openItemRecipePickerDialog(recipeId : Int, isInput : Boolean, itemId : Int?){
+        dialogConfig.value = DialogConfig.ItemPickerDialog(
+            items = items,
+            itemPickerType = ItemPickerType.ItemRecipePicker(
+                recipeId = recipeId,
+                isInput = isInput,
+                itemId = itemId
+            ),
+            searchText = ""
+        )
+    }
+
+    fun openItemCraftedAtPickerDialog(recipeId : Int){
+        dialogConfig.value = DialogConfig.ItemPickerDialog(
+            items = items,
+            itemPickerType = ItemPickerType.ItemCraftedAtPicker(
+                recipeId = recipeId
+            ),
+            searchText = ""
+        )
+    }
+
+    fun onItemPickerDialogSearchTextChange(searchText : String){
+        val itemPickerDialog = dialogConfig.value as? DialogConfig.ItemPickerDialog ?: return
+        dialogConfig.value = itemPickerDialog.copy(
+            searchText = searchText
+        )
     }
 
     private fun updateRecipeFromMap(){
@@ -439,8 +478,32 @@ class ItemEditScreenModel(
                 viewModel.value.copy(
                     itemCategories = itemCategories
                 )
-            updateItemCategories()
         }
+    }
+
+    sealed class ItemPickerType {
+        data class ItemRecipePicker(
+            val recipeId: Int,
+            val isInput : Boolean,
+            val itemId : Int?
+        ) : ItemPickerType()
+        data class ItemCraftedAtPicker(
+            val recipeId: Int
+        ) : ItemPickerType()
+    }
+
+    sealed class DialogConfig {
+        data object Closed : DialogConfig()
+        data object SaveWarningDialog : DialogConfig()
+        data class DialogItemCategoryPicker(
+            val itemCategories : List<ItemCategory>,
+            val searchText : String = ""
+        ) : DialogConfig()
+        data class ItemPickerDialog(
+            val items : List<ItemModel>,
+            val itemPickerType : ItemPickerType,
+            val searchText : String = ""
+        ): DialogConfig()
     }
 
     data class Config(

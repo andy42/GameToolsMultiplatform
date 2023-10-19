@@ -21,17 +21,6 @@ import com.jaehl.gameTool.common.ui.componets.*
 import com.jaehl.gameTool.common.ui.screens.itemEdit.componets.ItemCategoryChip
 import com.jaehl.gameTool.common.ui.screens.itemEdit.componets.RecipeCard
 
-sealed class ItemPickerType {
-    data class ItemRecipePicker(
-        val recipeId: Int,
-        val isInput : Boolean,
-        val itemId : Int?
-    ) : ItemPickerType()
-    data object ItemPickerClosed : ItemPickerType()
-    data class ItemCraftedAtPicker(
-        val recipeId: Int
-    ) : ItemPickerType()
-}
 
 class ItemEditScreen(
     private val gameId : Int,
@@ -42,10 +31,6 @@ class ItemEditScreen(
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val screenModel = rememberScreenModel<ItemEditScreenModel>()
-
-        var isItemCategoryPickOpen = remember { mutableStateOf(false) }
-        var itemPickerType = remember { mutableStateOf<ItemPickerType>(ItemPickerType.ItemPickerClosed) }
-        var itemPickerSearchText = remember { mutableStateOf("") }
 
         LaunchedEffect(itemId) {
             screenModel.setup(
@@ -75,7 +60,7 @@ class ItemEditScreen(
                 screenModel.save()
             },
             onOpenItemCategoriesPicker = {
-                isItemCategoryPickOpen.value = true
+                screenModel.openDialogItemCategoryPicker()
             },
             onRecipeAddClick = {
                 screenModel.onRecipeAdd()
@@ -88,7 +73,7 @@ class ItemEditScreen(
             },
 
             openItemPicker = { recipeId, isInput, itemId ->
-                itemPickerType.value = ItemPickerType.ItemRecipePicker(
+                screenModel.openItemRecipePickerDialog(
                     recipeId = recipeId,
                     isInput = isInput,
                     itemId = itemId
@@ -101,7 +86,7 @@ class ItemEditScreen(
                 screenModel.onDeleteItemAmount(recipeId, isInput,itemId)
             },
             onAddRecipeCraftedAtClick = { recipeId ->
-                itemPickerType.value = ItemPickerType.ItemCraftedAtPicker(
+                screenModel.openItemCraftedAtPickerDialog(
                     recipeId = recipeId
                 )
             },
@@ -113,47 +98,53 @@ class ItemEditScreen(
             }
         )
 
-        if(screenModel.showExitSaveDialog.value){
+        val dialogConfig = screenModel.dialogConfig.value
+
+        if(dialogConfig is ItemEditScreenModel.DialogConfig.SaveWarningDialog){
             WarningDialog(
                 title = "Unsaved changes",
                 message = "You have unsaved changes, do you want to save changes?",
                 positiveText = "Save",
                 negativeText = "Discard",
                 onPositiveClick = {
-                    screenModel.showExitSaveDialog.value = false
+                    screenModel.closeDialog()
                     screenModel.save()
                 },
                 onNegativeClick = {
-                    screenModel.showExitSaveDialog.value = false
+                    screenModel.closeDialog()
                     navigator.pop()
                 }
             )
         }
 
-        if(isItemCategoryPickOpen.value){
+        if(dialogConfig is ItemEditScreenModel.DialogConfig.DialogItemCategoryPicker){
             ItemCategoryPickDialog(
                 title = "Category",
-                categoryList = screenModel.itemCategories,
+                categoryList = dialogConfig.itemCategories,
                 onCategoryClick = { itemCategory ->
                     screenModel.onItemCategoryAdd(itemCategory)
-                    isItemCategoryPickOpen.value = false
+                    screenModel.closeDialog()
+                },
+                searchText = dialogConfig.searchText,
+                onSearchTextChange = {
+                     screenModel.onDialogItemCategoryPickerSearchTextChange(it)
                 },
                 onClose = {
-                    isItemCategoryPickOpen.value = false
+                    screenModel.closeDialog()
                 }
             )
         }
-        if(itemPickerType.value !is ItemPickerType.ItemPickerClosed){
+        if(dialogConfig is ItemEditScreenModel.DialogConfig.ItemPickerDialog){
             ItemPickDialog(
                 title = "",
-                itemList = screenModel.items.filter {
-                    it.name.contains(itemPickerSearchText.value, true)
+                itemList = dialogConfig.items.filter {
+                    it.name.contains(dialogConfig.searchText, true)
                 },
                 isClearable = false,
                 onItemClick = { itemId : Int? ->
                     if(itemId == null) return@ItemPickDialog
-                    when (val pickerType = itemPickerType.value) {
-                        is ItemPickerType.ItemRecipePicker -> {
+                    when (val pickerType = dialogConfig.itemPickerType) {
+                        is ItemEditScreenModel.ItemPickerType.ItemRecipePicker -> {
                             if(pickerType.itemId == null){
                                 screenModel.onAddItemAmount(
                                     recipeId = pickerType.recipeId,
@@ -167,22 +158,18 @@ class ItemEditScreen(
                                     newItemId = itemId)
                             }
                         }
-                        is ItemPickerType.ItemCraftedAtPicker -> {
+                        is ItemEditScreenModel.ItemPickerType.ItemCraftedAtPicker -> {
                             screenModel.onAddCreatedAtItem(pickerType.recipeId, itemId)
                         }
-                        else -> {}
                     }
-
-                    itemPickerType.value = ItemPickerType.ItemPickerClosed
-                    itemPickerSearchText.value = ""
+                    screenModel.closeDialog()
                 },
-                searchText = itemPickerSearchText.value,
-                onSearchChange = { text ->
-                    itemPickerSearchText.value = text
+                searchText = dialogConfig.searchText,
+                onSearchChange = {
+                    screenModel.onItemPickerDialogSearchTextChange(it)
                 },
                 onClose = {
-                    itemPickerType.value = ItemPickerType.ItemPickerClosed
-                    itemPickerSearchText.value = ""
+                    screenModel.closeDialog()
                 }
 
             )
