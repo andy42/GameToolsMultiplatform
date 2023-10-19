@@ -9,8 +9,8 @@ import com.jaehl.gameTool.common.ui.componets.TextFieldValue
 import com.jaehl.gameTool.common.ui.screens.launchIo
 
 data class LoginViewModel(
-    val userName : TextFieldValue = TextFieldValue(value = "admin"),
-    val password : TextFieldValue = TextFieldValue(value = "foobar")
+    val userName : TextFieldValue = TextFieldValue(value = ""),
+    val password : TextFieldValue = TextFieldValue(value = "")
 )
 
 data class RegisterViewModel(
