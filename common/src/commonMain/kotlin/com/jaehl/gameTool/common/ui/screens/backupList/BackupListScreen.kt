@@ -50,7 +50,8 @@ class BackupListScreen(
             }
         )
 
-        if(screenModel.dialogData.value is BackupListScreenModel.DialogData.ApplyDialog){
+        val dialogData = screenModel.dialogData.value
+        if(dialogData is BackupListScreenModel.DialogData.ApplyDialog){
             WarningDialog(
                 title = "Apply Backup",
                 message = "are you sure you want to remove all data and apply this backup?",
@@ -58,7 +59,7 @@ class BackupListScreen(
                 negativeText = "No",
                 onPositiveClick = {
                     screenModel.closeDialog()
-                    screenModel.applyBackup((screenModel.dialogData.value as BackupListScreenModel.DialogData.ApplyDialog).backupId)
+                    screenModel.applyBackup(dialogData.backupId)
                 },
                 onNegativeClick = {
                     screenModel.closeDialog()

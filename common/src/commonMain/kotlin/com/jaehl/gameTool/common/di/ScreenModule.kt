@@ -67,6 +67,7 @@ object ScreenModule {
         bind<GameEditScreenModel> { provider {
             GameEditScreenModel(
                 instance<JobDispatcher>(),
+                instance<ItemRepo>(),
                 instance<GameRepo>(),
                 instance<ImageService>(),
                 instance<AppConfig>(),
@@ -80,7 +81,8 @@ object ScreenModule {
                 instance<TokenProvider>(),
                 appConfig = instance<AppConfig>(),
                 itemRepo = instance<ItemRepo>(),
-                userRepo = instance<UserRepo>()
+                userRepo = instance<UserRepo>(),
+                gameRepo = instance<GameRepo>()
             )}}
 
         bind<ItemDetailsScreenModel> { provider {
@@ -101,6 +103,7 @@ object ScreenModule {
                 instance<JobDispatcher>(),
                 itemRepo = instance<ItemRepo>(),
                 recipeRepo = instance<RecipeRepo>(),
+                gameRepo = instance<GameRepo>(),
                 imageService = instance<ImageService>(),
                 instance<AppConfig>(),
                 instance<TokenProvider>(),

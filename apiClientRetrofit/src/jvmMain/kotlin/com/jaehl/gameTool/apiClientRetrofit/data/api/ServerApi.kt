@@ -256,6 +256,14 @@ interface ServerApi {
         @Path("itemId") itemId : Int,
     )
 
+    @POST("collections/{collectionId}/{groupId}/preferences")
+    suspend fun updateGroupPreferences(
+        @Header("Authorization") bearerToken : String,
+        @Path("collectionId") collectionId : Int,
+        @Path("groupId") groupId : Int,
+        @Body data : UpdateGroupPreferencesRequest
+    ) : Response<Collection.Group>
+
     @GET("admin/backups")
     suspend fun getBackups(
         @Header("Authorization") bearerToken : String,

@@ -7,8 +7,8 @@ interface GameRepo {
     suspend fun getGames() : List<Game>
     suspend fun getGame(id : Int) : Game
 
-    suspend fun createGame(name : String, icon : Int, banner : Int) : Game
-    suspend fun updateGame(id : Int, name : String, icon : Int, banner : Int) : Game
+    suspend fun createGame(name : String, itemCategories : List<Int>, icon : Int, banner : Int) : Game
+    suspend fun updateGame(id : Int, name : String, itemCategories : List<Int>, icon : Int, banner : Int) : Game
     suspend fun delete(id : Int)
 }
 
@@ -24,12 +24,12 @@ class GameRepoImp(
         return gameService.getGame(id)
     }
 
-    override suspend fun createGame(name: String, icon : Int, banner : Int): Game {
-        return gameService.createGame(name, icon, banner)
+    override suspend fun createGame(name: String, itemCategories : List<Int>, icon : Int, banner : Int): Game {
+        return gameService.createGame(name, itemCategories, icon, banner)
     }
 
-    override suspend fun updateGame(id: Int, name: String, icon : Int, banner : Int): Game {
-        return gameService.updateGame(id, name, icon, banner)
+    override suspend fun updateGame(id: Int, name: String, itemCategories : List<Int>, icon : Int, banner : Int): Game {
+        return gameService.updateGame(id, name, itemCategories, icon, banner)
     }
 
     override suspend fun delete(id: Int) {

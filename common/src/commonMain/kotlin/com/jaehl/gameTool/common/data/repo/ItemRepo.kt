@@ -8,7 +8,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
 interface ItemRepo {
-    suspend fun getItems(gameId : Int) : Flow<List<Item>>
+    suspend fun getItems(gameId : Int) : List<Item>
+    suspend fun getItemsFlow(gameId : Int) : Flow<List<Item>>
     suspend fun getItemFlow(id : Int) : Flow<Item>
     suspend fun getItem(id : Int) : Item?
 
@@ -29,7 +30,8 @@ interface ItemRepo {
         image : Int
     ) : Item
 
-    suspend fun getItemCategories(gameId : Int) : Flow<List<ItemCategory>>
+    suspend fun getItemCategories(gameId : Int?) : Flow<List<ItemCategory>>
+    suspend fun addItemCategory(name : String) : ItemCategory
 }
 
 //TODO add local caching
@@ -41,13 +43,17 @@ class ItemRepoImp(
     private val itemsMap = hashMapOf<Int, Item>()
     private val itemCategoriesMap = hashMapOf<Int, ItemCategory>()
 
-    override suspend fun getItems(gameId : Int) = flow {
+    override suspend fun getItemsFlow(gameId : Int) = flow {
         val items = itemService.getItems(gameId)
         itemsMap.clear()
         items.forEach {
             itemsMap[it.id] = it
         }
         emit(items)
+    }
+
+    override suspend fun getItems(gameId: Int): List<Item> {
+        return itemsMap.values.toList()
     }
 
     override suspend fun preloadItems(gameId: Int) {
@@ -107,7 +113,7 @@ class ItemRepoImp(
         return item
     }
 
-    override suspend fun getItemCategories(gameId: Int) = flow {
+    override suspend fun getItemCategories(gameId: Int?) = flow {
         emit(itemCategoriesMap.values.toList())
 
         val itemCategories = itemService.getItemCategories()
@@ -116,5 +122,11 @@ class ItemRepoImp(
             itemCategoriesMap[it.id] = it
         }
         emit(itemCategoriesMap.values.toList())
+    }
+
+    override suspend fun addItemCategory(name: String): ItemCategory {
+        val itemCategory = itemService.addItemCategories(name)
+        itemCategoriesMap[itemCategory.id] = itemCategory
+        return itemCategory
     }
 }

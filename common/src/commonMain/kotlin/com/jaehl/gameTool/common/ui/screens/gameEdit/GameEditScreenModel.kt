@@ -6,7 +6,9 @@ import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.AppConfig
 import com.jaehl.gameTool.common.data.model.Game
 import com.jaehl.gameTool.common.data.model.ImageType
+import com.jaehl.gameTool.common.data.model.ItemCategory
 import com.jaehl.gameTool.common.data.repo.GameRepo
+import com.jaehl.gameTool.common.data.repo.ItemRepo
 import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.data.service.ImageService
 import com.jaehl.gameTool.common.ui.componets.ImageResource
@@ -16,6 +18,7 @@ import java.io.File
 
 class GameEditScreenModel(
     private val jobDispatcher : JobDispatcher,
+    private val itemRepo : ItemRepo,
     private val gameRepo: GameRepo,
     private val imageService : ImageService,
     val appConfig : AppConfig,
@@ -26,8 +29,16 @@ class GameEditScreenModel(
     private lateinit var config : Config
 
     val viewModel = mutableStateOf(GameEditViewModel())
-    val showExitSaveDialog = mutableStateOf(false)
     val closePageEvent = mutableStateOf(false)
+
+    val dialogConfig = mutableStateOf<DialogConfig>(DialogConfig.Closed)
+
+    private var newItemCategoryIndex = -1
+    private var newItemCategories = arrayListOf<ItemCategory>()
+
+    private var itemCategoriesFullList = listOf<ItemCategory>()
+
+
     private var game : Game? = null
     private var unsavedChanges = false
 
@@ -38,9 +49,20 @@ class GameEditScreenModel(
     fun setup(config : Config) {
         this.config = config
 
+        newItemCategoryIndex = -1
+        newItemCategories.clear()
+
         launchIo(jobDispatcher, ::onException) {
+
+
             if(config.gameId != null){
                 updateGame(config.gameId)
+            }
+        }
+
+        launchIo(jobDispatcher, onException = ::onException) {
+            itemRepo.getItemCategories(config.gameId).collect {
+                itemCategoriesFullList = it
             }
         }
     }
@@ -48,9 +70,11 @@ class GameEditScreenModel(
     suspend fun updateGame(gameId : Int){
         val game = gameRepo.getGame(gameId)
         this.game = game
+
         viewModel.value = viewModel.value.copy(
             name = TextFieldValue(value = game.name),
             showDelete = true,
+            itemCategories = game.itemCategories,
             icon = ImageResource.ImageApiResource(
                 url = "${appConfig.baseUrl}/images/${game.icon}",
                 authHeader = tokenProvider.getBearerRefreshToken()
@@ -119,14 +143,32 @@ class GameEditScreenModel(
             ).id
         }
 
+        val itemCategories = viewModel.itemCategories.toMutableList()
+        viewModel.itemCategories.forEachIndexed { index, itemCategory ->
+            if(itemCategory.id > 0) return@forEachIndexed
+            val newItemCategory = itemRepo.addItemCategory(itemCategory.name)
+            itemCategories[index] = newItemCategory
+        }
+        this.viewModel.value = viewModel.copy(
+            itemCategories = itemCategories
+        )
 
         if(gameId == null) {
             config = Config(
-                gameId = gameRepo.createGame(viewModel.name.value, icon = iconImage, banner = bannerImage).id
+                gameId = gameRepo.createGame(
+                    name = viewModel.name.value,
+                    itemCategories = itemCategories.map { it.id },
+                    icon = iconImage,
+                    banner = bannerImage).id
             )
         } else {
             config = Config(
-                gameId = gameRepo.updateGame(gameId, viewModel.name.value, icon = iconImage, banner = bannerImage).id
+                gameId = gameRepo.updateGame(
+                    gameId,
+                    name = viewModel.name.value,
+                    itemCategories = itemCategories.map { it.id },
+                    icon = iconImage,
+                    banner = bannerImage).id
             )
         }
         config.gameId?.let { gameId ->
@@ -137,7 +179,7 @@ class GameEditScreenModel(
 
     fun onBackClick() {
         if(unsavedChanges){
-            showExitSaveDialog.value = true
+            openDialogSaveWarning()
         } else {
             closePageEvent.value = true
         }
@@ -148,6 +190,76 @@ class GameEditScreenModel(
             gameRepo.delete(gameId)
         }
         closePageEvent.value = true
+    }
+
+    fun closeDialog() {
+        dialogConfig.value = DialogConfig.Closed
+    }
+
+    fun addNewItemCategory(name : String) {
+        val dialogItemCategoryPicker = dialogConfig.value as? DialogConfig.DialogItemCategoryPicker ?: return
+        if(name.isEmpty()) {
+            dialogConfig.value = dialogItemCategoryPicker.copy(
+                addError = "new Category can not be empty"
+            )
+            return
+        }
+        (newItemCategories+itemCategoriesFullList).forEach {
+            dialogConfig.value = dialogItemCategoryPicker.copy(
+                addError = "new Category already exists"
+            )
+            if(it.name == name){
+                return@addNewItemCategory
+            }
+        }
+        val newItemCategory = ItemCategory(
+            id = newItemCategoryIndex--,
+            name = name
+        )
+        newItemCategories.add(newItemCategory)
+        onItemCategoryAdd(newItemCategory)
+        unsavedChanges = true
+    }
+
+    fun openDialogItemCategoryPicker() = launchIo(jobDispatcher, ::onException) {
+        dialogConfig.value = DialogConfig.DialogItemCategoryPicker(
+            itemCategories = (newItemCategories+itemCategoriesFullList)
+                .filter {
+                    !viewModel.value.itemCategories.contains(it)
+                }
+        )
+    }
+
+    fun onDialogItemCategoryPickerSearchTextChange(searchText : String) {
+        val dialogItemCategoryPicker = dialogConfig.value as? DialogConfig.DialogItemCategoryPicker ?: return
+        dialogConfig.value = dialogItemCategoryPicker.copy(
+            searchText = searchText,
+            addError = ""
+        )
+    }
+
+    fun openDialogSaveWarning() = launchIo(jobDispatcher, ::onException) {
+        dialogConfig.value = DialogConfig.DialogSaveWarning
+    }
+
+    fun onItemCategoryAdd(itemCategory: ItemCategory) {
+        val viewModel = viewModel.value
+        val itemCategories = viewModel.itemCategories.toMutableList()
+        itemCategories.add(itemCategory)
+        this.viewModel.value = viewModel.copy(
+            itemCategories = itemCategories
+        )
+        unsavedChanges = true
+    }
+
+    fun onItemCategoryDelete(itemCategory: ItemCategory) {
+        val viewModel = viewModel.value
+        val itemCategories = viewModel.itemCategories.toMutableList()
+        itemCategories.remove(itemCategory)
+        this.viewModel.value = viewModel.copy(
+            itemCategories = itemCategories
+        )
+        unsavedChanges = true
     }
 
     override fun onNameError(error: String) {
@@ -173,6 +285,16 @@ class GameEditScreenModel(
     data class Config(
         val gameId : Int?
     )
+
+    sealed class DialogConfig {
+        data object Closed : DialogConfig()
+        data class DialogItemCategoryPicker(
+            val itemCategories : List<ItemCategory>,
+            val searchText : String = "",
+            val addError : String = ""
+        ) : DialogConfig()
+        data object DialogSaveWarning : DialogConfig()
+    }
 }
 
 
@@ -180,6 +302,7 @@ data class GameEditViewModel(
     val pageLoading : Boolean = false,
     val showDelete : Boolean = false,
     val name : TextFieldValue = TextFieldValue(),
+    val itemCategories: List<ItemCategory> = listOf(),
     val icon : ImageResource = ImageResource.ImageLocalResource(""),
     val iconError : String = "",
     val banner : ImageResource = ImageResource.ImageLocalResource(""),

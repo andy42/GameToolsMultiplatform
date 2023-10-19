@@ -9,5 +9,5 @@ data class ItemRecipeNode(
     var itemAmount : ItemAmountViewModel,
     var inputs : ArrayList<ItemRecipeNode> = arrayListOf(),
     var byProducts : ArrayList<ItemAmountViewModel> = arrayListOf(),
-    var alternativeRecipe : Boolean = false
+    var recipeCount: Int = 0
 )

@@ -12,23 +12,25 @@ class GameServiceRetroFit(
     val tokenProvider : TokenProvider
 ) : GameService {
 
-    override suspend fun createGame(name: String, icon : Int, banner : Int) : Game{
+    override suspend fun createGame(name: String, itemCategories : List<Int>, icon : Int, banner : Int) : Game{
         return serverApi.createGame(
             bearerToken = tokenProvider.getBearerAccessToken(),
             data = CreateGameRequest(
                 name = name,
+                itemCategories = itemCategories,
                 icon = icon,
                 banner = banner
             )
         ).data
     }
 
-    override suspend fun updateGame(id: Int, name: String, icon : Int, banner : Int) : Game{
+    override suspend fun updateGame(id: Int, name: String, itemCategories : List<Int>, icon : Int, banner : Int) : Game{
         return serverApi.updateGame(
             bearerToken = tokenProvider.getBearerAccessToken(),
             id = id,
             data = UpdateGameRequest(
                 name = name,
+                itemCategories = itemCategories,
                 icon = icon,
                 banner = banner
             )

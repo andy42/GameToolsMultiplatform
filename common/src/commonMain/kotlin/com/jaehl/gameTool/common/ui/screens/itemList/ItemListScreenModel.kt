@@ -9,6 +9,7 @@ import com.jaehl.gameTool.common.data.AppConfig
 import com.jaehl.gameTool.common.data.model.Item
 import com.jaehl.gameTool.common.data.model.ItemCategory
 import com.jaehl.gameTool.common.data.model.User
+import com.jaehl.gameTool.common.data.repo.GameRepo
 import com.jaehl.gameTool.common.data.repo.ItemRepo
 import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.data.repo.UserRepo
@@ -23,6 +24,7 @@ class ItemListScreenModel(
     val appConfig: AppConfig,
     val itemRepo: ItemRepo,
     val userRepo: UserRepo,
+    val gameRepo: GameRepo
 ) : ScreenModel {
 
     private lateinit var config : Config
@@ -38,7 +40,9 @@ class ItemListScreenModel(
     val searchText =  mutableStateOf("")
     val categoryFilter = mutableStateOf(Item_Category_ALL)
 
-    val itemCategories = mutableStateListOf<ItemCategory>()
+    private var itemCategories = listOf<ItemCategory>()
+
+    val dialogConfig = mutableStateOf<DialogConfig>(DialogConfig.Closed)
 
     fun setup(config : Config) {
         this.config = config
@@ -60,7 +64,7 @@ class ItemListScreenModel(
             jobDispatcher,
             onException = ::onException
         ){
-            itemRepo.getItems(config.gameId).collect { newItems ->
+            itemRepo.getItemsFlow(config.gameId).collect { newItems ->
                 this.items.postSwap(
                     newItems.map {item ->
                         item.toItemRowModel(appConfig, tokenProvider)
@@ -72,11 +76,10 @@ class ItemListScreenModel(
         launchIo(
             jobDispatcher,
             onException = ::onException) {
-            itemRepo.getItemCategories(config.gameId).collect {
-                val list = mutableListOf(Item_Category_ALL)
-                list.addAll(it)
-                itemCategories.postSwap(list)
-            }
+
+            val list = mutableListOf(Item_Category_ALL)
+            list.addAll(gameRepo.getGame(config.gameId).itemCategories)
+            itemCategories = list
         }
     }
 
@@ -85,9 +88,34 @@ class ItemListScreenModel(
         pageLoading.value = false
     }
 
+    fun openDialogItemCategoryPicker() = launchIo(jobDispatcher, ::onException) {
+        dialogConfig.value = DialogConfig.DialogItemCategoryPicker(
+            itemCategories = itemCategories
+        )
+    }
+
+    fun onDialogItemCategoryPickerSearchTextChange(searchText : String) {
+        val dialogItemCategoryPicker = dialogConfig.value as? DialogConfig.DialogItemCategoryPicker ?: return
+        dialogConfig.value = dialogItemCategoryPicker.copy(
+            searchText = searchText
+        )
+    }
+
+    fun closeDialog() {
+        dialogConfig.value = DialogConfig.Closed
+    }
+
     data class Config(
         val gameId : Int
     )
+
+    sealed class DialogConfig {
+        data object Closed : DialogConfig()
+        data class DialogItemCategoryPicker(
+            val itemCategories : List<ItemCategory>,
+            val searchText : String = ""
+        ) : DialogConfig()
+    }
 
     companion object {
         val Item_Category_ALL = ItemCategory(id = -1, name = "All")

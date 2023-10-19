@@ -2,6 +2,7 @@ package com.jaehl.gameTool.apiClientRetrofit.di
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.jaehl.gameTool.apiClientRetrofit.data.DebugSslSocketFactory
 import com.jaehl.gameTool.apiClientRetrofit.data.api.ServerApi
 import com.jaehl.gameTool.apiClientRetrofit.data.service.*
 import com.jaehl.gameTool.common.data.AppConfig
@@ -17,14 +18,21 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object ApiClientRetrofitModule {
-    fun create() = DI.Module(name = "ApiClientRetrofit") {
+    fun create(trustAllCerts : Boolean = false) = DI.Module(name = "ApiClientRetrofit") {
 
         bind<OkHttpClient> { provider {
-                OkHttpClient.Builder()
-                    .readTimeout(60, TimeUnit.SECONDS)
-                    .callTimeout(60, TimeUnit.SECONDS)
-                    .connectTimeout(60, TimeUnit.SECONDS)
-                    .build()
+            var builder = OkHttpClient.Builder()
+                .readTimeout(60, TimeUnit.SECONDS)
+                .callTimeout(60, TimeUnit.SECONDS)
+                .connectTimeout(60, TimeUnit.SECONDS)
+
+            if(trustAllCerts){
+                val debugSslSocketFactory = DebugSslSocketFactory()
+                builder = builder.sslSocketFactory(debugSslSocketFactory.buildSSLSocketFactory(), debugSslSocketFactory.buildTrustManager())
+                builder = builder.hostnameVerifier(debugSslSocketFactory.buildHostnameVerifier())
+            }
+
+            builder.build()
         }}
 
         bind<Gson> { provider {

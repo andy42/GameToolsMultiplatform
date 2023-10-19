@@ -3,6 +3,7 @@ package com.jaehl.gameTool.apiClientRetrofit.data.service
 import com.jaehl.gameTool.apiClientRetrofit.data.api.ServerApi
 import com.jaehl.gameTool.apiClientRetrofit.data.model.request.AddCollectionGroupRequest
 import com.jaehl.gameTool.apiClientRetrofit.data.model.request.AddCollectionItemAmountRequest
+import com.jaehl.gameTool.apiClientRetrofit.data.model.request.UpdateGroupPreferencesRequest
 import com.jaehl.gameTool.common.data.model.Collection
 import com.jaehl.gameTool.common.data.model.request.NewAdminCollectionRequest
 import com.jaehl.gameTool.common.data.model.request.NewCollectionRequest
@@ -97,5 +98,26 @@ class CollectionServiceRetroFit (
             groupId = groupId,
             itemId = itemId
         )
+    }
+
+    override suspend fun updateGroupPreferences(
+        collectionId: Int,
+        groupId: Int,
+        showBaseIngredients: Boolean,
+        collapseIngredients: Boolean,
+        costReduction: Float,
+        itemRecipePreferenceMap: Map<Int, Int?>
+    ): Collection.Group {
+        return serverApi.updateGroupPreferences(
+            bearerToken = tokenProvider.getBearerAccessToken(),
+            collectionId = collectionId,
+            groupId = groupId,
+            data = UpdateGroupPreferencesRequest(
+                showBaseIngredients = showBaseIngredients,
+                collapseIngredients = collapseIngredients,
+                costReduction = costReduction,
+                itemRecipePreferenceMap = itemRecipePreferenceMap
+            )
+        ).data
     }
 }

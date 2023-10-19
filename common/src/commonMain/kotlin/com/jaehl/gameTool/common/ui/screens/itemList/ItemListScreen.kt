@@ -47,8 +47,6 @@ class ItemListScreen(
             }
         )
 
-        val isItemCategoryPickerOpen = remember { mutableStateOf(false) }
-
         ItemListPage(
             items = screenModel.items,
             searchText = screenModel.searchText.value,
@@ -61,7 +59,7 @@ class ItemListScreen(
                 screenModel.searchText.value = it
             },
             onCategoryFilterClick = {
-                isItemCategoryPickerOpen.value = true
+                screenModel.openDialogItemCategoryPicker()
             },
             onItemClick = { itemId ->
                 navigator.push(ItemDetailsScreen(
@@ -77,16 +75,21 @@ class ItemListScreen(
             }
         )
 
-        if(isItemCategoryPickerOpen.value){
+        val dialogConfig = screenModel.dialogConfig.value
+        if(dialogConfig is ItemListScreenModel.DialogConfig.DialogItemCategoryPicker){
             ItemCategoryPickDialog(
                 title = "Category",
-                categoryList = screenModel.itemCategories,
+                categoryList = dialogConfig.itemCategories,
                 onCategoryClick = { itemCategory ->
                     screenModel.categoryFilter.value = itemCategory
-                    isItemCategoryPickerOpen.value = false
+                    screenModel.closeDialog()
+                },
+                searchText = dialogConfig.searchText,
+                onSearchTextChange = {
+                     screenModel.onDialogItemCategoryPickerSearchTextChange(it)
                 },
                 onClose = {
-                    isItemCategoryPickerOpen.value = false
+                    screenModel.closeDialog()
                 }
             )
         }

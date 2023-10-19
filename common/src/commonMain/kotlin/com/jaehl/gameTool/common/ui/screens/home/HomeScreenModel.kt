@@ -24,6 +24,7 @@ class HomeScreenModel(
 
     var games = mutableStateListOf<GameModel>()
     var showAdminTools = mutableStateOf(false)
+    var userUnverified = mutableStateOf(false)
     var showEditGames = mutableStateOf(false)
     var pageLoading = mutableStateOf(false)
 
@@ -44,6 +45,11 @@ class HomeScreenModel(
         }
         launchIo(jobDispatcher, ::onException){
             userRepo.getUserSelf().let { user ->
+
+                userUnverified.value = listOf(
+                    User.Role.Unverified
+                ).contains(user.role)
+
                 showAdminTools.value = listOf(
                     User.Role.Admin
                 ).contains(user.role)
@@ -64,5 +70,4 @@ class HomeScreenModel(
         System.err.println(t.message)
         pageLoading.value = false
     }
-
 }

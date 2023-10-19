@@ -89,21 +89,43 @@ class ItemDetailsScreen(
             },
             onRecipeSettingsClick = {
                 screenModel.onRecipeSettingClick(it)
+            },
+            onRecipeChange = { itemId, recipeId ->
+                screenModel.onRecipeChangeClick(itemId, recipeId)
             }
         )
 
-        if(screenModel.recipeSettingDialogState.value is ItemDetailsScreenModel.RecipeSettingDialogState.Open ){
-            val recipeSettingDialogState = screenModel.recipeSettingDialogState.value as ItemDetailsScreenModel.RecipeSettingDialogState.Open
+        val dialogState = screenModel.dialogState.value
+        if(dialogState is ItemDetailsScreenModel.DialogState.RecipeSettingDialog ){
             RecipeSettingsDialog(
                 title = "Recipe Settings",
-                recipeSettings = recipeSettingDialogState.recipeSettings,
+                recipeSettings = dialogState.recipeSettings,
                 onClose = {
-                    screenModel.onRecipeSettingDialogStateClose()
+                    screenModel.onCloseDialog()
                 },
                 onRecipeSettingsChange = {
                     screenModel.onRecipeSettingsChange(
-                        recipeSettingDialogState.recipeId,
+                        dialogState.recipeId,
                         it
+                    )
+                }
+            )
+        }
+
+        if(dialogState is ItemDetailsScreenModel.DialogState.RecipePickerDialog ){
+            RecipePickerDialog(
+                title = "Pick Recipe",
+                recipePickerData = dialogState.recipePickerData,
+                onClose = {
+                    screenModel.onCloseDialog()
+                },
+                onRecipeClick = { recipeId ->
+                    screenModel.onRecipePickerSelectedClick(dialogState, recipeId)
+                },
+                onRecipeConfirmClick = {
+                    screenModel.onItemRecipeChanged(
+                        itemId = dialogState.itemId,
+                        recipeId = dialogState.recipePickerData.selectedRecipeId
                     )
                 }
             )
@@ -139,7 +161,8 @@ fun ItemDetailsPage(
     onBackClick : ()-> Unit,
     onItemClick : (clickedItemId : Int) -> Unit,
     onEditClick : () -> Unit,
-    onRecipeSettingsClick : (recipeId : Int) -> Unit
+    onRecipeSettingsClick : (recipeId : Int) -> Unit,
+    onRecipeChange : (itemId : Int, recipeId : Int) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -190,7 +213,8 @@ fun ItemDetailsPage(
                                 onItemClick(clickedItemId)
                             }
                         },
-                        onRecipeSettingsClick = onRecipeSettingsClick
+                        onRecipeSettingsClick = onRecipeSettingsClick,
+                        onRecipeChange = onRecipeChange
                     )
                 }
             }
@@ -208,7 +232,8 @@ fun Recipe(
     recipeIndex : Int,
     recipe : RecipeViewModel,
     onItemClick : (clickedItemId : Int) -> Unit,
-    onRecipeSettingsClick : (recipeId : Int) -> Unit
+    onRecipeSettingsClick : (recipeId : Int) -> Unit,
+    onRecipeChange : (itemId : Int, recipeId : Int) -> Unit
 ) {
     Box {
         Column(
@@ -271,7 +296,7 @@ fun Recipe(
 
 
 
-            if(recipe.node.itemAmount.amount != 1) {
+            if(recipe.node.itemAmount.amount != 1 || recipe.node.byProducts.isNotEmpty()) {
                 PageSpacer(Modifier.padding(top= 20.dp))
                 Text(
                     text = "Output",
@@ -301,6 +326,7 @@ fun Recipe(
                             modifier = Modifier.padding(start = 10.dp, end = 10.dp),
                             itemAmount = it,
                             background = AppColor.rowBackgroundSecondEven,
+                            onItemClick = onItemClick
                         )
                     }
                 }
@@ -320,8 +346,8 @@ fun Recipe(
                 recipe.recipeSettings.collapseIngredients,
                 if(recipe.recipeSettings.showBaseIngredients) recipe.baseIngredients else recipe.node.inputs,
                 onItemClick = onItemClick,
-                onRecipeChange = { item ->
-
+                onRecipeChange = { itemId ->
+                    onRecipeChange(itemId, recipe.id)
                 }
             )
         }
