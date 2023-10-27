@@ -117,6 +117,7 @@ fun UserRow(
             .clickable {
                 onRoleChangeClick(user.id)
             }
+            .padding(15.dp)
     ) {
         Text(user.name)
         Text(user.role)

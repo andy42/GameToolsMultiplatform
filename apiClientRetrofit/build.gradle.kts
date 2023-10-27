@@ -6,6 +6,7 @@ val kodeinVersion = findProperty("kodein.version") as String
 plugins {
     kotlin("multiplatform")
     id("org.jetbrains.compose")
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.0"
 }
 
 kotlin {
@@ -25,6 +26,9 @@ kotlin {
                 implementation("com.squareup.retrofit2:retrofit:2.9.0")
                 implementation("com.squareup.retrofit2:converter-gson:2.9.0")
                 implementation("com.squareup.retrofit2:adapter-rxjava3:2.9.0")
+
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+
             }
         }
     }

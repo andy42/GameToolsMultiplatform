@@ -1,6 +1,8 @@
 package com.jaehl.gameTool.common.ui.componets
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -18,6 +20,9 @@ fun StyledPasswordOutlinedTextField(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     readOnly: Boolean = false,
+    singleLine: Boolean = false,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
     label: @Composable (() -> Unit)? = null,
     visibility: MutableState<Boolean> = remember { mutableStateOf(false) }
 ) {
@@ -28,6 +33,7 @@ fun StyledPasswordOutlinedTextField(
         isError = textFieldValue.hasError(),
         enabled = enabled,
         readOnly = readOnly,
+        singleLine = singleLine,
         onValueChange = onValueChange,
         trailingIcon = {
             if(visibility.value)
@@ -44,7 +50,9 @@ fun StyledPasswordOutlinedTextField(
                 })
             }
         },
-        visualTransformation = if(visibility.value) VisualTransformation.None else PasswordVisualTransformation()
+        visualTransformation = if(visibility.value) VisualTransformation.None else PasswordVisualTransformation(),
+        keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions
     )
     if(textFieldValue.hasError()){
         Text(

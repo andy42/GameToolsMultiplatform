@@ -1,7 +1,6 @@
 package com.jaehl.gameTool.apiClientRetrofit.data.service
 
 import com.jaehl.gameTool.apiClientRetrofit.data.api.ServerApi
-import com.jaehl.gameTool.apiClientRetrofit.data.model.baseBody
 import com.jaehl.gameTool.apiClientRetrofit.data.model.request.AddItemCategoriesRequest
 import com.jaehl.gameTool.apiClientRetrofit.data.model.request.AddItemRequest
 import com.jaehl.gameTool.apiClientRetrofit.data.model.request.UpdateItemRequest

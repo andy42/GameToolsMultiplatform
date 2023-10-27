@@ -3,10 +3,14 @@ package com.jaehl.gameTool.common.ui.screens.login
 import androidx.compose.runtime.mutableStateOf
 import cafe.adriel.voyager.core.model.ScreenModel
 import com.jaehl.gameTool.common.JobDispatcher
+import com.jaehl.gameTool.common.data.model.ItemCategory
 import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.data.repo.UserRepo
 import com.jaehl.gameTool.common.ui.componets.TextFieldValue
+import com.jaehl.gameTool.common.ui.screens.itemEdit.ItemEditScreenModel
 import com.jaehl.gameTool.common.ui.screens.launchIo
+import com.jaehl.gameTool.common.ui.util.UiException
+import com.jaehl.gameTool.common.ui.viewModel.ItemModel
 
 data class LoginViewModel(
     val userName : TextFieldValue = TextFieldValue(value = ""),
@@ -39,6 +43,8 @@ class LoginScreenModel(
     var pageLoading = mutableStateOf<Boolean>(false)
 
     var navigateToHome = mutableStateOf<Boolean>(false)
+
+    val dialogConfig = mutableStateOf<DialogConfig>(DialogConfig.Closed)
 
     init {
         loginValidator.listener = this
@@ -74,7 +80,6 @@ class LoginScreenModel(
                 value = password,
                 error = ""
             )
-
         )
     }
 
@@ -141,7 +146,33 @@ class LoginScreenModel(
         }
     }
 
+    private fun handelUiException(e : UiException) {
+        when (e) {
+            is UiException.ForbiddenError -> {
+                dialogConfig.value = DialogConfig.ErrorDialog(
+                    title = "Login Error",
+                    message = "Login credentials incorrect"
+                )
+            }
+            is UiException.ServerConnectionError -> {
+                dialogConfig.value = DialogConfig.ErrorDialog(
+                    title = "Connection Error",
+                    message = "Oops, seems like you can not connect to the server"
+                )
+            }
+            else -> {
+                dialogConfig.value = DialogConfig.ErrorDialog(
+                    title = "Error",
+                    message = "Oops something went wrong"
+                )
+            }
+        }
+    }
+
     private fun onException(t: Throwable){
+        if (t is UiException){
+            handelUiException(t)
+        }
         System.err.println(t.message)
         pageLoading.value = false
     }
@@ -181,6 +212,10 @@ class LoginScreenModel(
         navigateToHome.value = false
     }
 
+    fun closeDialog() {
+        dialogConfig.value = DialogConfig.Closed
+    }
+
     override fun onLoginEmailError(error: String) {
         loginViewModel.value = loginViewModel.value.copy(
             userName = loginViewModel.value.userName.copySetError(error)
@@ -215,6 +250,14 @@ class LoginScreenModel(
         registerViewModel.value = registerViewModel.value.copy(
             reEnterPassword = registerViewModel.value.reEnterPassword.copySetError(error)
         )
+    }
+
+    sealed class DialogConfig {
+        data object Closed : DialogConfig()
+        data class ErrorDialog(
+            val title : String,
+            val message : String
+        ) : DialogConfig()
     }
 
     enum class PageState {

@@ -1,7 +1,9 @@
 package com.jaehl.gameTool.common.data.model
 
 import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class User(
     val id : Int,
     val userName : String,

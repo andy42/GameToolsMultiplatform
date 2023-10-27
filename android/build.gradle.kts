@@ -6,6 +6,7 @@ plugins {
 
 val kodeinVersion = findProperty("kodein.version") as String
 val materialVersion = findProperty("material.version") as String
+val ktorVersion = findProperty("ktor.version") as String
 
 kotlin {
     androidTarget()
@@ -16,6 +17,7 @@ kotlin {
                 implementation(project(":apiClientRetrofit"))
                 implementation("org.kodein.di:kodein-di-framework-compose:$kodeinVersion")
                 implementation("androidx.datastore:datastore-preferences:1.0.0")
+                implementation("io.ktor:ktor-client-apache5:$ktorVersion")
             }
         }
     }

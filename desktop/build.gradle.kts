@@ -1,6 +1,8 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 val kodeinVersion = findProperty("kodein.version") as String
+val ktorVersion = findProperty("ktor.version") as String
+val mediaKamelversion = findProperty("mediaKamel.version") as String
 
 plugins {
     kotlin("multiplatform")
@@ -16,9 +18,20 @@ kotlin {
                 implementation(compose.desktop.currentOs)
                 implementation(project(":common"))
                 implementation(project(":apiClientRetrofit"))
+                implementation(project(":apiClientKtor"))
 
                 implementation("org.kodein.di:kodein-di-framework-compose:$kodeinVersion")
+
+
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
+                implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+                implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+
+
+                implementation("io.ktor:ktor-client-okhttp:$ktorVersion")
+                implementation("media.kamel:kamel-image:$mediaKamelversion")
+                implementation("io.ktor:ktor-client-okhttp-jvm:$ktorVersion")
+
             }
         }
     }

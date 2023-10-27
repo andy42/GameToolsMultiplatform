@@ -12,6 +12,7 @@ import com.jaehl.gameTool.common.data.repo.UserRepo
 import com.jaehl.gameTool.common.extensions.postSwap
 import com.jaehl.gameTool.common.ui.screens.launchIo
 import com.jaehl.gameTool.common.ui.util.ServerBackup
+import com.jaehl.gameTool.common.ui.util.UiException
 
 class HomeScreenModel(
     val jobDispatcher : JobDispatcher,
@@ -28,37 +29,38 @@ class HomeScreenModel(
     var showEditGames = mutableStateOf(false)
     var pageLoading = mutableStateOf(false)
 
+    val dialogConfig = mutableStateOf<DialogConfig>(DialogConfig.Closed)
+
     fun setup() = launchIo(jobDispatcher, ::onException){
         dataRefresh()
     }
 
     suspend fun dataRefresh() {
-        launchIo(
-            jobDispatcher,
-            onException = ::onException
-        ){
+        launchIo(jobDispatcher, ::onException){
+            val user = userRepo.getUserSelf()
+
+            val userUnverified = listOf(
+                User.Role.Unverified
+            ).contains(user.role)
+
+            this.userUnverified.value = userUnverified
+
+            showAdminTools.value = listOf(
+                User.Role.Admin
+            ).contains(user.role)
+
+            showEditGames.value = listOf(
+                User.Role.Admin,
+                User.Role.Contributor
+            ).contains(user.role)
+
+            if(userUnverified) return@launchIo
+
             val games = gameRepo.getGames().map {
                 it.toGameModel(appConfig, tokenProvider)
             }
             this.games.postSwap(games)
             this.pageLoading.value = false
-        }
-        launchIo(jobDispatcher, ::onException){
-            userRepo.getUserSelf().let { user ->
-
-                userUnverified.value = listOf(
-                    User.Role.Unverified
-                ).contains(user.role)
-
-                showAdminTools.value = listOf(
-                    User.Role.Admin
-                ).contains(user.role)
-
-                showEditGames.value = listOf(
-                    User.Role.Admin,
-                    User.Role.Contributor
-                ).contains(user.role)
-            }
         }
     }
 
@@ -66,8 +68,49 @@ class HomeScreenModel(
         serverBackup.backup()
     }
 
+    fun onRefreshClick() = launchIo(jobDispatcher, ::onException){
+        dataRefresh()
+    }
+
+    fun closeDialog() {
+        dialogConfig.value = DialogConfig.Closed
+    }
+
+    private fun handelUiException(e : UiException) {
+        when (e) {
+            is UiException.ForbiddenError -> {
+                dialogConfig.value = DialogConfig.ErrorDialog(
+                    title = "Login Error",
+                    message = "Login credentials incorrect"
+                )
+            }
+            is UiException.ServerConnectionError -> {
+                dialogConfig.value = DialogConfig.ErrorDialog(
+                    title = "Connection Error",
+                    message = "Oops, seems like you can not connect to the server"
+                )
+            }
+            else -> {
+                dialogConfig.value = DialogConfig.ErrorDialog(
+                    title = "Error",
+                    message = "Oops something went wrong"
+                )
+            }
+        }
+    }
+
     private fun onException(t: Throwable){
-        System.err.println(t.message)
+        if (t is UiException){
+            handelUiException(t)
+        }
         pageLoading.value = false
+    }
+
+    sealed class DialogConfig {
+        data object Closed : DialogConfig()
+        data class ErrorDialog(
+            val title : String,
+            val message : String
+        ) : DialogConfig()
     }
 }

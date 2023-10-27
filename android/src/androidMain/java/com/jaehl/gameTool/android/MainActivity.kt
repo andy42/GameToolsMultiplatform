@@ -20,7 +20,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             val di = DI {
-                bind<AppConfig> { provider { AppConfig(baseUrl = "http://192.168.1.112:8080") }}
+                bind<AppConfig> { provider { AppConfig(baseUrl = "https://gametoolsapi.63bit.com:5443") }}
                 bind<AuthLocalStore> { singleton {
                     AuthPreferencesDataStore(
                         context = this@MainActivity

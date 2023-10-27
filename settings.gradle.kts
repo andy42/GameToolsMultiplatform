@@ -4,6 +4,7 @@ include(":android")
 include(":desktop")
 include(":common")
 include(":apiClientRetrofit")
+include(":apiClientKtor")
 
 pluginManagement {
     repositories {

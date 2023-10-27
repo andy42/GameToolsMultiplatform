@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder
 import com.jaehl.gameTool.apiClientRetrofit.data.DebugSslSocketFactory
 import com.jaehl.gameTool.apiClientRetrofit.data.api.ServerApi
 import com.jaehl.gameTool.apiClientRetrofit.data.service.*
+import com.jaehl.gameTool.apiClientRetrofit.data.util.ExceptionHandler
 import com.jaehl.gameTool.common.data.AppConfig
 import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.data.service.*
@@ -58,14 +59,16 @@ object ApiClientRetrofitModule {
 
         bind<UserService> { provider {
             UserServiceRetrofit(
-                instance<ServerApi>()
+                instance<ServerApi>(),
+                ExceptionHandler()
             )
         }}
 
         bind<GameService> { provider {
             GameServiceRetroFit(
                 instance<ServerApi>(),
-                instance<TokenProvider>()
+                instance<TokenProvider>(),
+                ExceptionHandler()
             )
         }}
 
@@ -103,6 +106,5 @@ object ApiClientRetrofitModule {
                 instance<TokenProvider>()
             )
         }}
-
     }
 }
