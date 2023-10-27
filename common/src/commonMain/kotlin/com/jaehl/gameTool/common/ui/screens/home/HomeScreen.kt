@@ -20,6 +20,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.jaehl.gameTool.common.ui.AppColor
 import com.jaehl.gameTool.common.ui.componets.AppBar
+import com.jaehl.gameTool.common.ui.componets.ErrorDialog
 import com.jaehl.gameTool.common.ui.componets.ItemIcon
 import com.jaehl.gameTool.common.ui.screens.accountDetails.AccountDetailsScreen
 import com.jaehl.gameTool.common.ui.screens.backupList.BackupListScreen
@@ -68,8 +69,23 @@ class HomeScreen : Screen {
                 navigator.push(
                     BackupListScreen()
                 )
+            },
+            onRefreshClick = {
+                screenModel.onRefreshClick()
             }
         )
+
+        val dialogConfig = screenModel.dialogConfig.value
+        if(dialogConfig is HomeScreenModel.DialogConfig.ErrorDialog){
+            ErrorDialog(
+                title = dialogConfig.title,
+                message = dialogConfig.message,
+                buttonText = "Ok",
+                onClick = {
+                    screenModel.closeDialog()
+                }
+            )
+        }
     }
 }
 
@@ -84,7 +100,8 @@ fun HomePage(
     onCreateGameClick : () -> Unit,
     onGameClick : (gameId: Int) -> Unit,
     onGameEditClick : (gameId: Int) -> Unit,
-    onBackupClick : () -> Unit
+    onBackupClick : () -> Unit,
+    onRefreshClick : () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -95,6 +112,11 @@ fun HomePage(
         AppBar(
             title = "Home",
             actions = {
+                IconButton(content = {
+                    Icon(Icons.Outlined.Refresh, "Refresh", tint = Color.White)
+                }, onClick = {
+                    onRefreshClick()
+                })
                 IconButton(content = {
                     Icon(Icons.Outlined.AccountBox, "Settings", tint = Color.White)
                 }, onClick = {

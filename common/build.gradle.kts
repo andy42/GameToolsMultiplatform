@@ -63,7 +63,7 @@ kotlin {
 
                 implementation ("com.auth0:java-jwt:4.4.0")
 
-                implementation("io.ktor:ktor-client-apache5:$ktorVersion")
+                implementation("io.ktor:ktor-client-core:$ktorVersion")
                 implementation("media.kamel:kamel-image:$mediaKamelversion")
 
                 implementation("org.jetbrains.compose.ui:ui-tooling-preview:$composeVersion")

@@ -52,8 +52,10 @@ actual fun ItemIcon(modifier : Modifier, imageResource : ImageResource, contentS
                 contentScale = contentScale,
                 resource = painterResource,
                 contentDescription = "Profile",
+                onFailure = { exception ->
+                    System.err.println(exception.message ?: "")
+                }
             )
         }
-
     }
 }

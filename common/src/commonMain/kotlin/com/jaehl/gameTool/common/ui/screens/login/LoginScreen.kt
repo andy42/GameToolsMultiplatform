@@ -7,13 +7,17 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.*
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.lifecycle.LifecycleEffect
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.kodein.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.jaehl.gameTool.common.ui.componets.ErrorDialog
 import com.jaehl.gameTool.common.ui.componets.StyledOutlinedTextField
 import com.jaehl.gameTool.common.ui.componets.StyledPasswordOutlinedTextField
 import com.jaehl.gameTool.common.ui.screens.home.HomeScreen
@@ -38,6 +42,7 @@ class LoginScreen : Screen{
             }
         }
 
+        val focusManager = LocalFocusManager.current
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -51,6 +56,13 @@ class LoginScreen : Screen{
             ) {
                 Column(
                     modifier = Modifier
+                        .onKeyEvent {
+                            if((it.key == Key.Enter || (it.key == Key.Tab && it.type == KeyEventType.KeyDown )) ){
+                                focusManager.moveFocus(FocusDirection.Down)
+                                true
+                            }
+                            else false
+                        }
                 ) {
                     Row(
                         modifier = Modifier
@@ -120,6 +132,17 @@ class LoginScreen : Screen{
                 }
             }
         }
+        val dialogConfig = screenModel.dialogConfig.value
+        if(dialogConfig is LoginScreenModel.DialogConfig.ErrorDialog){
+            ErrorDialog(
+                title = dialogConfig.title,
+                message = dialogConfig.message,
+                buttonText = "Ok",
+                onClick = {
+                    screenModel.closeDialog()
+                }
+            )
+        }
     }
 }
 
@@ -128,6 +151,7 @@ class LoginScreen : Screen{
 fun LoginBox(modifier: Modifier,
              screenModel : LoginScreenModel,
              loginViewModel : LoginViewModel){
+
     Column(
         modifier = modifier
             .padding(10.dp)
@@ -138,20 +162,22 @@ fun LoginBox(modifier: Modifier,
             modifier = Modifier
                 .padding(top = 5.dp),
             label = { Text("UserName") },
+            singleLine = true,
             enabled = !screenModel.pageLoading.value,
             onValueChange = { value ->
                 screenModel.onLoginUserNameChange(value)
-            }
+            },
         )
         StyledPasswordOutlinedTextField(
             loginViewModel.password,
             modifier = Modifier
                 .padding(top = 5.dp),
             label = { Text("Password") },
+            singleLine = true,
             enabled = !screenModel.pageLoading.value,
             onValueChange = { value ->
                 screenModel.onLoginPasswordChange(value)
-            }
+            },
         )
 
         Button(
@@ -182,6 +208,7 @@ fun RegisterBox(modifier: Modifier,
             modifier = Modifier
                 .padding(top = 5.dp),
             label = { Text("UserName") },
+            singleLine = true,
             enabled = !screenModel.pageLoading.value,
             onValueChange = { value ->
                 screenModel.onRegisterUserNameChange(value)
@@ -192,6 +219,7 @@ fun RegisterBox(modifier: Modifier,
             modifier = Modifier
                 .padding(top = 5.dp),
             label = { Text("Email") },
+            singleLine = true,
             enabled = !screenModel.pageLoading.value,
             onValueChange = { value ->
                 screenModel.onRegisterEmailChange(value)
@@ -202,6 +230,7 @@ fun RegisterBox(modifier: Modifier,
             modifier = Modifier
                 .padding(top = 5.dp),
             label = { Text("Password") },
+            singleLine = true,
             enabled = !screenModel.pageLoading.value,
             onValueChange = { value ->
                 screenModel.onRegisterPasswordChange(value)
@@ -213,6 +242,7 @@ fun RegisterBox(modifier: Modifier,
             modifier = Modifier
                 .padding(top = 5.dp),
             label = { Text("re-enter Password") },
+            singleLine = true,
             enabled = !screenModel.pageLoading.value,
             onValueChange = { value ->
                 screenModel.onRegisterReEnterPasswordChange(value)
