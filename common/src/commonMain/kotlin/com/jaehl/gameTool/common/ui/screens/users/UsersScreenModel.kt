@@ -9,6 +9,7 @@ import com.jaehl.gameTool.common.data.model.User
 import com.jaehl.gameTool.common.data.repo.UserRepo
 import com.jaehl.gameTool.common.ui.screens.launchIo
 import com.jaehl.gameTool.common.extensions.postSwap
+import com.jaehl.gameTool.common.ui.screens.home.HomeScreenModel
 import kotlinx.coroutines.launch
 
 class UsersScreenModel(
@@ -17,7 +18,7 @@ class UsersScreenModel(
 ) : ScreenModel {
     var users = mutableStateListOf<UserModel>()
     var pageLoading = mutableStateOf<Boolean>(false)
-    val dialogConfig = mutableStateOf<DialogConfig>(DialogConfig.None)
+    val dialogConfig = mutableStateOf<DialogConfig>(DialogConfig.ClosedDialog)
 
     init {
         coroutineScope.launch {
@@ -34,6 +35,7 @@ class UsersScreenModel(
                 UserModel(
                     id = it.id,
                     name = it.userName,
+                    email = it.email,
                     role = it.role.name
                 )
             }
@@ -42,12 +44,8 @@ class UsersScreenModel(
         }
     }
 
-    fun onUserRoleClick(userId : Int){
-        dialogConfig.value = DialogConfig.RolePickerConfig(userId)
-    }
-
-    fun closeRolePicker(){
-        dialogConfig.value = DialogConfig.None
+    fun closeDialog(){
+        dialogConfig.value = DialogConfig.ClosedDialog
     }
 
     private fun onException(t: Throwable){
@@ -55,15 +53,12 @@ class UsersScreenModel(
         pageLoading.value = false
     }
 
-    fun changeUserRole(userId : Int, role : User.Role) = launchIo(jobDispatcher, ::onException) {
-        userRepo.changeUserRole(userId = userId, role = role)
-        dataRefresh()
-    }
-
     sealed class DialogConfig {
-        data object None : DialogConfig()
-        data class RolePickerConfig(val userId : Int) : DialogConfig()
-
+        data object ClosedDialog : DialogConfig()
+        data class ErrorDialog(
+            val title : String,
+            val message : String
+        ) : DialogConfig()
     }
 }
 

@@ -1,9 +1,6 @@
 package com.jaehl.gameTool.apiClientKtor.data.service
 
-import com.jaehl.gameTool.apiClientKtor.data.model.LoginRequest
-import com.jaehl.gameTool.apiClientKtor.data.model.RegisterRequest
-import com.jaehl.gameTool.apiClientKtor.data.model.Response
-import com.jaehl.gameTool.apiClientKtor.data.model.UserChangeRoleRequest
+import com.jaehl.gameTool.apiClientKtor.data.model.*
 import com.jaehl.gameTool.apiClientKtor.data.util.ExceptionHandler
 import com.jaehl.gameTool.common.data.AppConfig
 import com.jaehl.gameTool.common.data.model.User
@@ -93,7 +90,7 @@ class UserServiceKtor(
 
     override suspend fun changeUserRole(bearerToken: String, userId: Int, role: User.Role): User = exceptionHandler.tryBlock {
         val response = client.post(
-            urlString = "${appConfig.baseUrl}/user/changeRole"
+            urlString = "${appConfig.baseUrl}/user/$userId/changeRole"
         ) {
             headers {
                 append("Authorization", bearerToken)
@@ -101,7 +98,6 @@ class UserServiceKtor(
             contentType(ContentType.Application.Json)
             setBody(
                 UserChangeRoleRequest(
-                    userId = userId,
                     role = role.name
                 )
             )
@@ -109,5 +105,33 @@ class UserServiceKtor(
 
         val responseBody : Response<User> = response.body()
         return@tryBlock responseBody.data
+    }
+
+    override suspend fun getUser(bearerToken: String, userId: Int): User = exceptionHandler.tryBlock {
+        val response = client.get(
+            urlString = "${appConfig.baseUrl}/user/$userId"
+        ) {
+            headers {
+                append("Authorization", bearerToken)
+            }
+        }
+        val responseBody : Response<User> = response.body()
+        return@tryBlock responseBody.data
+    }
+
+    override suspend fun changeUserPassword(bearerToken: String, userId: Int, password: String): Unit = exceptionHandler.tryBlock {
+        client.post(
+            urlString = "${appConfig.baseUrl}/user/$userId/changePassword"
+        ) {
+            headers {
+                append("Authorization", bearerToken)
+            }
+            contentType(ContentType.Application.Json)
+            setBody(
+                UserChangePasswordRequest(
+                    password = password
+                )
+            )
+        }
     }
 }

@@ -38,7 +38,7 @@ class ItemListScreenModel(
         private set
 
     val searchText =  mutableStateOf("")
-    val categoryFilter = mutableStateOf(Item_Category_ALL)
+    val categoryFilter = mutableStateOf(ItemCategory.Item_Category_ALL)
 
     private var itemCategories = listOf<ItemCategory>()
 
@@ -77,7 +77,7 @@ class ItemListScreenModel(
             jobDispatcher,
             onException = ::onException) {
 
-            val list = mutableListOf(Item_Category_ALL)
+            val list = mutableListOf(ItemCategory.Item_Category_ALL)
             list.addAll(gameRepo.getGame(config.gameId).itemCategories)
             itemCategories = list
         }
@@ -115,10 +115,6 @@ class ItemListScreenModel(
             val itemCategories : List<ItemCategory>,
             val searchText : String = ""
         ) : DialogConfig()
-    }
-
-    companion object {
-        val Item_Category_ALL = ItemCategory(id = -1, name = "All")
     }
 }
 

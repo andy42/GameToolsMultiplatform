@@ -107,8 +107,7 @@ class ItemEditScreen(
                 positiveText = "Save",
                 negativeText = "Discard",
                 onPositiveClick = {
-                    screenModel.closeDialog()
-                    screenModel.save()
+                    screenModel.save(closePageAfter = true)
                 },
                 onNegativeClick = {
                     screenModel.closeDialog()

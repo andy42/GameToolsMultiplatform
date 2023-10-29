@@ -446,11 +446,15 @@ class ItemEditScreenModel(
         unsavedChanges = false
     }
 
-    fun save() = launchIo(jobDispatcher, ::onException){
+    fun save(closePageAfter : Boolean = false) = launchIo(jobDispatcher, ::onException){
         if(config.itemId == null){
             saveNewItem()
         } else {
             updateItem()
+        }
+        closeDialog()
+        if(closePageAfter){
+            closePageEvent.value = true
         }
     }
 

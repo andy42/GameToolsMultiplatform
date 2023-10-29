@@ -6,15 +6,18 @@ import cafe.adriel.voyager.core.model.ScreenModel
 import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.AppConfig
 import com.jaehl.gameTool.common.data.model.Collection
+import com.jaehl.gameTool.common.data.model.ItemCategory
 import com.jaehl.gameTool.common.data.model.request.NewCollectionRequest
 import com.jaehl.gameTool.common.data.model.request.UpdateCollectionRequest
 import com.jaehl.gameTool.common.data.repo.CollectionRepo
+import com.jaehl.gameTool.common.data.repo.GameRepo
 import com.jaehl.gameTool.common.data.repo.ItemRepo
 import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.extensions.postSwap
 import com.jaehl.gameTool.common.extensions.swap
 import com.jaehl.gameTool.common.extensions.toItemModel
 import com.jaehl.gameTool.common.ui.componets.TextFieldValue
+import com.jaehl.gameTool.common.ui.screens.gameEdit.GameEditScreenModel
 import com.jaehl.gameTool.common.ui.screens.launchIo
 import com.jaehl.gameTool.common.ui.screens.launchWithCatch
 import com.jaehl.gameTool.common.ui.screens.runWithCatch
@@ -25,6 +28,7 @@ class CollectionEditScreenModel (
     private val jobDispatcher: JobDispatcher,
     private val collectionRepo: CollectionRepo,
     private val itemRepo : ItemRepo,
+    private val gameRepo: GameRepo,
     val appConfig : AppConfig,
     val tokenProvider: TokenProvider
 ) : ScreenModel {
@@ -36,8 +40,12 @@ class CollectionEditScreenModel (
     val groupList = mutableStateListOf<GroupViewModel>()
     val itemModels = mutableStateListOf<ItemModel>()
 
-    val showExitSaveDialog = mutableStateOf(false)
+    //val showExitSaveDialog = mutableStateOf(false)
     val closePageEvent = mutableStateOf(false)
+
+    val dialogConfig = mutableStateOf<DialogConfig>(DialogConfig.Closed)
+
+    private var itemCategories : List<ItemCategory> = listOf()
 
     private var groupAddIndex = 0
     private var groupMap = LinkedHashMap<Int, GroupViewModel>()
@@ -72,6 +80,15 @@ class CollectionEditScreenModel (
                     }
                 )
             }
+        }
+
+        launchIo(
+            jobDispatcher,
+            onException = ::onException) {
+
+            val list = mutableListOf(ItemCategory.Item_Category_ALL)
+            list.addAll(gameRepo.getGame(config.gameId).itemCategories)
+            itemCategories = list
         }
     }
 
@@ -235,7 +252,7 @@ class CollectionEditScreenModel (
         unsavedChanges = false
     }
 
-    fun save() = launchIo(
+    fun save(closeAfter : Boolean = false) = launchIo(
         jobDispatcher = jobDispatcher,
         onException = ::onException
     ) {
@@ -244,15 +261,82 @@ class CollectionEditScreenModel (
         } else {
             updateCollection()
         }
-
+        if(closeAfter){
+            closePageEvent.value = true
+        }
     }
 
     fun onBackClick() {
         if(unsavedChanges){
-            showExitSaveDialog.value = true
+            dialogConfig.value = DialogConfig.DialogSaveWarning
+            //showExitSaveDialog.value = true
         } else {
             closePageEvent.value = true
         }
+    }
+
+    fun openDialogItemPicker(groupId : Int){
+        dialogConfig.value = DialogConfig.DialogItemPicker(
+            groupId = groupId,
+            itemCategoryFilter = ItemCategory.Item_Category_ALL,
+            itemCategories = itemCategories,
+            searchText = "",
+            addError = ""
+        )
+    }
+
+    fun dialogItemPickerSearchTextChange(value : String) {
+        val dialogItemPicker = dialogConfig.value
+        if(dialogItemPicker !is DialogConfig.DialogItemPicker) return
+
+        dialogConfig.value = dialogItemPicker.copy(
+            searchText = value
+        )
+    }
+
+    fun dialogItemPickerFilterCategoryPickerOpen() {
+        val dialogItemPicker = dialogConfig.value
+        if(dialogItemPicker !is DialogConfig.DialogItemPicker) return
+
+        dialogConfig.value = dialogItemPicker.copy(
+            showItemCategoryPicker = true
+        )
+    }
+
+    fun dialogItemPickerFilterCategoryPickerClose() {
+        val dialogItemPicker = dialogConfig.value
+        if(dialogItemPicker !is DialogConfig.DialogItemPicker) return
+
+        dialogConfig.value = dialogItemPicker.copy(
+            showItemCategoryPicker = false
+        )
+    }
+
+    fun dialogItemPickerFilterCategoryChange(value : ItemCategory) {
+        val dialogItemPicker = dialogConfig.value
+        if(dialogItemPicker !is DialogConfig.DialogItemPicker) return
+
+        dialogConfig.value = dialogItemPicker.copy(
+            itemCategoryFilter = value,
+            showItemCategoryPicker = false
+        )
+    }
+
+    fun closeDialog() {
+        dialogConfig.value = DialogConfig.Closed
+    }
+
+    sealed class DialogConfig {
+        data object Closed : DialogConfig()
+        data class DialogItemPicker(
+            val groupId : Int,
+            val showItemCategoryPicker : Boolean = false,
+            val itemCategoryFilter : ItemCategory,
+            val itemCategories : List<ItemCategory>,
+            val searchText : String = "",
+            val addError : String = ""
+        ) : DialogConfig()
+        data object DialogSaveWarning : DialogConfig()
     }
 
     data class Config(

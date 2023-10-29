@@ -1,6 +1,7 @@
 package com.jaehl.gameTool.apiClientRetrofit.data.service
 
 import com.jaehl.gameTool.apiClientRetrofit.data.api.ServerApi
+import com.jaehl.gameTool.apiClientRetrofit.data.model.request.ChangeUserPasswordRequest
 import com.jaehl.gameTool.common.data.model.User
 import com.jaehl.gameTool.apiClientRetrofit.data.model.request.LoginRequest
 import com.jaehl.gameTool.apiClientRetrofit.data.model.request.RegisterRequest
@@ -55,10 +56,27 @@ class UserServiceRetrofit(
     override suspend fun changeUserRole(bearerToken: String, userId: Int, role: User.Role) : User = exceptionHandler.tryBlock {
         return@tryBlock serverApi.changeUserRole(
             bearerToken = bearerToken,
+            userId = userId,
             data = UserChangeRoleRequest(
-                userId = userId,
                 role = role.name,
             )
         ).data
+    }
+
+    override suspend fun getUser(bearerToken: String, userId: Int): User = exceptionHandler.tryBlock {
+        return@tryBlock serverApi.getUser(
+            bearerToken = bearerToken,
+            id = userId
+        ).data
+    }
+
+    override suspend fun changeUserPassword(bearerToken: String, userId: Int, password: String) = exceptionHandler.tryBlock {
+        serverApi.changeUserPassword(
+            bearerToken = bearerToken,
+            userId = userId,
+            data = ChangeUserPasswordRequest(
+                password = password
+            )
+        )
     }
 }

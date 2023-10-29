@@ -22,7 +22,7 @@ import com.jaehl.gameTool.common.ui.AppColor
 import com.jaehl.gameTool.common.ui.componets.AppBar
 import com.jaehl.gameTool.common.ui.componets.ErrorDialog
 import com.jaehl.gameTool.common.ui.componets.ItemIcon
-import com.jaehl.gameTool.common.ui.screens.accountDetails.AccountDetailsScreen
+import com.jaehl.gameTool.common.ui.screens.userDetails.UserDetailsScreen
 import com.jaehl.gameTool.common.ui.screens.backupList.BackupListScreen
 import com.jaehl.gameTool.common.ui.screens.gameDetails.GameDetailsScreen
 import com.jaehl.gameTool.common.ui.screens.gameEdit.GameEditScreen
@@ -47,7 +47,7 @@ class HomeScreen : Screen {
             showEditGames = screenModel.showEditGames.value,
             userUnverified = screenModel.userUnverified.value,
             onAccountClick = {
-                navigator.push(AccountDetailsScreen())
+                navigator.push(UserDetailsScreen())
             },
             onUsersClick = {
                 navigator.push(UsersScreen())

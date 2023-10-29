@@ -4,7 +4,7 @@ import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.AppConfig
 import com.jaehl.gameTool.common.data.repo.*
 import com.jaehl.gameTool.common.data.service.ImageService
-import com.jaehl.gameTool.common.ui.screens.accountDetails.AccountDetailsScreenModel
+import com.jaehl.gameTool.common.ui.screens.userDetails.UserDetailsScreenModel
 import com.jaehl.gameTool.common.ui.screens.backupList.BackupListScreenModel
 import com.jaehl.gameTool.common.ui.screens.collectionDetails.CollectionDetailsScreenModel
 import com.jaehl.gameTool.common.ui.screens.collectionList.CollectionListScreenModel
@@ -127,6 +127,7 @@ object ScreenModule {
                 instance<JobDispatcher>(),
                 instance<CollectionRepo>(),
                 instance<ItemRepo>(),
+                instance<GameRepo>(),
                 instance<AppConfig>(),
                 instance<TokenProvider>(),
             )}}
@@ -143,9 +144,9 @@ object ScreenModule {
                 instance<BackupRepo>()
             )}}
 
-        bind<AccountDetailsScreenModel> {
+        bind<UserDetailsScreenModel> {
             provider {
-                AccountDetailsScreenModel(
+                UserDetailsScreenModel(
                     instance<JobDispatcher>(),
                     instance<TokenProvider>(),
                     instance<UserRepo>()

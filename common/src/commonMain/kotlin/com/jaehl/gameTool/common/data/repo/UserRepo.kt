@@ -15,8 +15,10 @@ interface UserRepo {
     suspend fun login(userName : String, password : String)
     suspend fun register(userName : String, email : String, password : String)
     suspend fun getUserSelf() : User
+    suspend fun getUser(userId : Int) : User
     suspend fun getUsers() : List<User>
     suspend fun changeUserRole(userId : Int, role: User.Role) : User
+    suspend fun changePassword(userId: Int, password: String)
 }
 
 interface TokenProvider {
@@ -47,6 +49,10 @@ class UserRepoImp(
         return userService.getSelf(bearerToken = getBearerAccessToken())
     }
 
+    override suspend fun getUser(userId: Int): User {
+        return userService.getUser(bearerToken = getBearerAccessToken(), userId)
+    }
+
     override suspend fun getUsers(): List<User> {
         return userService.getUsers(bearerToken = getBearerAccessToken())
     }
@@ -56,6 +62,14 @@ class UserRepoImp(
             bearerToken = getBearerAccessToken(),
             userId = userId,
             role = role
+        )
+    }
+
+    override suspend fun changePassword(userId: Int, password: String) {
+        return userService.changeUserPassword(
+            bearerToken = getBearerAccessToken(),
+            userId = userId,
+            password = password
         )
     }
 

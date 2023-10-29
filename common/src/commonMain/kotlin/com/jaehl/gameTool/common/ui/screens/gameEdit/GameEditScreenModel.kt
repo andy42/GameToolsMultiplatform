@@ -115,7 +115,7 @@ class GameEditScreenModel(
         unsavedChanges = true
     }
 
-    fun onSaveClick() = launchIo(jobDispatcher, ::onException) {
+    fun onSaveClick(closePageAfter : Boolean = false) = launchIo(jobDispatcher, ::onException) {
         val viewModel = viewModel.value
         if(!gameEditValidator.validate(viewModel.name.value, viewModel.icon, viewModel.banner)) return@launchIo
 
@@ -175,6 +175,9 @@ class GameEditScreenModel(
             updateGame(gameId)
         }
         unsavedChanges = false
+        if(closePageAfter){
+            closePageEvent.value = true
+        }
     }
 
     fun onBackClick() {

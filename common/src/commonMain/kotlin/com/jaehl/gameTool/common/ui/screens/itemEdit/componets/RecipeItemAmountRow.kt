@@ -29,6 +29,7 @@ fun RecipeItemAmountRow(
         modifier = Modifier
             .fillMaxWidth()
             .background(if(index.mod(2) == 0) AppColor.rowBackgroundEven else AppColor.rowBackgroundOdd),
+        horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedButton(
@@ -57,7 +58,11 @@ fun RecipeItemAmountRow(
         }
 
         OutlinedTextField(
-            modifier = Modifier.padding(start = 10.dp),
+            modifier =
+                Modifier
+                    .padding(start = 10.dp)
+                    .width(80.dp)
+            ,
             value = if(itemAmount.amount == 0) "" else  itemAmount.amount.toString(),
             onValueChange = { value ->
                 onItemAmountChange(
@@ -69,14 +74,24 @@ fun RecipeItemAmountRow(
             },
             label = { Text("count") }
         )
-        IconButton(content = {
-            Icon(Icons.Outlined.Delete, "delete", tint = Color.Black)
-        }, onClick = {
-            onItemAmountDelete(
-                recipeId,
-                isInput,
-                itemAmount.itemModel.id
-            )
-        })
+        IconButton(
+            modifier = Modifier
+                .requiredWidth(IntrinsicSize.Max)
+                .padding(start = 10.dp)
+            ,
+            content = {
+                Icon(
+                    Icons.Outlined.Delete,
+                    "delete",
+                    tint = Color.Black)
+            },
+            onClick = {
+                onItemAmountDelete(
+                    recipeId,
+                    isInput,
+                    itemAmount.itemModel.id
+                )
+            }
+        )
     }
 }
