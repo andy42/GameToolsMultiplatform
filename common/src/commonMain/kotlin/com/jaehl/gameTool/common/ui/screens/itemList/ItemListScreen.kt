@@ -166,7 +166,7 @@ fun ItemListPage(
                 items
                     .filter { it.name.contains(searchText, ignoreCase = true)}
                     .filter {
-                        if(filterCategory == ItemListScreenModel.Item_Category_ALL){
+                        if(filterCategory == ItemCategory.Item_Category_ALL){
                             true
                         }
                         else {

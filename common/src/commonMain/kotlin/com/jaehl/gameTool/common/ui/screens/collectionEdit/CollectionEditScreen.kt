@@ -17,6 +17,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.kodein.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.jaehl.gameTool.common.data.model.ItemCategory
 import com.jaehl.gameTool.common.ui.AppColor
 import com.jaehl.gameTool.common.ui.componets.*
 import com.jaehl.gameTool.common.ui.screens.collectionEdit.CollectionEditScreenModel.GroupViewModel
@@ -31,10 +32,6 @@ class CollectionEditScreen (
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val screenModel = rememberScreenModel<CollectionEditScreenModel>()
-
-        var isItemPickOpen = remember { mutableStateOf(false) }
-        var itemPickerSearchText = remember {mutableStateOf("") }
-        var itemPickerGroupId = remember { mutableStateOf(-1) }
 
         LaunchedEffect(collectionId) {
             screenModel.setup(
@@ -57,7 +54,6 @@ class CollectionEditScreen (
                 collectionName = screenModel.collectionName.value,
                 onBackClick = {
                     screenModel.onBackClick()
-                    //navigator.pop()
                 },
                 onSaveClick = {
                     screenModel.save()
@@ -93,54 +89,78 @@ class CollectionEditScreen (
                     )
                 },
                 onAddItemClick = { groupId ->
-                    itemPickerGroupId.value = groupId
-                    isItemPickOpen.value = true
+                    screenModel.openDialogItemPicker(
+                        groupId = groupId
+                    )
                 }
             )
         }
 
-        if(screenModel.showExitSaveDialog.value){
+        val dialogConfig = screenModel.dialogConfig.value
+
+        if(dialogConfig is CollectionEditScreenModel.DialogConfig.DialogSaveWarning){
             WarningDialog(
                 title = "Unsaved changes",
                 message = "You have unsaved changes, do you want to save changes?",
                 positiveText = "Save",
                 negativeText = "Discard",
                 onPositiveClick = {
-                    screenModel.showExitSaveDialog.value = false
-                    screenModel.save()
+                    screenModel.closeDialog()
+                    screenModel.save(closeAfter = true)
                 },
                 onNegativeClick = {
-                    screenModel.showExitSaveDialog.value = false
+                    screenModel.closeDialog()
                     navigator.pop()
                 }
             )
         }
 
-        if(isItemPickOpen.value) {
+        if(dialogConfig is CollectionEditScreenModel.DialogConfig.DialogItemPicker){
             ItemPickDialog(
-                title = "",
-                itemList = screenModel.itemModels.filter { itemModel ->
-                    itemModel.name.contains(
-                        itemPickerSearchText.value ,
-                        ignoreCase = true) },
+                title = "Item Picker",
+                itemList = screenModel.itemModels
+                    .filter { itemModel ->
+                        itemModel.name.contains(
+                            dialogConfig.searchText ,
+                            ignoreCase = true)
+                    }
+                    .filter {
+                        if(dialogConfig.itemCategoryFilter == ItemCategory.Item_Category_ALL){
+                            true
+                        }
+                        else {
+                            it.categories.contains(dialogConfig.itemCategoryFilter)
+                        }
+                    }
+                ,
                 isClearable = false,
                 onItemClick = {itemId : Int? ->
                     if(itemId != null) {
                         screenModel.onAddItemClick(
-                            groupId = itemPickerGroupId.value,
+                            groupId = dialogConfig.groupId,
                             itemId = itemId
                         )
                     }
-                    isItemPickOpen.value = false
-                    itemPickerSearchText.value = ""
+                    screenModel.closeDialog()
                 },
-                searchText = itemPickerSearchText.value,
+                searchText = dialogConfig.searchText,
                 onSearchChange = { searchText ->
-                    itemPickerSearchText.value = searchText
+                    screenModel.dialogItemPickerSearchTextChange(value = searchText)
+                },
+                showFilterCategoryPicker = dialogConfig.showItemCategoryPicker,
+                filterCategories = dialogConfig.itemCategories,
+                filterCategory = dialogConfig.itemCategoryFilter,
+                onCategoryFilterSelected = {
+                    screenModel.dialogItemPickerFilterCategoryChange(value = it)
+                },
+                onOpenCategoryFilter = {
+                    screenModel.dialogItemPickerFilterCategoryPickerOpen()
+                },
+                onCloseCategoryFilter = {
+                    screenModel.dialogItemPickerFilterCategoryPickerClose()
                 },
                 onClose = {
-                    isItemPickOpen.value = false
-                    itemPickerSearchText.value = ""
+                    screenModel.closeDialog()
                 }
             )
         }
@@ -332,6 +352,7 @@ fun ItemRecipeRow(
 
         OutlinedTextField(
             modifier = Modifier
+                .requiredWidth(90.dp)
                 .padding(start = 10.dp),
             value = if(itemViewModel.amount == 0) "" else  itemViewModel.amount.toString(),
             onValueChange = { value ->
@@ -339,10 +360,18 @@ fun ItemRecipeRow(
             },
             label = { Text("amount") }
         )
-        IconButton(content = {
-            Icon(Icons.Outlined.Delete, "delete", tint = Color.Black)
-        }, onClick = {
-            removeItem(groupId, itemViewModel.itemModel.id)
-        })
+
+        IconButton(
+            modifier = Modifier
+                .requiredWidth(IntrinsicSize.Max)
+                .padding(start = 10.dp)
+            ,
+            content = {
+                Icon(Icons.Outlined.Delete, "delete", tint = Color.Black)
+            },
+            onClick = {
+                removeItem(groupId, itemViewModel.itemModel.id)
+            }
+        )
     }
 }

@@ -43,16 +43,30 @@ interface ServerApi {
         @Header("Authorization") bearerToken : String,
     ) : Response<User>
 
+    @GET("user/{id}")
+    suspend fun getUser(
+        @Header("Authorization") bearerToken : String,
+        @Path("id") id : Int,
+    ) : Response<User>
+
     @GET("user")
     suspend fun getUsers(
         @Header("Authorization") bearerToken : String,
     ) : Response<List<User>>
 
-    @POST("user/changeRole")
+    @POST("user/{userId}/changeRole")
     suspend fun changeUserRole(
         @Header("Authorization") bearerToken : String,
+        @Path("userId") userId : Int,
         @Body data : UserChangeRoleRequest
     ) : Response<User>
+
+    @POST("user/{userId}/changePassword")
+    suspend fun changeUserPassword(
+        @Header("Authorization") bearerToken : String,
+        @Path("userId") userId : Int,
+        @Body data : ChangeUserPasswordRequest
+    )
 
     @POST("games/new")
     suspend fun createGame(

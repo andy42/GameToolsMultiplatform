@@ -69,7 +69,7 @@ class GameEditScreen(
                 negativeText = "Discard",
                 onPositiveClick = {
                     screenModel.closeDialog()
-                    screenModel.onSaveClick()
+                    screenModel.onSaveClick(closePageAfter = true)
                 },
                 onNegativeClick = {
                     screenModel.closeDialog()

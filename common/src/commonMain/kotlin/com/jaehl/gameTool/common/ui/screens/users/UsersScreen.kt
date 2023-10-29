@@ -18,8 +18,11 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.jaehl.gameTool.common.data.model.User
 import com.jaehl.gameTool.common.ui.componets.AppBar
+import com.jaehl.gameTool.common.ui.componets.ErrorDialog
 import com.jaehl.gameTool.common.ui.componets.ListItem
 import com.jaehl.gameTool.common.ui.componets.ListPickerDialog
+import com.jaehl.gameTool.common.ui.screens.home.HomeScreenModel
+import com.jaehl.gameTool.common.ui.screens.userDetails.UserDetailsScreen
 
 class UsersScreen: Screen {
 
@@ -47,7 +50,7 @@ class UsersScreen: Screen {
             ) {
                 Card(
                     modifier = Modifier
-                        .width(300.dp)
+                        .width(400.dp)
                         .height(400.dp)
                         .align(Alignment.CenterHorizontally)
                 ) {
@@ -57,8 +60,8 @@ class UsersScreen: Screen {
                     ) {
                         UserList(
                             screenModel.users,
-                            onRoleChangeClick = {
-                                screenModel.onUserRoleClick(it)
+                            onUserClick = { userId ->
+                                navigator.push(UserDetailsScreen(userId))
                             }
                         )
                     }
@@ -66,26 +69,14 @@ class UsersScreen: Screen {
             }
         }
 
-        val selectedRoleIndex = remember { mutableStateOf(-1) }
-
-        if(screenModel.dialogConfig.value is UsersScreenModel.DialogConfig.RolePickerConfig) {
-            ListPickerDialog(
-                title = "Change User Role",
-                list = User.Role.values().map { ListItem(it.name, it) },
-                onClose = {
-                    selectedRoleIndex.value = -1
-                    screenModel.closeRolePicker()
-                },
-                positiveText = "Change Role",
-                selectedIndex = selectedRoleIndex.value,
-                onItemClick = {
-                    selectedRoleIndex.value = it
-                },
-                onItemPicked = {
-                    val userId = (screenModel.dialogConfig.value as UsersScreenModel.DialogConfig.RolePickerConfig).userId
-                    selectedRoleIndex.value = -1
-                    screenModel.closeRolePicker()
-                    screenModel.changeUserRole(userId = userId, role = it)
+        val dialogConfig = screenModel.dialogConfig.value
+        if(dialogConfig is UsersScreenModel.DialogConfig.ErrorDialog){
+            ErrorDialog(
+                title = dialogConfig.title,
+                message = dialogConfig.message,
+                buttonText = "Ok",
+                onClick = {
+                    screenModel.closeDialog()
                 }
             )
         }
@@ -95,12 +86,12 @@ class UsersScreen: Screen {
 @Composable
 fun UserList(
     users : List<UserModel>,
-    onRoleChangeClick : (userId : Int) -> Unit
+    onUserClick : (userId : Int) -> Unit
 ){
     users.forEach {
         UserRow(
             user = it,
-            onRoleChangeClick = onRoleChangeClick,
+            onUserClick = onUserClick,
         )
     }
 }
@@ -108,18 +99,22 @@ fun UserList(
 @Composable
 fun UserRow(
     user : UserModel,
-    onRoleChangeClick : (userId : Int) -> Unit
+    onUserClick : (userId : Int) -> Unit
 ) {
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                onRoleChangeClick(user.id)
+                onUserClick(user.id)
             }
             .padding(15.dp)
     ) {
-        Text(user.name)
+        Column {
+            Text(user.name)
+            Text(user.email)
+        }
         Text(user.role)
     }
 }

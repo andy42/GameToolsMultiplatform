@@ -6,17 +6,17 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.Button
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.jaehl.gameTool.common.data.model.ItemCategory
 import com.jaehl.gameTool.common.ui.AppColor
 import com.jaehl.gameTool.common.ui.viewModel.ItemModel
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ItemPickDialog(
     title: String,
@@ -25,7 +25,13 @@ fun ItemPickDialog(
     onItemClick: (itemId : Int?) -> Unit,
     searchText : String,
     onSearchChange : ((String) -> Unit)?,
-    onClose : () -> Unit
+    showFilterCategoryPicker : Boolean = false,
+    filterCategories : List<ItemCategory> = listOf(),
+    filterCategory : ItemCategory = ItemCategory.Item_Category_ALL,
+    onClose : () -> Unit,
+    onCategoryFilterSelected : ((value : ItemCategory) -> Unit)? = null,
+    onOpenCategoryFilter : (() -> Unit)? = null,
+    onCloseCategoryFilter : (() -> Unit)? = null,
 ){
     Box(modifier = Modifier
         .fillMaxWidth()
@@ -34,7 +40,7 @@ fun ItemPickDialog(
         .background(AppColor.dialogBackground)) {
         Column(
             modifier = Modifier
-                .width(400.dp)
+                .width(500.dp)
                 .fillMaxHeight()
                 .padding(top = 20.dp, bottom = 20.dp)
                 .align(Alignment.Center)
@@ -52,16 +58,56 @@ fun ItemPickDialog(
                     Text("Clear")
                 }
             }
-            if(onSearchChange != null){
-                OutlinedTextField(
-                    value = searchText,
-                    onValueChange = {
-                        onSearchChange(it)
-                    },
-                    label = { Text("Search") },
-                    modifier = Modifier
-                        .padding(10.dp)
-                )
+            FlowRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 10.dp)
+            ) {
+                if(onSearchChange != null) {
+                    OutlinedTextField(
+                        value = searchText,
+                        onValueChange = {
+                            onSearchChange(it)
+                        },
+                        label = { Text("Search") },
+                        modifier = Modifier
+                            .padding(top = 10.dp, end = 10.dp)
+                    )
+                }
+                if(onOpenCategoryFilter != null) {
+                    Box(
+                        modifier = Modifier
+                            .padding(top = 10.dp, end = 10.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = filterCategory.name,
+                            onValueChange = { },
+                            label = { Text("Filter Category") }
+                        )
+                        Box(modifier = Modifier
+                            .matchParentSize()
+                            .clickable {
+                                onOpenCategoryFilter()
+                            })
+                        DropdownMenu(
+                            expanded = showFilterCategoryPicker,
+                            onDismissRequest = {
+                                onCloseCategoryFilter?.invoke()
+                            },
+                            modifier = Modifier
+                        ) {
+                            filterCategories.forEach {
+                                DropdownMenuItem(
+                                    onClick = {
+                                        onCategoryFilterSelected?.invoke(it)
+                                    }
+                                ) {
+                                    Text(text = it.name)
+                                }
+                            }
+                        }
+                    }
+                }
             }
             LazyColumn {
                 itemsIndexed(itemList) { index, item ->

@@ -22,8 +22,10 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.jaehl.gameTool.common.ui.AppColor
 import com.jaehl.gameTool.common.ui.componets.AppBar
 import com.jaehl.gameTool.common.ui.componets.CustomVerticalScrollbar
+import com.jaehl.gameTool.common.ui.componets.WarningDialog
 import com.jaehl.gameTool.common.ui.screens.collectionDetails.CollectionDetailsScreen
 import com.jaehl.gameTool.common.ui.screens.collectionEdit.CollectionEditScreen
+import com.jaehl.gameTool.common.ui.screens.gameEdit.GameEditScreenModel
 
 class CollectionListScreen(
     val gameId : Int
@@ -67,6 +69,23 @@ class CollectionListScreen(
                 screenModel.onCollectionDeleteClick(collectionId = collectionId)
             }
         )
+
+        val dialogConfig = screenModel.dialogConfig.value
+
+        if(dialogConfig is CollectionListScreenModel.DialogConfig.DeleteWarningDialog){
+            WarningDialog(
+                title = "Delete Collection",
+                message = "are you sure you want to delete this Collection?",
+                positiveText = "Delete",
+                negativeText = "Cancel",
+                onPositiveClick = {
+                    screenModel.onCollectionDelete(dialogConfig.collectionId)
+                },
+                onNegativeClick = {
+                    screenModel.closeDialog()
+                }
+            )
+        }
     }
 }
 
@@ -166,7 +185,8 @@ fun CollectionListRow(
         modifier = Modifier
             .clickable {  onCollectionClick(collection.id) }
             .background(if(index.mod(2) == 0) AppColor.rowBackgroundEven else AppColor.rowBackgroundOdd)
-            .height(40.dp),
+            .padding(10.dp)
+        ,
         verticalAlignment = Alignment.CenterVertically
     ){
         Text(
