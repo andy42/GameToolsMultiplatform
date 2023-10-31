@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableStateOf
 import cafe.adriel.voyager.core.model.ScreenModel
 import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.AppConfig
+import com.jaehl.gameTool.common.data.Resource
 import com.jaehl.gameTool.common.data.repo.GameRepo
 import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.ui.screens.home.GameModel
@@ -37,12 +38,15 @@ class GameDetailsScreenModel(
             jobDispatcher,
             onException = ::onException
         ){
+            gameRepo.getGameFlow(config.gameId).collect { gameResource ->
+                pageLoading.value = (gameResource is Resource.Loading)
+                if(gameResource is Resource.Error){
+                    onException(gameResource.exception)
+                    return@collect
+                }
+                viewModel.value = gameResource.getDataOrThrow().toGameModel(appConfig, tokenProvider)
 
-            val game = gameRepo.getGame(config.gameId)
-
-            viewModel.value = game.toGameModel(appConfig, tokenProvider)
-
-            this.pageLoading.value = false
+            }
         }
     }
 

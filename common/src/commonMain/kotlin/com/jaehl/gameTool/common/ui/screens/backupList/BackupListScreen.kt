@@ -85,7 +85,7 @@ fun BackupListPage(
     ) {
         AppBar(
             title = "Backups",
-            backButtonEnabled = true,
+            showBackButton = true,
             onBackClick = {
                 onBackClick()
             }

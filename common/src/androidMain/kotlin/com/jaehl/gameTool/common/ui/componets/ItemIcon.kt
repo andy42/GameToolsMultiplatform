@@ -11,9 +11,11 @@ import androidx.compose.ui.unit.Dp
 import io.kamel.core.Resource
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
+import io.kamel.image.lazyPainterResource
 import io.ktor.client.request.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import java.net.URI
 
 @Composable
 actual fun ItemIcon(modifier : Modifier, imageResource : ImageResource, contentScale : ContentScale){

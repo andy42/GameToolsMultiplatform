@@ -2,8 +2,11 @@ package com.jaehl.gameTool.common.di
 
 import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.*
+import com.jaehl.gameTool.common.data.local.*
 import com.jaehl.gameTool.common.data.repo.*
 import com.jaehl.gameTool.common.data.service.*
+import com.jaehl.gameTool.common.ui.UiExceptionHandler
+import com.jaehl.gameTool.common.ui.UiExceptionHandlerImp
 import com.jaehl.gameTool.common.ui.util.ItemImporter
 import com.jaehl.gameTool.common.ui.util.ItemRecipeInverter
 import com.jaehl.gameTool.common.ui.util.ItemRecipeNodeUtil
@@ -16,32 +19,67 @@ object DataModule {
 
         bind<UserRepo> { singleton {  UserRepoImp(
             instance<UserService>(),
-            instance<AuthLocalStore>()
+            instance<AuthLocalStore>(),
+            instance<UserLocalSource>()
         ) }}
 
         bind<TokenProvider> { provider {
             instance<UserRepo>() as TokenProvider
         }}
 
+        bind<GameLocalSource> {
+            singleton {
+                GameLocalSourceInMemory()
+            }
+        }
+
+        bind<UserLocalSource>() {
+            singleton {
+                UserLocalSourceInMemory()
+            }
+        }
+
+        bind<ItemLocalSource>() {
+            singleton {
+                ItemLocalSourceInMemory()
+            }
+        }
+
+        bind<CollectionLocalSource>(){
+            singleton {
+                CollectionLocalSourceInMemory()
+            }
+        }
+
+        bind<RecipeLocalSource>() {
+            singleton {
+                RecipeLocalSourceInMemory()
+            }
+        }
+
         bind<GameRepo> { singleton {  GameRepoImp(
-            instance<GameService>()
+            instance<GameService>(),
+            instance<GameLocalSource>(),
         ) }}
 
         bind<ItemRepo> { singleton { ItemRepoImp(
             instance<JobDispatcher>(),
-            instance<ItemService>()
+            instance<ItemService>(),
+            instance<ItemLocalSource>()
         ) }}
 
         bind<RecipeRepo> { singleton { RecipeRepoImp(
             instance<JobDispatcher>(),
-            instance<RecipeService>()
+            instance<RecipeService>(),
+            instance<RecipeLocalSource>()
         ) }}
 
         bind<CollectionRepo> {
             singleton {
                 CollectionRepoImp(
                     instance<JobDispatcher>(),
-                    instance<CollectionService>()
+                    instance<CollectionService>(),
+                    instance<CollectionLocalSource>()
                 )
             }
         }
@@ -58,7 +96,7 @@ object DataModule {
 
         bind<ItemRecipeNodeUtil>{ singleton { ItemRecipeNodeUtil(
             instance<ItemRepo>(),
-            instance<RecipeRepo>(),
+            //instance<RecipeRepo>(),
             instance<AppConfig>(),
             instance<TokenProvider>()
         ) }}

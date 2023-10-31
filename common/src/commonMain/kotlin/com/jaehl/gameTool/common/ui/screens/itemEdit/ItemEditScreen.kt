@@ -6,8 +6,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -48,6 +46,7 @@ class ItemEditScreen(
         }
 
         ItemEditPage(
+            loading = screenModel.pageLoading.value,
             title = screenModel.title.value,
             viewModel = screenModel.viewModel.value,
             onBackClick = {
@@ -117,9 +116,12 @@ class ItemEditScreen(
         }
 
         if(dialogConfig is ItemEditScreenModel.DialogConfig.DialogItemCategoryPicker){
+            val itemCategories = screenModel.itemCategories.filter {
+                !screenModel.viewModel.value.itemCategories.contains(it)
+            }
             ItemCategoryPickDialog(
                 title = "Category",
-                categoryList = dialogConfig.itemCategories,
+                categoryList = itemCategories,
                 onCategoryClick = { itemCategory ->
                     screenModel.onItemCategoryAdd(itemCategory)
                     screenModel.closeDialog()
@@ -134,11 +136,12 @@ class ItemEditScreen(
             )
         }
         if(dialogConfig is ItemEditScreenModel.DialogConfig.ItemPickerDialog){
+            val items = screenModel.itemModels.filter {
+                it.name.contains(dialogConfig.searchText, true)
+            }
             ItemPickDialog(
                 title = "",
-                itemList = dialogConfig.items.filter {
-                    it.name.contains(dialogConfig.searchText, true)
-                },
+                itemList = items,
                 isClearable = false,
                 onItemClick = { itemId : Int? ->
                     if(itemId == null) return@ItemPickDialog
@@ -179,6 +182,7 @@ class ItemEditScreen(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ItemEditPage(
+    loading : Boolean,
     title : String,
     viewModel : ItemEditScreenModel.ViewModel,
     onBackClick : ()-> Unit,
@@ -205,12 +209,14 @@ fun ItemEditPage(
     ) {
         AppBar(
             title = title,
-            backButtonEnabled = true,
+            enabledBackButton = !loading,
+            showBackButton = true,
             onBackClick = {
                 onBackClick()
             },
             actions = {
                 Button(
+                    enabled = !loading,
                     onClick = {
                         onSaveClick()
                     },
@@ -220,6 +226,7 @@ fun ItemEditPage(
                 }
             }
         )
+        CustomLinearProgressIndicator(loading)
         Box(
             Modifier.fillMaxWidth()
         ) {
@@ -239,6 +246,7 @@ fun ItemEditPage(
                 ) {
                     StyledOutlinedTextField(
                         viewModel.itemName,
+                        enabled = !loading,
                         modifier = Modifier,
                         label = { Text("Name") },
                         onValueChange = { value ->
@@ -261,10 +269,12 @@ fun ItemEditPage(
                     FlowRow(modifier = Modifier, verticalArrangement = Arrangement.Center) {
                         viewModel.itemCategories.forEach { itemCategory ->
                             ItemCategoryChip(
+                                enabled = !loading,
                                 itemCategory,
                                 onItemCategoryDeleteClick = onItemCategoryDeleteClick)
                         }
                         Button(
+                            enabled = !loading,
                             onClick = {
                                 onOpenItemCategoriesPicker()
                             },
@@ -283,6 +293,7 @@ fun ItemEditPage(
                         .forEachIndexed { index, recipeViewModel ->
                             if (!recipeViewModel.isDeleted) {
                                 RecipeCard(
+                                    enabled = !loading,
                                     recipeIndex = index,
                                     recipe = recipeViewModel,
                                     openItemPicker = openItemPicker,
@@ -304,10 +315,12 @@ fun ItemEditPage(
                             .background(MaterialTheme.colors.surface)
                             .padding(10.dp)
                     ) {
-                        Button(onClick = {
-                            onRecipeAddClick()
-
-                        }) {
+                        Button(
+                            enabled = !loading,
+                            onClick = {
+                                onRecipeAddClick()
+                            }
+                        ) {
                             Text("Add Recipe")
                         }
                     }

@@ -6,6 +6,7 @@ import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.coroutineScope
 import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.AppConfig
+import com.jaehl.gameTool.common.data.Resource
 import com.jaehl.gameTool.common.data.model.Item
 import com.jaehl.gameTool.common.data.model.ItemCategory
 import com.jaehl.gameTool.common.data.model.User
@@ -15,16 +16,23 @@ import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.data.repo.UserRepo
 import com.jaehl.gameTool.common.ui.screens.launchIo
 import com.jaehl.gameTool.common.extensions.postSwap
+import com.jaehl.gameTool.common.ui.UiExceptionHandler
 import com.jaehl.gameTool.common.ui.componets.ImageResource
+import com.jaehl.gameTool.common.ui.viewModel.ClosedDialogViewModel
+import com.jaehl.gameTool.common.ui.viewModel.DialogViewModel
+import com.jaehl.gameTool.common.ui.viewModel.ItemCategoryPickerDialogViewModel
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 class ItemListScreenModel(
-    val jobDispatcher : JobDispatcher,
-    val tokenProvider: TokenProvider,
-    val appConfig: AppConfig,
-    val itemRepo: ItemRepo,
-    val userRepo: UserRepo,
-    val gameRepo: GameRepo
+    private val jobDispatcher : JobDispatcher,
+    private val tokenProvider: TokenProvider,
+    private val appConfig: AppConfig,
+    private val itemRepo: ItemRepo,
+    private val userRepo: UserRepo,
+    private val gameRepo: GameRepo,
+    private val uiExceptionHandler : UiExceptionHandler
 ) : ScreenModel {
 
     private lateinit var config : Config
@@ -40,9 +48,9 @@ class ItemListScreenModel(
     val searchText =  mutableStateOf("")
     val categoryFilter = mutableStateOf(ItemCategory.Item_Category_ALL)
 
-    private var itemCategories = listOf<ItemCategory>()
+    val itemCategories = mutableStateListOf<ItemCategory>()
 
-    val dialogConfig = mutableStateOf<DialogConfig>(DialogConfig.Closed)
+    val dialogViewModel = mutableStateOf<DialogViewModel>(ClosedDialogViewModel)
 
     fun setup(config : Config) {
         this.config = config
@@ -51,58 +59,76 @@ class ItemListScreenModel(
         }
     }
 
-    suspend fun dataRefresh() {
-        launchIo(jobDispatcher, ::onException){
-            userRepo.getUserSelf().let { user ->
-                showEditItems.value = listOf(
-                    User.Role.Admin,
-                    User.Role.Contributor
-                ).contains(user.role)
-            }
-        }
-        launchIo(
-            jobDispatcher,
-            onException = ::onException
-        ){
-            itemRepo.getItemsFlow(config.gameId).collect { newItems ->
-                this.items.postSwap(
-                    newItems.map {item ->
-                        item.toItemRowModel(appConfig, tokenProvider)
-                    }
-                )
-            }
-            this.pageLoading.value = false
-        }
-        launchIo(
-            jobDispatcher,
-            onException = ::onException) {
+    private suspend fun updateUi(
+        userResource : Resource<User>,
+        itemsResource : Resource<List<Item>>,
+        itemCategoriesResource : Resource<List<ItemCategory>>){
 
-            val list = mutableListOf(ItemCategory.Item_Category_ALL)
-            list.addAll(gameRepo.getGame(config.gameId).itemCategories)
-            itemCategories = list
+        pageLoading.value = (userResource is Resource.Loading
+                || itemsResource is Resource.Loading
+                || itemCategoriesResource is Resource.Loading)
+
+
+        listOf<Resource<*>>(userResource, itemsResource, itemCategoriesResource).forEach {
+            if(it is Resource.Error){
+                onException(it.exception)
+                return
+            }
         }
+
+        userResource.getDataOrThrow().let { user ->
+            showEditItems.value = listOf(
+                User.Role.Admin,
+                User.Role.Contributor
+            ).contains(user.role)
+        }
+
+        this.items.postSwap(
+            itemsResource.getDataOrThrow().map { item ->
+                item.toItemRowModel(appConfig, tokenProvider)
+            }
+        )
+
+        val list = mutableListOf(ItemCategory.Item_Category_ALL)
+        list.addAll(itemCategoriesResource.getDataOrThrow())
+        itemCategories.postSwap(list)
+    }
+
+    suspend fun dataRefresh() {
+
+        pageLoading.value = true
+        combine(
+            userRepo.getUserSelFlow(),
+            itemRepo.getItemsFlow(config.gameId),
+            gameRepo.getGameItemCategories(config.gameId)
+        ) { userResource, itemsResource, itemCategoriesResource ->
+            updateUi(
+                userResource,
+                itemsResource,
+                itemCategoriesResource
+            )
+        }.collect()
     }
 
     private fun onException(t: Throwable){
         System.err.println(t.message)
-        pageLoading.value = false
+
+        dialogViewModel.value = uiExceptionHandler.handelException(t)
     }
 
     fun openDialogItemCategoryPicker() = launchIo(jobDispatcher, ::onException) {
-        dialogConfig.value = DialogConfig.DialogItemCategoryPicker(
-            itemCategories = itemCategories
-        )
+        dialogViewModel.value = ItemCategoryPickerDialogViewModel()
     }
 
     fun onDialogItemCategoryPickerSearchTextChange(searchText : String) {
-        val dialogItemCategoryPicker = dialogConfig.value as? DialogConfig.DialogItemCategoryPicker ?: return
-        dialogConfig.value = dialogItemCategoryPicker.copy(
+        val dialogItemCategoryPicker = dialogViewModel.value as? ItemCategoryPickerDialogViewModel ?: return
+        dialogViewModel.value = dialogItemCategoryPicker.copy(
             searchText = searchText
         )
     }
 
     fun closeDialog() {
-        dialogConfig.value = DialogConfig.Closed
+        dialogViewModel.value = ClosedDialogViewModel
     }
 
     data class Config(
@@ -112,8 +138,11 @@ class ItemListScreenModel(
     sealed class DialogConfig {
         data object Closed : DialogConfig()
         data class DialogItemCategoryPicker(
-            val itemCategories : List<ItemCategory>,
             val searchText : String = ""
+        ) : DialogConfig()
+        data class ErrorDialog(
+            val title : String,
+            val message : String
         ) : DialogConfig()
     }
 }

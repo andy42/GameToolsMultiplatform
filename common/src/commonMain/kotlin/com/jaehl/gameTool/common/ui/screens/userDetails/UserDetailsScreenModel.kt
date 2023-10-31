@@ -3,11 +3,14 @@ package com.jaehl.gameTool.common.ui.screens.userDetails
 import androidx.compose.runtime.mutableStateOf
 import cafe.adriel.voyager.core.model.ScreenModel
 import com.jaehl.gameTool.common.JobDispatcher
+import com.jaehl.gameTool.common.data.Resource
 import com.jaehl.gameTool.common.data.model.User
 import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.data.repo.UserRepo
 import com.jaehl.gameTool.common.ui.componets.TextFieldValue
 import com.jaehl.gameTool.common.ui.screens.launchIo
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
 
 class UserDetailsScreenModel(
     private val jobDispatcher: JobDispatcher,
@@ -18,24 +21,33 @@ class UserDetailsScreenModel(
     val logoutEvent = mutableStateOf(false)
     var userId = -1
 
+    val pageLoading = mutableStateOf(false)
+
     val dialogConfig = mutableStateOf<DialogConfig>(DialogConfig.Closed)
 
     private fun onException(t : Throwable) {
         System.err.println(t.message)
     }
 
-    fun setup(userId : Int?) = launchIo(jobDispatcher, ::onException) {
+    fun setup(userId : Int?){
         dataRefresh(userId)
     }
 
-    private suspend fun dataRefresh(userId : Int?) {
-        val userSelf = userRepo.getUserSelf()
+    private fun updateUi(
+        userSelfResource : Resource<User>, userResource : Resource<User>?
+    ) {
+        pageLoading.value = (userSelfResource is Resource.Loading
+                || userResource is Resource.Loading)
 
-        val user = if(userId == null){
-            userSelf
-        } else {
-            userRepo.getUser(userId)
+        listOf<Resource<*>?>(userSelfResource, userResource).forEach {
+            if(it is Resource.Error){
+                onException(it.exception)
+                return
+            }
         }
+
+        val userSelf = userSelfResource.getDataOrThrow()
+        val user = userResource?.getDataOrThrow() ?: userSelfResource.getDataOrThrow()
 
         var viewModel = ViewModel(
             userModel = user.toUserViewModel(
@@ -49,6 +61,26 @@ class UserDetailsScreenModel(
 
         this.userId = user.id
         this.viewModel.value =  viewModel
+
+    }
+    private fun dataRefresh(userId : Int?) {
+        pageLoading.value = true
+        launchIo(jobDispatcher, ::onException) {
+            if(userId == null){
+                userRepo.getUserSelFlow().collect{ userSelfResource ->
+                    updateUi(userSelfResource, null)
+                }
+            }
+            else {
+                combine(
+                    userRepo.getUserSelFlow(),
+                    userRepo.getUserFlow(userId)
+                ) { userSelfResource, userResource ->
+                    updateUi(userSelfResource, userResource)
+                }.collect()
+            }
+
+        }
     }
 
     fun logoutClick() = launchIo(jobDispatcher, ::onException) {

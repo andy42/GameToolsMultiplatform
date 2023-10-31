@@ -65,6 +65,7 @@ class ItemDetailsScreen(
         )
 
         ItemDetailsPage(
+            loading = screenModel.pageLoading.value,
             itemId = itemId,
             itemInfo = screenModel.itemInfo.value,
             recipes = screenModel.recipeModels,
@@ -153,6 +154,7 @@ class ItemDetailsScreen(
 
 @Composable
 fun ItemDetailsPage(
+    loading : Boolean,
     itemId : Int,
     itemInfo : ItemInfoModel,
     recipes : List<RecipeViewModel>,
@@ -171,7 +173,7 @@ fun ItemDetailsPage(
     ) {
         AppBar(
             title = "ItemDetails",
-            backButtonEnabled = true,
+            showBackButton = true,
             onBackClick = {
                 onBackClick()
             },
@@ -185,6 +187,7 @@ fun ItemDetailsPage(
                 }
             }
         )
+        CustomLinearProgressIndicator(loading)
         Box(
             Modifier.fillMaxWidth()
         ) {

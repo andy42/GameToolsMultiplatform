@@ -4,10 +4,7 @@ package com.jaehl.gameTool.common.ui.screens.collectionDetails
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Settings
@@ -49,6 +46,7 @@ class CollectionDetailsScreen(
         )
 
         CollectionDetailsPage(
+            loading = screenModel.pageLoading.value,
             title = screenModel.title.value,
             groupsList = screenModel.groups,
             onBackClick = {
@@ -76,44 +74,45 @@ class CollectionDetailsScreen(
             }
         )
 
-        val dialogState = screenModel.dialogState.value
-        if(dialogState is CollectionDetailsScreenModel.DialogState.RecipeSettingsDialog ){
-            //val dialogState = screenModel.dialogState.value as CollectionDetailsScreenModel.DialogState.RecipeSettingsDialog
+        val dialogViewModel = screenModel.dialogViewModel.value
+        if(dialogViewModel is CollectionDetailsScreenModel.RecipeSettingsDialog ){
             RecipeSettingsDialog(
                 title = "Recipe Settings",
-                recipeSettings = dialogState.settings,
+                recipeSettings = dialogViewModel.settings,
                 onClose = {
-                    screenModel.onCloseDialog()
+                    screenModel.closeDialog()
                 },
                 onRecipeSettingsChange = {
                     screenModel.onRecipeSettingsChange(
-                        dialogState.groupId,
+                        dialogViewModel.groupId,
                         it
                     )
                 }
             )
         }
 
-        if(dialogState is CollectionDetailsScreenModel.DialogState.RecipePickerDialog ){
+        if(dialogViewModel is CollectionDetailsScreenModel.RecipePickerDialog ){
             RecipePickerDialog(
                 title = "Pick Recipe",
-                recipePickerData = dialogState.recipePickerData,
+                recipePickerData = dialogViewModel.recipePickerData,
                 onClose = {
-                    screenModel.onCloseDialog()
+                    screenModel.closeDialog()
                 },
                 onRecipeClick = { recipeId ->
-                    screenModel.onRecipePickerSelectedClick(dialogState, recipeId)
+                    screenModel.onRecipePickerSelectedClick(dialogViewModel, recipeId)
                 },
                 onRecipeConfirmClick = {
                     screenModel.onGroupItemRecipeChanged(
-                        itemId = dialogState.itemId,
-                        groupId = dialogState.groupId,
-                        recipeId = dialogState.recipePickerData.selectedRecipeId
+                        itemId = dialogViewModel.itemId,
+                        groupId = dialogViewModel.groupId,
+                        recipeId = dialogViewModel.recipePickerData.selectedRecipeId
                     )
                 }
 
             )
         }
+
+        ErrorDialog(dialogViewModel, onClose = screenModel::closeDialog)
     }
 }
 
@@ -152,6 +151,7 @@ class CollectionDetailsScreen(
 
 @Composable
 fun CollectionDetailsPage(
+    loading : Boolean,
     title : String,
     groupsList : List<CollectionDetailsScreenModel.GroupsViewModel>,
     onBackClick : () -> Unit,
@@ -169,7 +169,7 @@ fun CollectionDetailsPage(
     ) {
         AppBar(
             title = title,
-            backButtonEnabled = true,
+            showBackButton = true,
             onBackClick = {
                 onBackClick()
             },
@@ -181,6 +181,7 @@ fun CollectionDetailsPage(
                 })
             }
         )
+        CustomLinearProgressIndicator(loading)
         Box(
             Modifier.fillMaxWidth()
         ) {

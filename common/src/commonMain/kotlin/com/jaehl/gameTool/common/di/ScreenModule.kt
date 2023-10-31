@@ -4,6 +4,8 @@ import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.AppConfig
 import com.jaehl.gameTool.common.data.repo.*
 import com.jaehl.gameTool.common.data.service.ImageService
+import com.jaehl.gameTool.common.ui.UiExceptionHandler
+import com.jaehl.gameTool.common.ui.UiExceptionHandlerImp
 import com.jaehl.gameTool.common.ui.screens.userDetails.UserDetailsScreenModel
 import com.jaehl.gameTool.common.ui.screens.backupList.BackupListScreenModel
 import com.jaehl.gameTool.common.ui.screens.collectionDetails.CollectionDetailsScreenModel
@@ -30,6 +32,12 @@ import org.kodein.di.*
 object ScreenModule {
     fun create() = DI.Module(name = "Screens") {
 
+        bind<UiExceptionHandler>() {
+            provider {
+                UiExceptionHandlerImp()
+            }
+        }
+
         bind<LoginScreenModel> { provider {
             LoginScreenModel(
                 instance<JobDispatcher>(),
@@ -52,7 +60,8 @@ object ScreenModule {
                 instance<UserRepo>(),
                 instance<TokenProvider>(),
                 instance<AppConfig>(),
-                instance<ServerBackup>()
+                instance<ServerBackup>(),
+                instance<UiExceptionHandler>()
             )}}
 
         bind<GameDetailsScreenModel> { provider {
@@ -82,7 +91,8 @@ object ScreenModule {
                 appConfig = instance<AppConfig>(),
                 itemRepo = instance<ItemRepo>(),
                 userRepo = instance<UserRepo>(),
-                gameRepo = instance<GameRepo>()
+                gameRepo = instance<GameRepo>(),
+                instance<UiExceptionHandler>()
             )}}
 
         bind<ItemDetailsScreenModel> { provider {
@@ -119,7 +129,8 @@ object ScreenModule {
                 instance<AppConfig>(),
                 instance<TokenProvider>(),
                 instance<ItemRecipeNodeUtil>(),
-                instance<ItemRecipeInverter>()
+                instance<ItemRecipeInverter>(),
+                instance<UiExceptionHandler>()
             )}}
 
         bind<CollectionEditScreenModel> { provider {
@@ -130,6 +141,7 @@ object ScreenModule {
                 instance<GameRepo>(),
                 instance<AppConfig>(),
                 instance<TokenProvider>(),
+                instance<UiExceptionHandler>()
             )}}
 
         bind<CollectionListScreenModel> { provider {

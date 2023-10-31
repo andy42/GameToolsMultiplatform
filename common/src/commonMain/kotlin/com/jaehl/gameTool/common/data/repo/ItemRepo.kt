@@ -1,6 +1,8 @@
 package com.jaehl.gameTool.common.data.repo
 
 import com.jaehl.gameTool.common.JobDispatcher
+import com.jaehl.gameTool.common.data.Resource
+import com.jaehl.gameTool.common.data.local.ItemLocalSource
 import com.jaehl.gameTool.common.data.model.Item
 import com.jaehl.gameTool.common.data.model.ItemCategory
 import com.jaehl.gameTool.common.data.service.ItemService
@@ -9,11 +11,9 @@ import kotlinx.coroutines.flow.flow
 
 interface ItemRepo {
     suspend fun getItems(gameId : Int) : List<Item>
-    suspend fun getItemsFlow(gameId : Int) : Flow<List<Item>>
-    suspend fun getItemFlow(id : Int) : Flow<Item>
-    suspend fun getItem(id : Int) : Item?
-
-    suspend fun preloadItems(gameId : Int)
+    suspend fun getItemsFlow(gameId : Int) : Flow<Resource<List<Item>>>
+    suspend fun getItemFlow(id : Int) : Flow<Resource<Item>>
+    suspend fun getItemCached(id : Int) : Item?
 
     suspend fun addItem(
         game : Int,
@@ -30,45 +30,38 @@ interface ItemRepo {
         image : Int
     ) : Item
 
-    suspend fun getItemCategories(gameId : Int?) : Flow<List<ItemCategory>>
+    suspend fun getItemCategories() : Flow<Resource<List<ItemCategory>>>
     suspend fun addItemCategory(name : String) : ItemCategory
 }
 
 //TODO add local caching
 class ItemRepoImp(
     private val jobDispatcher: JobDispatcher,
-    private val itemService: ItemService
+    private val itemService: ItemService,
+    private val itemLocalSource : ItemLocalSource,
 ) : ItemRepo {
 
-    private val itemsMap = hashMapOf<Int, Item>()
-    private val itemCategoriesMap = hashMapOf<Int, ItemCategory>()
-
     override suspend fun getItemsFlow(gameId : Int) = flow {
-        val items = itemService.getItems(gameId)
-        itemsMap.clear()
-        items.forEach {
-            itemsMap[it.id] = it
+        try {
+            emit(Resource.Loading(itemLocalSource.getItems(gameId)))
+            val items = itemService.getItems(gameId)
+            itemLocalSource.updateItems(gameId, items)
+            emit(Resource.Success(items))
         }
-        emit(items)
+        catch (t :Throwable){
+            emit(Resource.Error(t))
+        }
     }
 
     override suspend fun getItems(gameId: Int): List<Item> {
-        return itemsMap.values.toList()
+        return itemLocalSource.getItems(gameId)
     }
 
-    override suspend fun preloadItems(gameId: Int) {
-        val items = itemService.getItems(gameId)
-        itemsMap.clear()
-        items.forEach {
-            itemsMap[it.id] = it
-        }
-    }
-
-    override suspend fun getItem(id: Int): Item? {
-        val item = itemsMap[id]
+    override suspend fun getItemCached(id: Int): Item? {
+        val item = itemLocalSource.getItem(id)
         if(item == null){
             val newItem = itemService.getItem(id)
-            itemsMap[newItem.id] = newItem
+            itemLocalSource.updateItem(newItem)
             return newItem
         } else {
             return item
@@ -76,7 +69,15 @@ class ItemRepoImp(
     }
 
     override suspend fun getItemFlow(id: Int) = flow {
-        emit(itemService.getItem(id))
+        try {
+            emit(Resource.Loading(itemLocalSource.getItem(id)))
+            val item = itemService.getItem(id)
+            itemLocalSource.updateItem(item)
+            emit(Resource.Success(item))
+        }
+        catch (t : Throwable){
+            emit(Resource.Error(t))
+        }
     }
 
     override suspend fun addItem(
@@ -91,7 +92,7 @@ class ItemRepoImp(
             categories = categories,
             image = image
         )
-        itemsMap[item.id] = item
+        itemLocalSource.updateItem(item)
         return item
     }
 
@@ -109,24 +110,25 @@ class ItemRepoImp(
             categories = categories,
             image = image
         )
-        itemsMap[item.id] = item
+        itemLocalSource.updateItem(item)
         return item
     }
 
-    override suspend fun getItemCategories(gameId: Int?) = flow {
-        emit(itemCategoriesMap.values.toList())
-
-        val itemCategories = itemService.getItemCategories()
-        itemCategoriesMap.clear()
-        itemCategories.forEach {
-            itemCategoriesMap[it.id] = it
+    override suspend fun getItemCategories() = flow {
+        try {
+            emit(Resource.Loading(itemLocalSource.getItemCategories()))
+            val itemCategories = itemService.getItemCategories()
+            itemLocalSource.addItemCategories(itemCategories)
+            emit(Resource.Success(itemCategories))
         }
-        emit(itemCategoriesMap.values.toList())
+        catch (t :Throwable){
+            emit(Resource.Error(t))
+        }
     }
 
     override suspend fun addItemCategory(name: String): ItemCategory {
         val itemCategory = itemService.addItemCategories(name)
-        itemCategoriesMap[itemCategory.id] = itemCategory
+        itemLocalSource.addItemCategory(itemCategory)
         return itemCategory
     }
 }

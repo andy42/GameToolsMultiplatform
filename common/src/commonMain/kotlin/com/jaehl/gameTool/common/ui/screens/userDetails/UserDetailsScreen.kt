@@ -1,7 +1,10 @@
 package com.jaehl.gameTool.common.ui.screens.userDetails
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -19,10 +22,7 @@ import cafe.adriel.voyager.kodein.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.jaehl.gameTool.common.data.model.User
-import com.jaehl.gameTool.common.ui.componets.AppBar
-import com.jaehl.gameTool.common.ui.componets.ChangePasswordDialog
-import com.jaehl.gameTool.common.ui.componets.ErrorDialog
-import com.jaehl.gameTool.common.ui.componets.ListPickerDialog
+import com.jaehl.gameTool.common.ui.componets.*
 import com.jaehl.gameTool.common.ui.screens.login.LoginScreen
 
 class UserDetailsScreen(
@@ -49,6 +49,7 @@ class UserDetailsScreen(
         )
 
         AccountDetailsPage(
+            loading = screenModel.pageLoading.value,
             viewModel = screenModel.viewModel.value,
             onBackClick = {
                 navigator.pop()
@@ -124,12 +125,14 @@ class UserDetailsScreen(
 
 @Composable
 fun AccountDetailsPage(
+    loading : Boolean,
     viewModel : UserDetailsScreenModel.ViewModel,
     onBackClick : () -> Unit,
     onLogoutClick : () -> Unit,
     onChangeUserRoleClick : () -> Unit,
     onChangePasswordClick : () -> Unit
 ) {
+    val state : ScrollState = rememberScrollState()
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -138,15 +141,17 @@ fun AccountDetailsPage(
     ) {
         AppBar(
             title = "User",
-            backButtonEnabled = true,
+            showBackButton = true,
             onBackClick = {
                 onBackClick()
             }
         )
+        CustomLinearProgressIndicator(loading)
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight()
+                .verticalScroll(state)
 
         ) {
             if(viewModel.showAdminTools){

@@ -77,7 +77,7 @@ fun main() = application {
             }
             import(DataModule.create())
             import(ScreenModule.create())
-            import(ApiClientRetrofitModule.create(trustAllCerts = true))
+            import(ApiClientRetrofitModule.create(trustAllCerts = true, addDelay = false))
             //import(ApiClientKtorModule.create())
         }
 

@@ -1,27 +1,22 @@
 package com.jaehl.gameTool.common.ui.screens.users
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import cafe.adriel.voyager.core.lifecycle.LifecycleEffect
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.kodein.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import com.jaehl.gameTool.common.data.model.User
 import com.jaehl.gameTool.common.ui.componets.AppBar
+import com.jaehl.gameTool.common.ui.componets.CustomLinearProgressIndicator
 import com.jaehl.gameTool.common.ui.componets.ErrorDialog
-import com.jaehl.gameTool.common.ui.componets.ListItem
-import com.jaehl.gameTool.common.ui.componets.ListPickerDialog
-import com.jaehl.gameTool.common.ui.screens.home.HomeScreenModel
 import com.jaehl.gameTool.common.ui.screens.userDetails.UserDetailsScreen
 
 class UsersScreen: Screen {
@@ -30,44 +25,23 @@ class UsersScreen: Screen {
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val screenModel = rememberScreenModel<UsersScreenModel>()
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Gray)
-        ) {
-            AppBar(
-                title = "Users",
-                backButtonEnabled = true,
-                onBackClick = {
-                    navigator.pop()
-                }
-            )
-            Column(
-                modifier = Modifier
-                    .padding(top = 20.dp)
-                    .fillMaxSize()
 
-            ) {
-                Card(
-                    modifier = Modifier
-                        .width(400.dp)
-                        .height(400.dp)
-                        .align(Alignment.CenterHorizontally)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    ) {
-                        UserList(
-                            screenModel.users,
-                            onUserClick = { userId ->
-                                navigator.push(UserDetailsScreen(userId))
-                            }
-                        )
-                    }
-                }
+        LifecycleEffect(
+            onStarted = {
+                screenModel.setup()
             }
-        }
+        )
+
+        UsersPage(
+            loading = screenModel.pageLoading.value,
+            users = screenModel.users,
+            onBackClick = {
+                navigator.pop()
+            },
+            onUserClick = { userId ->
+                navigator.push(UserDetailsScreen(userId))
+            }
+        )
 
         val dialogConfig = screenModel.dialogConfig.value
         if(dialogConfig is UsersScreenModel.DialogConfig.ErrorDialog){
@@ -79,6 +53,55 @@ class UsersScreen: Screen {
                     screenModel.closeDialog()
                 }
             )
+        }
+    }
+}
+
+@Composable
+fun UsersPage(
+    loading : Boolean,
+    users : List<UserModel>,
+    onBackClick : () -> Unit,
+    onUserClick : (userId : Int) -> Unit
+){
+    val state : ScrollState = rememberScrollState()
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Gray)
+    ) {
+        AppBar(
+            title = "Users",
+            showBackButton = true,
+            onBackClick = {
+                onBackClick()
+            }
+        )
+        CustomLinearProgressIndicator(loading)
+        Column(
+            modifier = Modifier
+                .padding(top = 20.dp)
+                .fillMaxSize()
+                .verticalScroll(state)
+
+        ) {
+            Card(
+                modifier = Modifier
+                    .width(400.dp)
+                    .align(Alignment.CenterHorizontally)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    UserList(
+                        users,
+                        onUserClick = { userId ->
+                            onUserClick(userId)
+                        }
+                    )
+                }
+            }
         }
     }
 }

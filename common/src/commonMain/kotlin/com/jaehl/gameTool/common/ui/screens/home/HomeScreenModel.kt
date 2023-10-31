@@ -5,22 +5,30 @@ import androidx.compose.runtime.mutableStateOf
 import cafe.adriel.voyager.core.model.ScreenModel
 import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.AppConfig
+import com.jaehl.gameTool.common.data.Resource
+import com.jaehl.gameTool.common.data.model.Game
 import com.jaehl.gameTool.common.data.model.User
 import com.jaehl.gameTool.common.data.repo.GameRepo
 import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.data.repo.UserRepo
 import com.jaehl.gameTool.common.extensions.postSwap
+import com.jaehl.gameTool.common.ui.UiExceptionHandler
 import com.jaehl.gameTool.common.ui.screens.launchIo
 import com.jaehl.gameTool.common.ui.util.ServerBackup
 import com.jaehl.gameTool.common.ui.util.UiException
+import com.jaehl.gameTool.common.ui.viewModel.ClosedDialogViewModel
+import com.jaehl.gameTool.common.ui.viewModel.DialogViewModel
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
 
 class HomeScreenModel(
-    val jobDispatcher : JobDispatcher,
-    val gameRepo : GameRepo,
-    val userRepo: UserRepo,
-    val tokenProvider: TokenProvider,
-    val appConfig: AppConfig,
-    val serverBackup : ServerBackup
+    private val jobDispatcher : JobDispatcher,
+    private val gameRepo : GameRepo,
+    private val userRepo: UserRepo,
+    private val tokenProvider: TokenProvider,
+    private val appConfig: AppConfig,
+    private val serverBackup : ServerBackup,
+    private val uiExceptionHandler : UiExceptionHandler
 ) : ScreenModel {
 
     var games = mutableStateListOf<GameModel>()
@@ -29,38 +37,57 @@ class HomeScreenModel(
     var showEditGames = mutableStateOf(false)
     var pageLoading = mutableStateOf(false)
 
-    val dialogConfig = mutableStateOf<DialogConfig>(DialogConfig.Closed)
+    val logoutEvent = mutableStateOf(false)
+
+    val dialogViewModel = mutableStateOf<DialogViewModel>(ClosedDialogViewModel)
 
     fun setup() = launchIo(jobDispatcher, ::onException){
         dataRefresh()
     }
 
-    suspend fun dataRefresh() {
-        launchIo(jobDispatcher, ::onException){
-            val user = userRepo.getUserSelf()
+    private suspend fun updateUi( userResource : Resource<User>, gamesResource : Resource<List<Game>>) {
+        pageLoading.value = userResource is Resource.Loading || gamesResource is Resource.Loading
 
-            val userUnverified = listOf(
-                User.Role.Unverified
-            ).contains(user.role)
+        if(userResource is Resource.Error){
+            onException(userResource.exception)
+            return
+        }
+        if(gamesResource is Resource.Error){
+            onException(gamesResource.exception)
+            return
+        }
 
-            this.userUnverified.value = userUnverified
+        val user = userResource.getDataOrThrow()
+        val userUnverified = listOf(
+            User.Role.Unverified
+        ).contains(user.role)
+        this.userUnverified.value = userUnverified
 
-            showAdminTools.value = listOf(
-                User.Role.Admin
-            ).contains(user.role)
+        showAdminTools.value = listOf(
+            User.Role.Admin
+        ).contains(user.role)
 
-            showEditGames.value = listOf(
-                User.Role.Admin,
-                User.Role.Contributor
-            ).contains(user.role)
+        showEditGames.value = listOf(
+            User.Role.Admin,
+            User.Role.Contributor
+        ).contains(user.role)
 
-            if(userUnverified) return@launchIo
-
-            val games = gameRepo.getGames().map {
+        this.games.postSwap(
+            gamesResource.getDataOrThrow().map {
                 it.toGameModel(appConfig, tokenProvider)
             }
-            this.games.postSwap(games)
-            this.pageLoading.value = false
+        )
+    }
+
+    suspend fun dataRefresh() {
+        pageLoading.value = true
+        launchIo(jobDispatcher, ::onException){
+            combine(
+                userRepo.getUserSelFlow(),
+                gameRepo.getGames()
+            ) { user, games ->
+                updateUi(user, games)
+            }.collect()
         }
     }
 
@@ -73,37 +100,20 @@ class HomeScreenModel(
     }
 
     fun closeDialog() {
-        dialogConfig.value = DialogConfig.Closed
-    }
-
-    private fun handelUiException(e : UiException) {
-        when (e) {
-            is UiException.ForbiddenError -> {
-                dialogConfig.value = DialogConfig.ErrorDialog(
-                    title = "Login Error",
-                    message = "Login credentials incorrect"
-                )
-            }
-            is UiException.ServerConnectionError -> {
-                dialogConfig.value = DialogConfig.ErrorDialog(
-                    title = "Connection Error",
-                    message = "Oops, seems like you can not connect to the server"
-                )
-            }
-            else -> {
-                dialogConfig.value = DialogConfig.ErrorDialog(
-                    title = "Error",
-                    message = "Oops something went wrong"
-                )
-            }
-        }
+        dialogViewModel.value = ClosedDialogViewModel
     }
 
     private fun onException(t: Throwable){
         if (t is UiException){
-            handelUiException(t)
+            dialogViewModel.value = uiExceptionHandler.handelException(t)
         }
         pageLoading.value = false
+    }
+
+    fun forceLogout() = launchIo(jobDispatcher, ::onException) {
+        tokenProvider.clearTokens()
+        logoutEvent.value = true
+        closeDialog()
     }
 
     sealed class DialogConfig {

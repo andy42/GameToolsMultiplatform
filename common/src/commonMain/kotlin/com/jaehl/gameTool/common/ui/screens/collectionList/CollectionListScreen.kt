@@ -2,10 +2,7 @@ package com.jaehl.gameTool.common.ui.screens.collectionList
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.runtime.Composable
@@ -21,11 +18,11 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.jaehl.gameTool.common.ui.AppColor
 import com.jaehl.gameTool.common.ui.componets.AppBar
+import com.jaehl.gameTool.common.ui.componets.CustomLinearProgressIndicator
 import com.jaehl.gameTool.common.ui.componets.CustomVerticalScrollbar
 import com.jaehl.gameTool.common.ui.componets.WarningDialog
 import com.jaehl.gameTool.common.ui.screens.collectionDetails.CollectionDetailsScreen
 import com.jaehl.gameTool.common.ui.screens.collectionEdit.CollectionEditScreen
-import com.jaehl.gameTool.common.ui.screens.gameEdit.GameEditScreenModel
 
 class CollectionListScreen(
     val gameId : Int
@@ -45,6 +42,7 @@ class CollectionListScreen(
         }
 
         CollectionListPage(
+            loading = screenModel.pageLoading.value,
             onBackClick = {
                 navigator.pop()
             },
@@ -115,6 +113,7 @@ class CollectionListScreen(
 
 @Composable
 fun CollectionListPage(
+    loading : Boolean,
     onBackClick : () -> Unit,
     collections : List<CollectionListScreenModel.CollectionViewModel>,
     onAddCollectionClick : () -> Unit,
@@ -129,11 +128,12 @@ fun CollectionListPage(
     ) {
         AppBar(
             title = "Collections",
-            backButtonEnabled = true,
+            showBackButton = true,
             onBackClick = {
                 onBackClick()
             }
         )
+        CustomLinearProgressIndicator(loading)
         Box(
             Modifier.fillMaxWidth()
         ) {

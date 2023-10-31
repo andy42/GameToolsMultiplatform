@@ -1,12 +1,12 @@
 package com.jaehl.gameTool.common.ui.screens.home
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,13 +19,12 @@ import cafe.adriel.voyager.kodein.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.jaehl.gameTool.common.ui.AppColor
-import com.jaehl.gameTool.common.ui.componets.AppBar
-import com.jaehl.gameTool.common.ui.componets.ErrorDialog
-import com.jaehl.gameTool.common.ui.componets.ItemIcon
+import com.jaehl.gameTool.common.ui.componets.*
 import com.jaehl.gameTool.common.ui.screens.userDetails.UserDetailsScreen
 import com.jaehl.gameTool.common.ui.screens.backupList.BackupListScreen
 import com.jaehl.gameTool.common.ui.screens.gameDetails.GameDetailsScreen
 import com.jaehl.gameTool.common.ui.screens.gameEdit.GameEditScreen
+import com.jaehl.gameTool.common.ui.screens.login.LoginScreen
 import com.jaehl.gameTool.common.ui.screens.users.UsersScreen
 
 class HomeScreen : Screen {
@@ -41,7 +40,16 @@ class HomeScreen : Screen {
             }
         )
 
+        LaunchedEffect(screenModel.logoutEvent.value){
+            if(screenModel.logoutEvent.value){
+                navigator.popAll()
+                navigator.push(LoginScreen())
+                screenModel.logoutEvent.value = false
+            }
+        }
+
         HomePage(
+            loading = screenModel.pageLoading.value,
             games = screenModel.games,
             showAdminTools = screenModel.showAdminTools.value,
             showEditGames = screenModel.showEditGames.value,
@@ -75,22 +83,16 @@ class HomeScreen : Screen {
             }
         )
 
-        val dialogConfig = screenModel.dialogConfig.value
-        if(dialogConfig is HomeScreenModel.DialogConfig.ErrorDialog){
-            ErrorDialog(
-                title = dialogConfig.title,
-                message = dialogConfig.message,
-                buttonText = "Ok",
-                onClick = {
-                    screenModel.closeDialog()
-                }
-            )
-        }
+        val dialogViewModel = screenModel.dialogViewModel.value
+
+        ErrorDialog(dialogViewModel, onClose = screenModel::closeDialog)
+        ForceLogoutDialog(dialogViewModel, onClose = screenModel::forceLogout)
     }
 }
 
 @Composable
 fun HomePage(
+    loading : Boolean,
     games: List<GameModel>,
     showAdminTools : Boolean,
     showEditGames : Boolean,
@@ -103,6 +105,7 @@ fun HomePage(
     onBackupClick : () -> Unit,
     onRefreshClick : () -> Unit
 ) {
+    val state : ScrollState = rememberScrollState()
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -124,10 +127,12 @@ fun HomePage(
                 })
             }
         )
+        CustomLinearProgressIndicator(loading)
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight()
+                .verticalScroll(state)
 
         ) {
             if(showAdminTools) {

@@ -6,7 +6,11 @@ import com.jaehl.gameTool.common.data.service.UserService
 import com.auth0.jwt.JWT
 import com.auth0.jwt.exceptions.JWTDecodeException
 import com.jaehl.gameTool.common.data.AuthException
+import com.jaehl.gameTool.common.data.Resource
+import com.jaehl.gameTool.common.data.local.UserLocalSource
 import com.jaehl.gameTool.common.data.model.UserTokens
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.*
@@ -15,8 +19,11 @@ interface UserRepo {
     suspend fun login(userName : String, password : String)
     suspend fun register(userName : String, email : String, password : String)
     suspend fun getUserSelf() : User
+    suspend fun getUserSelFlow() : Flow<Resource<User>>
     suspend fun getUser(userId : Int) : User
+    suspend fun getUserFlow(userId : Int) : Flow<Resource<User>>
     suspend fun getUsers() : List<User>
+    suspend fun getUsersFlow() : Flow<Resource<List<User>>>
     suspend fun changeUserRole(userId : Int, role: User.Role) : User
     suspend fun changePassword(userId: Int, password: String)
 }
@@ -29,8 +36,9 @@ interface TokenProvider {
 }
 
 class UserRepoImp(
-    val userService : UserService,
-    val authLocalStore : AuthLocalStore
+    private val userService : UserService,
+    private val authLocalStore : AuthLocalStore,
+    private val userLocalSource : UserLocalSource
 ) : UserRepo, TokenProvider{
 
     override suspend fun login(userName: String, password: String) {
@@ -49,12 +57,52 @@ class UserRepoImp(
         return userService.getSelf(bearerToken = getBearerAccessToken())
     }
 
+    override suspend fun getUserSelFlow(): Flow<Resource<User>> = flow {
+        try {
+            userLocalSource.getUserSelf()?.let {
+                emit(Resource.Loading(it))
+            }
+            val userSelf = userService.getSelf(bearerToken = getBearerAccessToken())
+            userLocalSource.setUserSelf(userSelf)
+            emit(Resource.Success(userSelf))
+        }
+        catch (t: Throwable) {
+            emit(Resource.Error(t))
+        }
+    }
+
     override suspend fun getUser(userId: Int): User {
         return userService.getUser(bearerToken = getBearerAccessToken(), userId)
     }
 
+    override suspend fun getUserFlow(userId: Int): Flow<Resource<User>> = flow {
+        try {
+            userLocalSource.getUser(userId)?.let {
+                emit(Resource.Loading(it))
+            }
+            val user = userService.getUser(bearerToken = getBearerAccessToken(), userId = userId)
+            userLocalSource.updateUser(user)
+            emit(Resource.Success(user))
+        }
+        catch (t: Throwable) {
+            emit(Resource.Error(t))
+        }
+    }
+
     override suspend fun getUsers(): List<User> {
         return userService.getUsers(bearerToken = getBearerAccessToken())
+    }
+
+    override suspend fun getUsersFlow(): Flow<Resource<List<User>>> = flow {
+        try {
+            emit(Resource.Loading(userLocalSource.getUsers()))
+            val users = userService.getUsers(bearerToken = getBearerAccessToken())
+            userLocalSource.updateUsers(users)
+            emit(Resource.Success(users))
+        }
+        catch (t: Throwable) {
+            emit(Resource.Error(t))
+        }
     }
 
     override suspend fun changeUserRole(userId: Int, role: User.Role): User {

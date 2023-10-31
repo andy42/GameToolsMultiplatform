@@ -5,9 +5,9 @@ import androidx.compose.runtime.mutableStateOf
 import cafe.adriel.voyager.core.model.ScreenModel
 import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.AppConfig
+import com.jaehl.gameTool.common.data.Resource
+import com.jaehl.gameTool.common.data.model.*
 import com.jaehl.gameTool.common.data.model.Collection
-import com.jaehl.gameTool.common.data.model.ItemAmount
-import com.jaehl.gameTool.common.data.model.ItemRecipeNode
 import com.jaehl.gameTool.common.data.repo.CollectionRepo
 import com.jaehl.gameTool.common.data.repo.ItemRepo
 import com.jaehl.gameTool.common.data.repo.RecipeRepo
@@ -15,14 +15,16 @@ import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.extensions.postSwap
 import com.jaehl.gameTool.common.extensions.toItemAmountViewModel
 import com.jaehl.gameTool.common.extensions.toItemModel
+import com.jaehl.gameTool.common.ui.UiExceptionHandler
 import com.jaehl.gameTool.common.ui.componets.RecipePickerData
 import com.jaehl.gameTool.common.ui.screens.launchIo
 import com.jaehl.gameTool.common.ui.screens.runWithCatch
 import com.jaehl.gameTool.common.ui.util.ItemRecipeInverter
 import com.jaehl.gameTool.common.ui.util.ItemRecipeNodeUtil
-import com.jaehl.gameTool.common.ui.viewModel.ItemAmountViewModel
-import com.jaehl.gameTool.common.ui.viewModel.RecipeSettings
-import kotlinx.coroutines.launch
+import com.jaehl.gameTool.common.ui.util.UiException
+import com.jaehl.gameTool.common.ui.viewModel.*
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
 
 class CollectionDetailsScreenModel (
     val jobDispatcher : JobDispatcher,
@@ -32,72 +34,129 @@ class CollectionDetailsScreenModel (
     val appConfig : AppConfig,
     val tokenProvider: TokenProvider,
     val itemRecipeNodeUtil : ItemRecipeNodeUtil,
-    var itemRecipeInverter : ItemRecipeInverter
+    var itemRecipeInverter : ItemRecipeInverter,
+    val uiExceptionHandler: UiExceptionHandler
 ) : ScreenModel {
 
     var title = mutableStateOf("")
     private val groupsMap = hashMapOf<Int, GroupsViewModel>()
     var groups = mutableStateListOf<GroupsViewModel>()
 
-    var dialogState = mutableStateOf<DialogState>(DialogState.Closed)
+    val dialogViewModel = mutableStateOf<DialogViewModel>(ClosedDialogViewModel)
+
+    var pageLoading = mutableStateOf(false)
 
     private lateinit var config : Config
 
     fun setup(config : Config) {
         this.config = config
+        dataRefresh()
+    }
 
-        launchIo(
-            jobDispatcher = jobDispatcher,
-            onException = {
-                System.err.println(it.message)
-            }
-        ) {
-            dataLoad()
+    fun dataRefresh() {
+
+        launchIo(jobDispatcher, ::onException) {
+            combine(
+                collectionRepo.getCollectionFlow(config.collectionId),
+                itemRepo.getItemsFlow(config.gameId),
+                recipeRepo.getRecipesFlow(config.gameId)
+            ) { collectionResource : Resource<Collection>, itemResource: Resource<List<Item>>, recipesResource: Resource<List<Recipe>> ->
+                updateUi(collectionResource, itemResource, recipesResource)
+            }.collect()
         }
     }
 
-    private suspend fun dataLoad(){
-        recipeRepo.preloadRecipes(config.gameId)
-        itemRepo.preloadItems(config.gameId)
+    private fun updateRecipeOutputArray(array : ArrayList<Recipe>?, recipe : Recipe) : ArrayList<Recipe>{
+        val array = array ?: arrayListOf()
+        array.add(recipe)
+        return array
+    }
 
-        groupsMap.clear()
-        collectionRepo.getCollectionFlow(config.collectionId).collect{ collection ->
-            title.value = collection.name
+    private suspend fun updateUi(
+        collectionResource : Resource<Collection>,
+        itemResource : Resource<List<Item>>,
+        recipesResource : Resource<List<Recipe>>
+    ){
+        pageLoading.value = (collectionResource is Resource.Loading
+                || itemResource is Resource.Loading
+                || recipesResource is Resource.Loading)
 
-            collection.groups.map { group ->
-                val items = group.itemAmounts.mapNotNull { itemIngredient ->
-                    val item = itemRepo.getItem(itemIngredient.itemId) ?: return@mapNotNull null
-                    ItemAmountViewModel(
-                        item.toItemModel(appConfig, tokenProvider),
-                        itemIngredient.amount
-                    )
-                }
+        //if the Resource are empty might not have  loaded wait for server response
+        if(itemResource is Resource.Loading && itemResource.data.isEmpty()) return
+        if(recipesResource is Resource.Loading && recipesResource.data.isEmpty()) return
 
-                val nodes = mergeItemRecipesNodes(items, group.itemRecipePreferenceMap)
-                val baseNodes = itemRecipeInverter.invertItemRecipes(nodes)
+        listOf<Resource<*>>(collectionResource, itemResource, recipesResource).forEach {
+            if(it is Resource.Error){
+                onException(it.exception)
+                return
+            }
+        }
 
-                group.toGroupsViewModel(
-                    itemRepo,
-                    appConfig,
-                    tokenProvider,
-                    nodes,
-                    baseNodes
+        val collection = collectionResource.getDataOrThrow()
+
+        val recipeOutputMap = LinkedHashMap<Int, ArrayList<Recipe>>()
+        recipesResource.getDataOrThrow().forEach { recipe ->
+            recipe.output.forEach {itemAmount ->
+                recipeOutputMap[itemAmount.itemId] = updateRecipeOutputArray(recipeOutputMap[itemAmount.itemId], recipe)
+            }
+        }
+
+        val itemMap = HashMap<Int, Item>()
+        itemResource.getDataOrThrow().forEach { item ->
+            itemMap[item.id] = item
+        }
+
+        title.value = collection.name
+
+        collection.groups.map { group ->
+            val items = group.itemAmounts.mapNotNull { itemIngredient ->
+                val item = itemMap[itemIngredient.itemId] ?: return@mapNotNull null
+                ItemAmountViewModel(
+                    item.toItemModel(appConfig, tokenProvider),
+                    itemIngredient.amount
                 )
-            }.forEach {
-                groupsMap[it.id] = it
             }
 
-            groups.postSwap(
-                groupsMap.values.toList()
+            val nodes = mergeItemRecipesNodes(
+                items,
+                group.itemRecipePreferenceMap,
+                getRecipesForOutput = {itemId ->
+                    recipeOutputMap[itemId] ?: listOf()
+                }
             )
+            val baseNodes = itemRecipeInverter.invertItemRecipes(nodes)
+
+            group.toGroupsViewModel(
+                getItem = { itemId ->
+                    itemMap[itemId] ?: throw UiException.NotFound("item 2 not found : $itemId")
+                },
+                appConfig,
+                tokenProvider,
+                nodes,
+                baseNodes
+            )
+        }.forEach {
+            groupsMap[it.id] = it
         }
+
+        groups.postSwap(
+            groupsMap.values.toList()
+        )
+
+
     }
 
     private fun onException(t : Throwable) {
         System.err.println(t.message)
+        dialogViewModel.value = uiExceptionHandler.handelException(t)
+        pageLoading.value = false
     }
 
-    private suspend fun mergeItemRecipesNodes(items : List<ItemAmountViewModel>, itemRecipePreferenceMap : Map<Int, Int?>) : List<ItemRecipeNode>{
+    private suspend fun mergeItemRecipesNodes(
+        items : List<ItemAmountViewModel>,
+        itemRecipePreferenceMap : Map<Int, Int?>,
+        getRecipesForOutput : (itemId : Int) -> List<Recipe>) : List<ItemRecipeNode, >{
+
         var recipeMap = HashMap<Int, ItemAmount>()
         items.forEach { item ->
             val recipe = recipeRepo.getRecipe(getRecipeIdForItem(item.itemModel.id, itemRecipePreferenceMap) ?: return@forEach)
@@ -112,19 +171,19 @@ class CollectionDetailsScreenModel (
             }
         }
         return recipeMap.values.toList().mapNotNull {
-            itemRecipeNodeUtil.buildTree(it, null, itemRecipePreferenceMap = itemRecipePreferenceMap)
+            itemRecipeNodeUtil.buildTree(it, null, itemRecipePreferenceMap = itemRecipePreferenceMap, getRecipesForOutput= getRecipesForOutput)
         }
     }
 
     fun onRecipeSettingDialogStateClick(groupId : Int) = runWithCatch(::onException ) {
-        dialogState.value = DialogState.RecipeSettingsDialog(
+        dialogViewModel.value = RecipeSettingsDialog(
             groupId = groupId,
             settings = groupsMap[groupId]?.recipeSettings ?: throw Exception("groupId not found groupId")
         )
     }
 
-    fun onCloseDialog(){
-        dialogState.value = DialogState.Closed
+    fun closeDialog(){
+        dialogViewModel.value = ClosedDialogViewModel
     }
 
     fun onRecipeSettingsChange(groupId : Int, recipeSettings : RecipeSettings) = launchIo(jobDispatcher, ::onException) {
@@ -143,7 +202,7 @@ class CollectionDetailsScreenModel (
         )
         groupsMap[groupId] = group
 
-        dialogState.value = DialogState.RecipeSettingsDialog(
+        dialogViewModel.value = RecipeSettingsDialog(
             groupId = groupId,
             settings = group.recipeSettings
         )
@@ -162,7 +221,6 @@ class CollectionDetailsScreenModel (
     }
 
     fun onRecipeChangeClick(itemId : Int, groupId : Int) = launchIo(jobDispatcher, ::onException){
-
         val recipePickerData = RecipePickerData(
             selectedRecipeId = getRecipeIdForItem(itemId, groupsMap[groupId]?.itemRecipePreferenceMap ?: hashMapOf()),
             recipes = recipeRepo.getRecipesForOutput(itemId)
@@ -178,15 +236,15 @@ class CollectionDetailsScreenModel (
                     )
                 }
         )
-        dialogState.value = DialogState.RecipePickerDialog(
+        dialogViewModel.value = RecipePickerDialog(
             itemId = itemId,
             groupId = groupId,
             recipePickerData = recipePickerData
         )
     }
 
-    fun onRecipePickerSelectedClick(dialogState : DialogState.RecipePickerDialog, recipeId : Int?) {
-        this.dialogState.value = dialogState.copy(
+    fun onRecipePickerSelectedClick(dialogState : RecipePickerDialog, recipeId : Int?) {
+        this.dialogViewModel.value = dialogState.copy(
             recipePickerData = dialogState.recipePickerData.copy(
                 selectedRecipeId = recipeId
             )
@@ -194,6 +252,7 @@ class CollectionDetailsScreenModel (
     }
 
     fun onGroupItemRecipeChanged(itemId : Int, groupId : Int, recipeId : Int?) = launchIo(jobDispatcher, ::onException){
+        pageLoading.value = true
         val groupsViewModel = groupsMap[groupId] ?: throw Exception("group not found")
         val itemRecipePreferenceMap = groupsViewModel.itemRecipePreferenceMap.toMutableMap()
         itemRecipePreferenceMap[itemId] = recipeId
@@ -208,7 +267,7 @@ class CollectionDetailsScreenModel (
             costReduction = 1f,
             itemRecipePreferenceMap = itemRecipePreferenceMap
         )
-        dataLoad()
+        dataRefresh()
     }
 
     data class Config(
@@ -226,23 +285,20 @@ class CollectionDetailsScreenModel (
         val itemRecipePreferenceMap: Map<Int, Int?>
     )
 
-    sealed class DialogState{
-        data object Closed : DialogState()
-        data class RecipeSettingsDialog(
-            val groupId : Int,
-            val settings : RecipeSettings
-        ) : DialogState()
+    data class RecipeSettingsDialog(
+        val groupId : Int,
+        val settings : RecipeSettings
+    ) : DialogViewModel
 
-        data class RecipePickerDialog(
-            val itemId : Int,
-            val groupId : Int,
-            val recipePickerData : RecipePickerData
-        ) : DialogState()
-    }
+    data class RecipePickerDialog(
+        val itemId : Int,
+        val groupId : Int,
+        val recipePickerData : RecipePickerData
+    ) : DialogViewModel
 }
 
 suspend fun Collection.Group.toGroupsViewModel(
-    itemRepo : ItemRepo,
+    getItem : (itemId : Int) -> Item,
     appConfig : AppConfig,
     tokenProvider: TokenProvider,
     nodes : List<ItemRecipeNode>,
@@ -257,7 +313,7 @@ suspend fun Collection.Group.toGroupsViewModel(
         ),
         itemList = this.itemAmounts.map {
             ItemAmountViewModel(
-                itemModel = itemRepo.getItem(it.itemId)?.toItemModel(appConfig, tokenProvider) ?: throw Exception("Item Not Found : ${it.itemId}"),
+                itemModel = getItem(it.itemId).toItemModel(appConfig, tokenProvider),
                 amount = it.amount
             )
         },

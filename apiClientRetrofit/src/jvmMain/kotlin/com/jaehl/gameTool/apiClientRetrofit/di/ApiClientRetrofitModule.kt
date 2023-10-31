@@ -6,6 +6,7 @@ import com.jaehl.gameTool.apiClientRetrofit.data.DebugSslSocketFactory
 import com.jaehl.gameTool.apiClientRetrofit.data.api.ServerApi
 import com.jaehl.gameTool.apiClientRetrofit.data.service.*
 import com.jaehl.gameTool.apiClientRetrofit.data.util.ExceptionHandler
+import com.jaehl.gameTool.apiClientRetrofit.util.DelayInterceptor
 import com.jaehl.gameTool.common.data.AppConfig
 import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.data.service.*
@@ -17,15 +18,19 @@ import org.kodein.di.provider
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.DurationUnit
 
 object ApiClientRetrofitModule {
-    fun create(trustAllCerts : Boolean = false) = DI.Module(name = "ApiClientRetrofit") {
+    fun create(trustAllCerts : Boolean = false, addDelay : Boolean = false) = DI.Module(name = "ApiClientRetrofit") {
 
         bind<OkHttpClient> { provider {
             var builder = OkHttpClient.Builder()
-                .readTimeout(60, TimeUnit.SECONDS)
-                .callTimeout(60, TimeUnit.SECONDS)
-                .connectTimeout(60, TimeUnit.SECONDS)
+                .readTimeout(10, TimeUnit.SECONDS)
+                .connectTimeout(10, TimeUnit.SECONDS)
+            if(addDelay){
+                builder = builder.addInterceptor(DelayInterceptor(2.seconds.toLong(DurationUnit.MILLISECONDS)))
+            }
 
             if(trustAllCerts){
                 val debugSslSocketFactory = DebugSslSocketFactory()

@@ -19,6 +19,7 @@ import com.jaehl.gameTool.common.data.model.ItemCategory
 
 @Composable
 fun ItemCategoryChip(
+    enabled : Boolean,
     itemCategory : ItemCategory,
     onItemCategoryDeleteClick : (itemCategory : ItemCategory) -> Unit
 ){
@@ -35,10 +36,14 @@ fun ItemCategoryChip(
             color = MaterialTheme.colors.onSecondary,
             modifier = Modifier
                 .padding(start = 5.dp))
-        IconButton(content = {
-            Icon(Icons.Outlined.Delete, "delete", tint = MaterialTheme.colors.onSecondary)
-        }, onClick = {
-            onItemCategoryDeleteClick(itemCategory)
-        })
+        IconButton(
+            enabled = enabled,
+            content = {
+                Icon(Icons.Outlined.Delete, "delete", tint = MaterialTheme.colors.onSecondary)
+            },
+            onClick = {
+                onItemCategoryDeleteClick(itemCategory)
+            }
+        )
     }
 }

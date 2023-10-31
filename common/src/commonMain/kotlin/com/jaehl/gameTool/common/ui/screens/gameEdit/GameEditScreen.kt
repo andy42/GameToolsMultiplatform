@@ -1,7 +1,10 @@
 package com.jaehl.gameTool.common.ui.screens.gameEdit
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -41,6 +44,7 @@ class GameEditScreen(
         }
 
         GameEditPage(
+            loading = screenModel.pageLoading.value,
             title = "GameEdit",
             viewModel = screenModel.viewModel.value,
             onBackClick = {
@@ -105,6 +109,7 @@ class GameEditScreen(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun GameEditPage(
+    loading : Boolean,
     title : String,
     viewModel: GameEditViewModel,
     onBackClick : () -> Unit,
@@ -116,6 +121,7 @@ fun GameEditPage(
     onIconChange : (filePath : String) -> Unit,
     onBannerChange : (filePath : String) -> Unit
 ) {
+    val state : ScrollState = rememberScrollState()
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -123,7 +129,7 @@ fun GameEditPage(
     ) {
         AppBar(
             title = title,
-            backButtonEnabled = true,
+            showBackButton = true,
             onBackClick = {
                 onBackClick()
             },
@@ -138,9 +144,11 @@ fun GameEditPage(
                 }
             }
         )
+        CustomLinearProgressIndicator(loading)
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(state)
 
         ) {
             Card(
@@ -161,7 +169,7 @@ fun GameEditPage(
                         modifier = Modifier
                             .padding(top = 5.dp),
                         label = { Text("Name") },
-                        enabled = !viewModel.pageLoading,
+                        enabled = !loading,
                         onValueChange = { value ->
                             onNameChange(value)
                         }
@@ -171,10 +179,12 @@ fun GameEditPage(
                     FlowRow(modifier = Modifier, verticalArrangement = Arrangement.Center) {
                         viewModel.itemCategories.forEach { itemCategory ->
                             ItemCategoryChip(
+                                enabled = !loading,
                                 itemCategory,
                                 onItemCategoryDeleteClick = onItemCategoryDelete)
                         }
                         Button(
+                            enabled = !loading,
                             onClick = {
                                 openDialogItemCategoryPicker()
                             },
@@ -209,6 +219,7 @@ fun GameEditPage(
                     ) {
                         if(viewModel.showDelete) {
                             Button(
+                                enabled = !loading,
                                 modifier = Modifier
                                     .padding(bottom = 10.dp, end = 10.dp)
                                     .align(alignment = Alignment.CenterEnd),

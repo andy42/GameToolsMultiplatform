@@ -15,9 +15,14 @@ kotlin {
             dependencies {
                 implementation(project(":common"))
                 implementation(project(":apiClientRetrofit"))
+                implementation(project(":apiClientKtor"))
+
                 implementation("org.kodein.di:kodein-di-framework-compose:$kodeinVersion")
                 implementation("androidx.datastore:datastore-preferences:1.0.0")
-                implementation("io.ktor:ktor-client-apache5:$ktorVersion")
+
+                implementation("io.ktor:ktor-client-android:$ktorVersion")
+                implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+                implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
             }
         }
     }
@@ -53,4 +58,7 @@ android {
     kotlin {
         jvmToolchain(11)
     }
+}
+dependencies {
+    implementation("io.ktor:ktor-client-android:2.3.3")
 }
