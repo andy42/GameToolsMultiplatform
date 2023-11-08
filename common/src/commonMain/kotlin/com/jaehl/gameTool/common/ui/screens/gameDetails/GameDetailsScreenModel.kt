@@ -13,11 +13,11 @@ import com.jaehl.gameTool.common.ui.screens.launchIo
 import com.jaehl.gameTool.common.ui.util.ItemImporter
 
 class GameDetailsScreenModel(
-    val jobDispatcher : JobDispatcher,
-    val gameRepo: GameRepo,
-    val itemImporter : ItemImporter,
-    val tokenProvider: TokenProvider,
-    val appConfig: AppConfig
+    private val jobDispatcher : JobDispatcher,
+    private val gameRepo: GameRepo,
+    private val itemImporter : ItemImporter,
+    private val tokenProvider: TokenProvider,
+    private val appConfig: AppConfig
 ) : ScreenModel {
 
     private lateinit var config : Config

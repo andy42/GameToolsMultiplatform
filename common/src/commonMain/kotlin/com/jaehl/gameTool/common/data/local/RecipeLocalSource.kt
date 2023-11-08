@@ -20,11 +20,10 @@ class RecipeLocalSourceInMemory() : RecipeLocalSource {
     private val recipesMap = hashMapOf<Int, Recipe>()
 
     override suspend fun getRecipes(gameId: Int?): List<Recipe> {
-        if(gameId == null) {
-            return recipesMap.values.toList()
-        }
-        else {
-            return recipesMap.values.filter { it.gameId == gameId }
+        return if(gameId == null) {
+            recipesMap.values.toList()
+        } else {
+            recipesMap.values.filter { it.gameId == gameId }
         }
     }
 

@@ -39,7 +39,7 @@ class ItemListScreenModel(
 
     var showEditItems = mutableStateOf(false)
 
-    var pageLoading = mutableStateOf<Boolean>(false)
+    var pageLoading = mutableStateOf(false)
         private set
 
     var items = mutableStateListOf<ItemRowModel>()

@@ -5,8 +5,6 @@ import com.jaehl.gameTool.common.data.*
 import com.jaehl.gameTool.common.data.local.*
 import com.jaehl.gameTool.common.data.repo.*
 import com.jaehl.gameTool.common.data.service.*
-import com.jaehl.gameTool.common.ui.UiExceptionHandler
-import com.jaehl.gameTool.common.ui.UiExceptionHandlerImp
 import com.jaehl.gameTool.common.ui.util.ItemImporter
 import com.jaehl.gameTool.common.ui.util.ItemRecipeInverter
 import com.jaehl.gameTool.common.ui.util.ItemRecipeNodeUtil
@@ -33,25 +31,25 @@ object DataModule {
             }
         }
 
-        bind<UserLocalSource>() {
+        bind<UserLocalSource> {
             singleton {
                 UserLocalSourceInMemory()
             }
         }
 
-        bind<ItemLocalSource>() {
+        bind<ItemLocalSource> {
             singleton {
                 ItemLocalSourceInMemory()
             }
         }
 
-        bind<CollectionLocalSource>(){
+        bind<CollectionLocalSource> {
             singleton {
                 CollectionLocalSourceInMemory()
             }
         }
 
-        bind<RecipeLocalSource>() {
+        bind<RecipeLocalSource> {
             singleton {
                 RecipeLocalSourceInMemory()
             }

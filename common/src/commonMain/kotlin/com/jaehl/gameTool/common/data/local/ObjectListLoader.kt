@@ -2,12 +2,10 @@ package com.jaehl.gameTool.common.data.local
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-//import com.jaehl.gametools.util.Logger
 import java.io.File
 import java.lang.reflect.Type
 import java.nio.file.Paths
 import kotlin.io.path.createDirectories
-import kotlin.io.path.createDirectory
 import kotlin.io.path.exists
 
 
@@ -55,8 +53,8 @@ class  ObjectListJsonLoader<T>(
             println("file : ${file.absoluteFile}")
             file.createNewFile()
 
-            var gson = GsonBuilder().setPrettyPrinting().create()
-            var jsonString = gson.toJson(data)
+            val gson = GsonBuilder().setPrettyPrinting().create()
+            val jsonString = gson.toJson(data)
             file.writeText(jsonString, Charsets.UTF_8)
             true
         } catch (t : Throwable){

@@ -12,8 +12,8 @@ import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.data.service.CollectionService
 
 class CollectionServiceRetroFit (
-    val serverApi : ServerApi,
-    val tokenProvider : TokenProvider
+    private val serverApi : ServerApi,
+    private val tokenProvider : TokenProvider
 ) : CollectionService {
 
     override suspend fun getCollections(): List<Collection> {

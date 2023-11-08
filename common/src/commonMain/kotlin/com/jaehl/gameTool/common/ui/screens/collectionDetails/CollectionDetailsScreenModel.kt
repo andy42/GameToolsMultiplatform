@@ -27,15 +27,15 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 
 class CollectionDetailsScreenModel (
-    val jobDispatcher : JobDispatcher,
-    val collectionRepo : CollectionRepo,
-    val itemRepo : ItemRepo,
-    val recipeRepo: RecipeRepo,
-    val appConfig : AppConfig,
-    val tokenProvider: TokenProvider,
-    val itemRecipeNodeUtil : ItemRecipeNodeUtil,
-    var itemRecipeInverter : ItemRecipeInverter,
-    val uiExceptionHandler: UiExceptionHandler
+    private val jobDispatcher : JobDispatcher,
+    private val collectionRepo : CollectionRepo,
+    private val itemRepo : ItemRepo,
+    private val recipeRepo: RecipeRepo,
+    private val appConfig : AppConfig,
+    private val tokenProvider: TokenProvider,
+    private val itemRecipeNodeUtil : ItemRecipeNodeUtil,
+    private val itemRecipeInverter : ItemRecipeInverter,
+    private val uiExceptionHandler: UiExceptionHandler
 ) : ScreenModel {
 
     var title = mutableStateOf("")
@@ -162,9 +162,9 @@ class CollectionDetailsScreenModel (
         itemRecipePreferenceMap : Map<Int, Int?>,
         getRecipesForOutput : (itemId : Int) -> List<Recipe>,
         getRecipe : (recipeId : Int) -> Recipe?
-    ) : List<ItemRecipeNode, >{
+    ) : List<ItemRecipeNode>{
 
-        var recipeMap = HashMap<Int, ItemAmount>()
+        val recipeMap = HashMap<Int, ItemAmount>()
         items.forEach { item ->
             val recipe = getRecipe(getRecipeIdForItem(item.itemModel.id, itemRecipePreferenceMap) ?: return@forEach) ?: return@forEach
 
@@ -195,7 +195,7 @@ class CollectionDetailsScreenModel (
 
     fun onRecipeSettingsChange(groupId : Int, recipeSettings : RecipeSettings) = launchIo(jobDispatcher, ::onException) {
 
-        var group = groupsMap[groupId]?.copy(
+        val group = groupsMap[groupId]?.copy(
             recipeSettings = recipeSettings
         ) ?: throw Exception("groupId not found groupId")
 
@@ -220,10 +220,10 @@ class CollectionDetailsScreenModel (
     }
 
     private suspend fun getRecipeIdForItem(itemId : Int, itemRecipePreferenceMap: Map<Int, Int?>) : Int? {
-        if(itemRecipePreferenceMap.containsKey(itemId)) {
-            return itemRecipePreferenceMap[itemId]
+        return if(itemRecipePreferenceMap.containsKey(itemId)) {
+            itemRecipePreferenceMap[itemId]
         } else {
-            return recipeRepo.getRecipesForOutputCached(config.gameId, itemId).firstOrNull()?.id
+            recipeRepo.getRecipesForOutputCached(config.gameId, itemId).firstOrNull()?.id
         }
     }
 

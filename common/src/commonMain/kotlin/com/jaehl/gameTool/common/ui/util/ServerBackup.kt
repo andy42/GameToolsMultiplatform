@@ -10,18 +10,17 @@ import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.data.service.*
 import java.io.File
 import java.nio.file.Paths
-import java.security.AuthProvider
 import kotlin.io.path.createDirectory
 import kotlin.io.path.exists
 
 class ServerBackup(
-    val tokenProvider: TokenProvider,
-    val userService: UserService,
-    val gameService: GameService,
-    val itemService : ItemService,
-    val imageService: ImageService,
-    val recipeService: RecipeService,
-    val collectionService: CollectionService
+    private val tokenProvider: TokenProvider,
+    private val userService: UserService,
+    private val gameService: GameService,
+    private val itemService : ItemService,
+    private val imageService: ImageService,
+    private val recipeService: RecipeService,
+    private val collectionService: CollectionService
 ) {
 
     private val usersLoader = ObjectListJsonLoader<User>(

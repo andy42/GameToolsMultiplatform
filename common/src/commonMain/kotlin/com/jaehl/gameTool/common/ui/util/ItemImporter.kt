@@ -12,9 +12,9 @@ import java.io.File
 import java.nio.file.Paths
 
 class ItemImporter(
-    val itemService : ItemService,
-    val imageService: ImageService,
-    val recipeService: RecipeService
+    private val itemService : ItemService,
+    private val imageService: ImageService,
+    private val recipeService: RecipeService
 ) {
 
     private fun getImageFile(filePath : String) : File{

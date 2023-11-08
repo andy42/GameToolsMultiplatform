@@ -83,7 +83,7 @@ class UserDetailsScreen(
         if(dialogConfig is UserDetailsScreenModel.DialogConfig.RolePickerConfig) {
             ListPickerDialog(
                 title = "Change User Role",
-                list = User.Role.values().map { com.jaehl.gameTool.common.ui.componets.ListItem(it.name, it) },
+                list = User.Role.entries.map { ListItem(it.name, it) },
                 onClose = {
                     selectedRoleIndex.value = -1
                     screenModel.closeDialog()
@@ -310,7 +310,7 @@ fun UserCard(
                     color = MaterialTheme.colors.onSurface,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Normal,
-                    text = "${viewModel.userName}"
+                    text = viewModel.userName
                 )
             }
             Row(
@@ -332,7 +332,7 @@ fun UserCard(
                     color = MaterialTheme.colors.onSurface,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Normal,
-                    text = "${viewModel.email}"
+                    text = viewModel.email
                 )
             }
             Row(
@@ -354,7 +354,7 @@ fun UserCard(
                     color = MaterialTheme.colors.onSurface,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Normal,
-                    text = "${viewModel.role}"
+                    text = viewModel.role
                 )
             }
 

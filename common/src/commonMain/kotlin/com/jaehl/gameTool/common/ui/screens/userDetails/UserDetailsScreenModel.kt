@@ -49,7 +49,7 @@ class UserDetailsScreenModel(
         val userSelf = userSelfResource.getDataOrThrow()
         val user = userResource?.getDataOrThrow() ?: userSelfResource.getDataOrThrow()
 
-        var viewModel = ViewModel(
+        val viewModel = ViewModel(
             userModel = user.toUserViewModel(
                 showPasswordChange= (userSelf == user)
             ),

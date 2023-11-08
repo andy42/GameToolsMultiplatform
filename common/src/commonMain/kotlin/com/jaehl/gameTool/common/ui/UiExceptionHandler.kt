@@ -31,11 +31,10 @@ class UiExceptionHandlerImp() : UiExceptionHandler {
     }
 
     override fun handelException(e: Throwable): DialogViewModel {
-        if(e is UiException) {
-            return handelUiException(e)
-        }
-        else  {
-            return ErrorDialogViewModel(
+        return if(e is UiException) {
+            handelUiException(e)
+        } else  {
+            ErrorDialogViewModel(
                 title = "Error",
                 message = "Oops something went wrong"
             )

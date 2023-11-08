@@ -31,14 +31,14 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 
 class ItemDetailsScreenModel(
-    val jobDispatcher : JobDispatcher,
-    val tokenProvider: TokenProvider,
-    val itemRepo: ItemRepo,
-    val userRepo: UserRepo,
-    val recipeRepo: RecipeRepo,
-    val appConfig: AppConfig,
-    val itemRecipeNodeUtil : ItemRecipeNodeUtil,
-    val itemRecipeInverter: ItemRecipeInverter
+    private val jobDispatcher : JobDispatcher,
+    private val tokenProvider: TokenProvider,
+    private val itemRepo: ItemRepo,
+    private val userRepo: UserRepo,
+    private val recipeRepo: RecipeRepo,
+    private val appConfig: AppConfig,
+    private val itemRecipeNodeUtil : ItemRecipeNodeUtil,
+    private val itemRecipeInverter: ItemRecipeInverter
 ) : ScreenModel {
 
     private lateinit var config : Config
@@ -47,7 +47,7 @@ class ItemDetailsScreenModel(
 
     var dialogState = mutableStateOf<DialogState>(DialogState.Closed)
 
-    var pageLoading = mutableStateOf<Boolean>(false)
+    var pageLoading = mutableStateOf(false)
     var itemInfo = mutableStateOf(ItemInfoModel())
 
     private val itemRecipePreferenceMap =  hashMapOf<Int, Int?>()
@@ -199,10 +199,10 @@ class ItemDetailsScreenModel(
     }
 
     private suspend fun getRecipeIdForItem(itemId : Int, itemRecipePreferenceMap: Map<Int, Int?>) : Int? {
-        if(itemRecipePreferenceMap.containsKey(itemId)) {
-            return itemRecipePreferenceMap[itemId]
+        return if(itemRecipePreferenceMap.containsKey(itemId)) {
+            itemRecipePreferenceMap[itemId]
         } else {
-            return recipeRepo.getRecipesForOutputCached(config.gameId, itemId).firstOrNull()?.id
+            recipeRepo.getRecipesForOutputCached(config.gameId, itemId).firstOrNull()?.id
         }
     }
 

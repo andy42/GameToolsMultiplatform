@@ -15,8 +15,8 @@ import org.junit.Assert
 
 class DeviceRobot {
     private val device : UiDevice
-    private val BASIC_SAMPLE_PACKAGE = "com.jaehl.gameTool.GameTool"
-    private val LAUNCH_TIMEOUT = 5000L
+    private val basicSamplePackage = "com.jaehl.gameTool.GameTool"
+    private val launchTimeout = 5000L
 
     init {
         device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
@@ -27,17 +27,17 @@ class DeviceRobot {
 
         val launcherPackage: String = getLauncherPackageName()
         Assert.assertThat(launcherPackage, CoreMatchers.notNullValue())
-        device.wait(Until.hasObject(By.pkg(launcherPackage).depth(0)), LAUNCH_TIMEOUT)
+        device.wait(Until.hasObject(By.pkg(launcherPackage).depth(0)), launchTimeout)
 
         // Launch the blueprint app
         val context: Context = ApplicationProvider.getApplicationContext()
         val intent = context.packageManager
-            .getLaunchIntentForPackage(BASIC_SAMPLE_PACKAGE)
+            .getLaunchIntentForPackage(basicSamplePackage)
         intent!!.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK) // Clear out any previous instances
         context.startActivity(intent)
 
         // Wait for the app to appear
-        device.wait(Until.hasObject(By.pkg(BASIC_SAMPLE_PACKAGE).depth(0)), LAUNCH_TIMEOUT)
+        device.wait(Until.hasObject(By.pkg(basicSamplePackage).depth(0)), launchTimeout)
     }
 
     private fun getLauncherPackageName(): String {
@@ -53,13 +53,12 @@ class DeviceRobot {
 
     fun logoutIfNeeded() : LoginScreenRobot {
         val homeRobot = asHomeScreen()
-        if(homeRobot.isHomePage()){
-            return homeRobot
+        return if(homeRobot.isHomePage()){
+            homeRobot
                 .clickNavAccountDetailsAndTransition()
                 .clickLogoutAndTransition()
-        }
-        else {
-            return asLoginScreen()
+        } else {
+            asLoginScreen()
         }
     }
 

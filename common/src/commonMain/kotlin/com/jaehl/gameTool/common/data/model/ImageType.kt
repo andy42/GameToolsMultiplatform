@@ -9,10 +9,10 @@ enum class ImageType(val value : Int, val fileExtension : String){
 
     companion object {
         fun from(value: Int): ImageType {
-            return values().find { value == it.value } ?: NotSupported
+            return entries.find { value == it.value } ?: NotSupported
         }
         fun fromFileExtension(fileExtension : String) : ImageType {
-            return values().find { fileExtension == it.fileExtension } ?: NotSupported
+            return entries.find { fileExtension == it.fileExtension } ?: NotSupported
         }
     }
 }

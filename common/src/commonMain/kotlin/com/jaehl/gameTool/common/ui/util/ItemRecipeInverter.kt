@@ -52,7 +52,7 @@ class ItemRecipeInverter {
     }
 
     fun invertItemRecipes (itemRecipeNodes : List<ItemRecipeNode>) : List<ItemRecipeNode>{
-        var baseMap = hashMapOf<Int, ItemRecipeNode>()
+        val baseMap = hashMapOf<Int, ItemRecipeNode>()
         walk(baseMap, itemRecipeNodes)
         return baseMap.values.toList()
     }

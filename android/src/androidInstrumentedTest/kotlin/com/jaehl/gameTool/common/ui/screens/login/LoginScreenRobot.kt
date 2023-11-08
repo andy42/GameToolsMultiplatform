@@ -11,15 +11,15 @@ import org.junit.Assert
 class LoginScreenRobot(private val device: UiDevice) {
 
     enum class TextFieldId(val value : String) {
-        userName(TestTags.Login.user_name),
-        email(TestTags.Login.email),
-        password(TestTags.Login.password),
-        reEnterPassword(TestTags.Login.re_enter_password)
+        UserName(TestTags.Login.user_name),
+        Email(TestTags.Login.email),
+        Password(TestTags.Login.password),
+        ReEnterPassword(TestTags.Login.re_enter_password)
     }
 
     enum class ButtonId(val value : String) {
-        loginButton(TestTags.Login.login_button),
-        registerButton(TestTags.Login.register_button)
+        LoginButton(TestTags.Login.login_button),
+        RegisterButton(TestTags.Login.register_button)
     }
 
     fun textFieldEnterValue(textFieldId : TextFieldId, value : String) = apply {
@@ -49,15 +49,15 @@ class LoginScreenRobot(private val device: UiDevice) {
     }
 
     fun loginClickAndTransition() : HomeRobot {
-        device.findObject(By.res( ButtonId.loginButton.value))
+        device.findObject(By.res( ButtonId.LoginButton.value))
             .clickAndWait(Until.newWindow(), 5000L)
 
         return HomeRobot(device)
     }
 
     fun loginUser(userName : String, password : String) : HomeRobot {
-        textFieldEnterValue(TextFieldId.userName, userName)
-        textFieldEnterValue(TextFieldId.password, password)
+        textFieldEnterValue(TextFieldId.UserName, userName)
+        textFieldEnterValue(TextFieldId.Password, password)
         return loginClickAndTransition()
     }
 

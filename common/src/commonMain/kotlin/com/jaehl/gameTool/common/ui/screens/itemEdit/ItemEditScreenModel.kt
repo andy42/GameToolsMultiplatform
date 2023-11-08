@@ -30,20 +30,20 @@ import kotlinx.coroutines.launch
 import java.io.File
 
 class ItemEditScreenModel(
-    val jobDispatcher : JobDispatcher,
-    val itemRepo: ItemRepo,
-    val recipeRepo: RecipeRepo,
-    val gameRepo: GameRepo,
-    val imageService : ImageService,
-    val appConfig : AppConfig,
-    val tokenProvider: TokenProvider,
-    val itemEditValidator : ItemEditValidator
+    private val jobDispatcher : JobDispatcher,
+    private val itemRepo: ItemRepo,
+    private val recipeRepo: RecipeRepo,
+    private val gameRepo: GameRepo,
+    private val imageService : ImageService,
+    private val appConfig : AppConfig,
+    private val tokenProvider: TokenProvider,
+    private val itemEditValidator : ItemEditValidator
 ) : ScreenModel, ItemEditValidator.Listener{
 
     private lateinit var config : Config
 
     var title = mutableStateOf("")
-    var pageLoading = mutableStateOf<Boolean>(false)
+    var pageLoading = mutableStateOf(false)
 
     val viewModel = mutableStateOf(ViewModel())
     private var item : Item? = null

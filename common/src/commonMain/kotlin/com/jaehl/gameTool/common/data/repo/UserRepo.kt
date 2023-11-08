@@ -115,11 +115,10 @@ class UserRepoImp(
     private val accessTokenMutex = Mutex()
 
     private fun isTokenValid(token : String) : Boolean {
-        try {
-            return JWT.decode(token).expiresAt.after(Date())
-        }
-        catch (t: JWTDecodeException){
-            return false
+        return try {
+            JWT.decode(token).expiresAt.after(Date())
+        } catch (t: JWTDecodeException){
+            false
         }
     }
 

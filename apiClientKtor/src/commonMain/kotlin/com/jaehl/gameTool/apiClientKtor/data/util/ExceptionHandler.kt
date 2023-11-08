@@ -10,12 +10,11 @@ import java.net.ConnectException
 class ExceptionHandler {
 
     private suspend fun parseErrorResponse(response : HttpResponse) : ServerErrorResponse {
-        try {
-            return response.body()
-        }
-        catch (t : Throwable) {
+        return try {
+            response.body()
+        } catch (t : Throwable) {
             System.err.println(t.message)
-            return ServerErrorResponse(
+            ServerErrorResponse(
                 code = 500,
                 message = "server error, invalid error response"
             )
@@ -32,18 +31,22 @@ class ExceptionHandler {
 
     private suspend fun parse(e: Throwable) : UiException {
 
-        if(e is ClientRequestException) {
-            val exceptionResponse = e.response
-            return toUiException(
-                e,
-                parseErrorResponse(exceptionResponse)
-            )
-        }
-        else if (e is ConnectException){
-            return UiException.ServerConnectionError(cause = e)
-        }
-        else {
-            return UiException.GeneralError(cause = e)
+        return when (e) {
+            is ClientRequestException -> {
+                val exceptionResponse = e.response
+                toUiException(
+                    e,
+                    parseErrorResponse(exceptionResponse)
+                )
+            }
+
+            is ConnectException -> {
+                UiException.ServerConnectionError(cause = e)
+            }
+
+            else -> {
+                UiException.GeneralError(cause = e)
+            }
         }
     }
 

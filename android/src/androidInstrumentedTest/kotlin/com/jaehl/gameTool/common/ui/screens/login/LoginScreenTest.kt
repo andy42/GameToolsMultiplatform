@@ -17,11 +17,11 @@ class LoginScreenTest {
         deviceRobot
             .setup()
             .logoutIfNeeded()
-            .textFieldEnterValue(TextFieldId.userName, userName)
-            .textFieldEnterValue(TextFieldId.password, password)
-            .assertTextFieldValue(TextFieldId.userName, userName)
-            .clickTextFieldShowPassword(TextFieldId.password)
-            .assertTextFieldValue(TextFieldId.password, password)
+            .textFieldEnterValue(TextFieldId.UserName, userName)
+            .textFieldEnterValue(TextFieldId.Password, password)
+            .assertTextFieldValue(TextFieldId.UserName, userName)
+            .clickTextFieldShowPassword(TextFieldId.Password)
+            .assertTextFieldValue(TextFieldId.Password, password)
             .loginClickAndTransition()
             .assertTitleHome()
     }
@@ -34,11 +34,11 @@ class LoginScreenTest {
         deviceRobot
             .setup()
             .logoutIfNeeded()
-            .textFieldEnterValue(TextFieldId.userName, "")
-            .textFieldEnterValue(TextFieldId.password, "")
-            .clickButton(LoginScreenRobot.ButtonId.loginButton)
-            .assertTextFieldErrorText(TextFieldId.userName, userNameError)
-            .assertTextFieldErrorText(TextFieldId.password, passwordError)
+            .textFieldEnterValue(TextFieldId.UserName, "")
+            .textFieldEnterValue(TextFieldId.Password, "")
+            .clickButton(LoginScreenRobot.ButtonId.LoginButton)
+            .assertTextFieldErrorText(TextFieldId.UserName, userNameError)
+            .assertTextFieldErrorText(TextFieldId.Password, passwordError)
     }
 
     @Test
@@ -46,9 +46,9 @@ class LoginScreenTest {
         deviceRobot
             .setup()
             .logoutIfNeeded()
-            .textFieldEnterValue(TextFieldId.userName, "aa")
-            .textFieldEnterValue(TextFieldId.password, "aa")
-            .clickButton(LoginScreenRobot.ButtonId.loginButton)
+            .textFieldEnterValue(TextFieldId.UserName, "aa")
+            .textFieldEnterValue(TextFieldId.Password, "aa")
+            .clickButton(LoginScreenRobot.ButtonId.LoginButton)
             .waitUnitLoadingFinished()
             .assertErrorDialog("Login Error", "Login credentials incorrect")
     }

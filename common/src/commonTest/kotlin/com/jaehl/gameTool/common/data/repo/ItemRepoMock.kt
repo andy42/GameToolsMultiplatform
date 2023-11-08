@@ -7,7 +7,9 @@ import com.jaehl.gameTool.common.data.model.ItemCategory
 import com.jaehl.gameTool.common.ui.util.UiException
 import kotlinx.coroutines.flow.flow
 
-class ItemRepoMock(val itemCategoriesMap : HashMap<Int, ItemCategory>) : ItemRepo {
+class ItemRepoMock(
+    private val itemCategoriesMap : HashMap<Int, ItemCategory>
+) : ItemRepo {
 
     val itemList = arrayListOf<Item>()
 

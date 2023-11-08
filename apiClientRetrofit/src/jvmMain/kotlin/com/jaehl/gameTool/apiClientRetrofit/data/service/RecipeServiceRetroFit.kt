@@ -10,8 +10,8 @@ import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.data.service.RecipeService
 
 class RecipeServiceRetroFit(
-    val serverApi : ServerApi,
-    val tokenProvider : TokenProvider
+    private val serverApi : ServerApi,
+    private val tokenProvider : TokenProvider
 ) : RecipeService {
 
     override suspend fun getRecipes(gameId: Int?): List<Recipe> {

@@ -10,11 +10,11 @@ import com.jaehl.gameTool.common.ui.screens.launchIo
 import com.jaehl.gameTool.common.extensions.postSwap
 
 class UsersScreenModel(
-    val jobDispatcher : JobDispatcher,
-    val userRepo: UserRepo
+    private val jobDispatcher : JobDispatcher,
+    private val userRepo: UserRepo
 ) : ScreenModel {
     var users = mutableStateListOf<UserModel>()
-    var pageLoading = mutableStateOf<Boolean>(false)
+    var pageLoading = mutableStateOf(false)
     val dialogConfig = mutableStateOf<DialogConfig>(DialogConfig.ClosedDialog)
 
     fun setup() {

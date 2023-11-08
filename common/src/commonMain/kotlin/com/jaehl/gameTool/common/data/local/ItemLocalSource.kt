@@ -22,10 +22,10 @@ class ItemLocalSourceInMemory() : ItemLocalSource {
     private var itemCategories = arrayListOf<ItemCategory>()
 
     override suspend fun getItems(gameId: Int?): List<Item> {
-        if (gameId == null) {
-            return itemsMap.values.toList()
+        return if (gameId == null) {
+            itemsMap.values.toList()
         } else {
-            return itemsMap.values.filter { it.game == gameId }
+            itemsMap.values.filter { it.game == gameId }
         }
     }
 

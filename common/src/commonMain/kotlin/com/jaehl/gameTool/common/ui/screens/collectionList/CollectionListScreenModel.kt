@@ -11,8 +11,8 @@ import com.jaehl.gameTool.common.extensions.postSwap
 import com.jaehl.gameTool.common.ui.screens.launchIo
 
 class CollectionListScreenModel (
-    val jobDispatcher : JobDispatcher,
-    val collectionRepo : CollectionRepo
+    private val jobDispatcher : JobDispatcher,
+    private val collectionRepo : CollectionRepo
 ) : ScreenModel {
 
     private lateinit var config : Config

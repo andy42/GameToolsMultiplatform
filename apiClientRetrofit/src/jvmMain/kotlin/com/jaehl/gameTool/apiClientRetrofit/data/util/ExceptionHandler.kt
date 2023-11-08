@@ -15,12 +15,11 @@ class ExceptionHandler {
 
     private fun parseErrorResponse(response : String) : ServerErrorResponse {
 
-        try {
-            return json.decodeFromString<ServerErrorResponse>(response)
-        }
-        catch (t : Throwable) {
+        return try {
+            json.decodeFromString<ServerErrorResponse>(response)
+        } catch (t : Throwable) {
             System.err.println(t.message)
-            return ServerErrorResponse(
+            ServerErrorResponse(
                 code = 500,
                 message = "server error, invalid error response"
             )
@@ -35,17 +34,15 @@ class ExceptionHandler {
         }
     }
     fun parse(e: Throwable) : UiException {
-        if(e is HttpException) {
-            return toUiException(
+        return if(e is HttpException) {
+            toUiException(
                 e,
                 parseErrorResponse(e.response()?.errorBody()?.string() ?: "")
             )
-        }
-        else if (e is ConnectException){
-            return UiException.ServerConnectionError(cause = e)
-        }
-        else {
-            return UiException.GeneralError(cause = e)
+        } else if (e is ConnectException){
+            UiException.ServerConnectionError(cause = e)
+        } else {
+            UiException.GeneralError(cause = e)
         }
     }
 

@@ -6,8 +6,8 @@ import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.data.service.BackupService
 
 class BackupServiceRetroFit(
-    val serverApi : ServerApi,
-    val tokenProvider : TokenProvider
+    private val serverApi : ServerApi,
+    private val tokenProvider : TokenProvider
 ) : BackupService {
     override suspend fun getBackups(): List<Backup> {
         return serverApi.getBackups(

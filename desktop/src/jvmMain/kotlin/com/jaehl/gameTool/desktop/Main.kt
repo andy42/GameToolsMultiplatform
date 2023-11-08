@@ -5,7 +5,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import com.jaehl.gameTool.apiClientKtor.di.ApiClientKtorModule
 import com.jaehl.gameTool.apiClientRetrofit.data.DebugSslSocketFactory
 import com.jaehl.gameTool.apiClientRetrofit.di.ApiClientRetrofitModule
 import com.jaehl.gameTool.common.App

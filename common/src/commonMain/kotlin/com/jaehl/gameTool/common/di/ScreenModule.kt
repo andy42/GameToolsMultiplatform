@@ -32,7 +32,7 @@ import org.kodein.di.*
 object ScreenModule {
     fun create() = DI.Module(name = "Screens") {
 
-        bind<UiExceptionHandler>() {
+        bind<UiExceptionHandler> {
             provider {
                 UiExceptionHandlerImp()
             }

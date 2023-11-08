@@ -10,8 +10,8 @@ import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.data.service.ItemService
 
 class ItemServiceRetroFit(
-    val serverApi : ServerApi,
-    val tokenProvider : TokenProvider
+    private val serverApi : ServerApi,
+    private val tokenProvider : TokenProvider
 ) : ItemService {
 
     override suspend fun getItem(id: Int): Item {

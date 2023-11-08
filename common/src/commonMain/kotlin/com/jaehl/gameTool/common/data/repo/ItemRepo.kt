@@ -7,7 +7,6 @@ import com.jaehl.gameTool.common.data.local.ItemLocalSource
 import com.jaehl.gameTool.common.data.model.Item
 import com.jaehl.gameTool.common.data.model.ItemCategory
 import com.jaehl.gameTool.common.data.service.ItemService
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
 interface ItemRepo {
@@ -55,12 +54,12 @@ class ItemRepoImp(
 
     override suspend fun getItemCached(id: Int): Item? {
         val item = itemLocalSource.getItem(id)
-        if(item == null){
+        return if(item == null){
             val newItem = itemService.getItem(id)
             itemLocalSource.updateItem(newItem)
-            return newItem
+            newItem
         } else {
-            return item
+            item
         }
     }
 

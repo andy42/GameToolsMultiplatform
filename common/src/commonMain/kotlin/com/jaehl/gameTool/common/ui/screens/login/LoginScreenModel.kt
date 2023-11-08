@@ -27,7 +27,7 @@ data class RegisterViewModel(
 interface LoginInterface{
     fun onLoginUserNameChange(value : String)
     fun onLoginPasswordChange(value : String)
-    fun onLoginClick() : Unit
+    fun onLoginClick()
 }
 
 interface RegisterInterface {
@@ -56,12 +56,12 @@ class LoginScreenModel(
     var registerViewModel = mutableStateOf(RegisterViewModel())
         private set
 
-    var pageState = mutableStateOf<PageState>(PageState.Loign)
+    var pageState = mutableStateOf(PageState.Loign)
         private set
 
-    var pageLoading = mutableStateOf<Boolean>(false)
+    var pageLoading = mutableStateOf(false)
 
-    var navigateToHome = mutableStateOf<Boolean>(false)
+    var navigateToHome = mutableStateOf(false)
 
     val dialogViewModel = mutableStateOf<DialogViewModel>(ClosedDialogViewModel)
 

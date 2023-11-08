@@ -18,11 +18,10 @@ class CollectionLocalSourceInMemory() : CollectionLocalSource {
     private val collectionsMap : HashMap<Int, Collection> = HashMap()
 
     override suspend fun getCollections(gameId: Int?): List<Collection> {
-        if(gameId == null){
-            return collectionsMap.values.toList()
-        }
-        else {
-            return collectionsMap.values.filter { it.gameId == gameId }
+        return if(gameId == null){
+            collectionsMap.values.toList()
+        } else {
+            collectionsMap.values.filter { it.gameId == gameId }
         }
     }
 
