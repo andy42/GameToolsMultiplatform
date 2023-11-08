@@ -47,8 +47,8 @@ fun main() = application {
                     )
                 }
             }
-            //bind<AppConfig> { provider { AppConfig(baseUrl = "https://gametoolsapi.63bit.com:5443") } }
-            bind<AppConfig> { provider { AppConfig(baseUrl = "http://0.0.0.0:8080") } }
+            bind<AppConfig> { provider { AppConfig(baseUrl = "https://gametoolsapi.63bit.com:5443") } }
+            //bind<AppConfig> { provider { AppConfig(baseUrl = "http://0.0.0.0:8080") } }
             bind<AuthLocalStore> {
                 singleton {
                     AuthLocalStoreJsonFile(
@@ -77,7 +77,7 @@ fun main() = application {
             }
             import(DataModule.create())
             import(ScreenModule.create())
-            import(ApiClientRetrofitModule.create(trustAllCerts = true, addDelay = false))
+            import(ApiClientRetrofitModule.create(trustAllCerts = true, addDelay = true))
             //import(ApiClientKtorModule.create())
         }
 

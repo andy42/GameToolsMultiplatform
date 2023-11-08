@@ -99,7 +99,7 @@ class ItemListScreenModel(
         pageLoading.value = true
         combine(
             userRepo.getUserSelFlow(),
-            itemRepo.getItemsFlow(config.gameId),
+            itemRepo.getItems(config.gameId),
             gameRepo.getGameItemCategories(config.gameId)
         ) { userResource, itemsResource, itemCategoriesResource ->
             updateUi(

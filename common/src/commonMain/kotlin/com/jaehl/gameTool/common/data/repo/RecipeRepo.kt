@@ -1,22 +1,19 @@
 package com.jaehl.gameTool.common.data.repo
 
 import com.jaehl.gameTool.common.JobDispatcher
+import com.jaehl.gameTool.common.data.FlowResource
 import com.jaehl.gameTool.common.data.Resource
 import com.jaehl.gameTool.common.data.local.RecipeLocalSource
 import com.jaehl.gameTool.common.data.model.ItemAmount
 import com.jaehl.gameTool.common.data.model.Recipe
 import com.jaehl.gameTool.common.data.service.RecipeService
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
 interface RecipeRepo {
-    suspend fun preloadRecipes(gameId : Int)
-    suspend fun getRecipes(gameId : Int) : List<Recipe>
-    suspend fun getRecipesFlow(gameId : Int) : Flow<Resource<List<Recipe>>>
-    suspend fun getRecipe(id : Int) : Recipe
-    suspend fun getRecipeFlow(id : Int) : Flow<Resource<Recipe>>
-    suspend fun getRecipesForOutput(inputItemId : Int) : List<Recipe>
-    suspend fun getRecipesForOutputFlow(gameId : Int, inputItemId : Int) : Flow<Resource<List<Recipe>>>
+    suspend fun getRecipesFlow(gameId : Int? = null) : FlowResource<List<Recipe>>
+    suspend fun getRecipeFlow(id : Int) : FlowResource<Recipe>
+    suspend fun getRecipesForOutputFlow(gameId : Int, inputItemId : Int) : FlowResource<List<Recipe>>
+    suspend fun getRecipesForOutputCached(gameId : Int, inputItemId : Int) : List<Recipe>
 
     suspend fun createRecipes(
         gameId : Int,
@@ -42,21 +39,7 @@ class RecipeRepoImp(
     private val recipeLocalSource : RecipeLocalSource
 ) : RecipeRepo {
 
-    private fun updateRecipeOutputArray(array : ArrayList<Recipe>?, recipe : Recipe) : ArrayList<Recipe>{
-        val array = array ?: arrayListOf()
-        array.add(recipe)
-        return array
-    }
-
-    override suspend fun preloadRecipes(gameId : Int){
-        recipeLocalSource.updateRecipes(gameId, recipeService.getRecipes(gameId))
-    }
-
-    override suspend fun getRecipes(gameId: Int): List<Recipe> {
-        return recipeService.getRecipes(gameId)
-    }
-
-    override suspend fun getRecipeFlow(id: Int): Flow<Resource<Recipe>> =  flow {
+    override suspend fun getRecipeFlow(id: Int) = flow {
         try {
             emit(Resource.Loading(recipeLocalSource.getRecipe(id)))
             val recipe = recipeService.getRecipe(id)
@@ -68,7 +51,7 @@ class RecipeRepoImp(
         }
     }
 
-    override suspend fun getRecipesFlow(gameId: Int): Flow<Resource<List<Recipe>>> = flow {
+    override suspend fun getRecipesFlow(gameId: Int?) = flow {
         try {
             emit(Resource.Loading(recipeLocalSource.getRecipes(gameId)))
             val recipes = recipeService.getRecipes(gameId)
@@ -80,15 +63,7 @@ class RecipeRepoImp(
         }
     }
 
-    override suspend fun getRecipe(id: Int): Recipe {
-        return recipeLocalSource.getRecipe(id)
-    }
-
-    override suspend fun getRecipesForOutput(inputItemId: Int): List<Recipe> {
-        return recipeLocalSource.getRecipesForOutput(inputItemId)
-    }
-
-    override suspend fun getRecipesForOutputFlow(gameId : Int, inputItemId: Int): Flow<Resource<List<Recipe>>> = flow {
+    override suspend fun getRecipesForOutputFlow(gameId : Int, inputItemId: Int) = flow {
         try {
             emit(Resource.Loading(recipeLocalSource.getRecipesForOutput(inputItemId)))
             val recipes = recipeService.getRecipes(gameId)
@@ -98,6 +73,10 @@ class RecipeRepoImp(
         catch (t : Throwable){
             emit(Resource.Error(t))
         }
+    }
+
+    override suspend fun getRecipesForOutputCached(gameId: Int, inputItemId: Int): List<Recipe> {
+        return recipeLocalSource.getRecipesForOutput(inputItemId)
     }
 
     override suspend fun createRecipes(

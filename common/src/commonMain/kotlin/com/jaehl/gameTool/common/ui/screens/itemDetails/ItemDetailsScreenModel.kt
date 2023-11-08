@@ -151,7 +151,7 @@ class ItemDetailsScreenModel(
 
             combine(
                 userRepo.getUserSelFlow(),
-                itemRepo.getItemsFlow(config.gameId),
+                itemRepo.getItems(config.gameId),
                 recipeRepo.getRecipesFlow(config.gameId)
             ) { userResource : Resource<User>, itemResource : Resource<List<Item>>, recipesResource : Resource<List<Recipe>> ->
 
@@ -202,14 +202,14 @@ class ItemDetailsScreenModel(
         if(itemRecipePreferenceMap.containsKey(itemId)) {
             return itemRecipePreferenceMap[itemId]
         } else {
-            return recipeRepo.getRecipesForOutput(itemId).firstOrNull()?.id
+            return recipeRepo.getRecipesForOutputCached(config.gameId, itemId).firstOrNull()?.id
         }
     }
 
     fun onRecipeChangeClick(itemId : Int, recipeId : Int) = launchIo(jobDispatcher, ::onException){
         val recipePickerData = RecipePickerData(
             selectedRecipeId = getRecipeIdForItem(itemId, itemRecipePreferenceMap),
-            recipes = recipeRepo.getRecipesForOutput(itemId)
+            recipes = recipeRepo.getRecipesForOutputCached(config.gameId, itemId)
                 .map { recipe ->
                     RecipePickerData.RecipeViewModel(
                         id = recipe.id,

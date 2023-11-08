@@ -161,7 +161,7 @@ class ItemEditScreenModel(
         launchIo(jobDispatcher, onException = ::onException) {
             combine(
                 gameRepo.getGameFlow(config.gameId),
-                itemRepo.getItemsFlow(config.gameId),
+                itemRepo.getItems(config.gameId),
                 recipeRepo.getRecipesFlow(config.gameId),
                 gameRepo.getGameItemCategories(config.gameId)
             ) { gameResource, itemResource, recipesResource, itemCategoriesResource ->

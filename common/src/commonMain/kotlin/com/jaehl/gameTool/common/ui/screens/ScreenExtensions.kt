@@ -10,15 +10,12 @@ fun ScreenModel.launchIo(
     jobDispatcher: JobDispatcher,
     onException: (t: Throwable) -> Unit,
     block: suspend () -> Unit
-) = coroutineScope.launch {
-
-    withContext(jobDispatcher.io()){
-        try {
-            block()
-        }
-        catch (t: Throwable) {
-            onException(t)
-        }
+) = coroutineScope.launch(jobDispatcher.io()) {
+    try {
+        block()
+    }
+    catch (t: Throwable) {
+        onException(t)
     }
 }
 

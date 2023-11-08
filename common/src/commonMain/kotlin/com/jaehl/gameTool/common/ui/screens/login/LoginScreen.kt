@@ -11,12 +11,15 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.lifecycle.LifecycleEffect
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.kodein.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.jaehl.gameTool.common.ui.TestTags
+import com.jaehl.gameTool.common.ui.componets.CustomLinearProgressIndicator
 import com.jaehl.gameTool.common.ui.componets.ErrorDialog
 import com.jaehl.gameTool.common.ui.componets.StyledOutlinedTextField
 import com.jaehl.gameTool.common.ui.componets.StyledPasswordOutlinedTextField
@@ -42,106 +45,127 @@ class LoginScreen : Screen{
             }
         }
 
-        val focusManager = LocalFocusManager.current
-        Box(
+        LoginPage(
+            loading = screenModel.pageLoading.value,
+            pageState = screenModel.pageState.value,
+            loginViewModel = screenModel.loginViewModel.value,
+            registerViewModel = screenModel.registerViewModel.value,
+            onHomeStateChange = screenModel::onHomeStateChange,
+            loginInterface = screenModel,
+            registerInterface = screenModel,
+        )
+
+        val dialogViewModel = screenModel.dialogViewModel.value
+        ErrorDialog(dialogViewModel, screenModel::closeDialog)
+    }
+}
+
+@Composable
+fun LoginPage(
+    loading : Boolean,
+    pageState : LoginScreenModel.PageState,
+    loginViewModel : LoginViewModel,
+    registerViewModel : RegisterViewModel,
+    onHomeStateChange : (pageState : LoginScreenModel.PageState) -> Unit,
+    loginInterface : LoginInterface,
+    registerInterface: RegisterInterface
+) {
+    val focusManager = LocalFocusManager.current
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight()
+            .background(Color.Gray)
+    ) {
+        Card(
             modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight()
-                .background(Color.Gray)
+                .width(400.dp)
+                .align(Alignment.Center)
         ) {
-            Card(
+            Column(
                 modifier = Modifier
-                    .width(400.dp)
-                    .align(Alignment.Center)
+                    .onKeyEvent {
+                        if((it.key == Key.Enter || (it.key == Key.Tab && it.type == KeyEventType.KeyDown )) ){
+                            focusManager.moveFocus(FocusDirection.Down)
+                            true
+                        }
+                        else false
+                    }
             ) {
-                Column(
+                Row(
                     modifier = Modifier
-                        .onKeyEvent {
-                            if((it.key == Key.Enter || (it.key == Key.Tab && it.type == KeyEventType.KeyDown )) ){
-                                focusManager.moveFocus(FocusDirection.Down)
-                                true
-                            }
-                            else false
-                        }
+                        .height(50.dp)
                 ) {
-                    Row(
+                    Box(
                         modifier = Modifier
-                            .height(50.dp)
+                            .background(if (pageState == LoginScreenModel.PageState.Loign) MaterialTheme.colors.primary else MaterialTheme.colors.surface)
+                            .fillMaxWidth(0.5f)
+                            .fillMaxHeight()
+                            .clickable (
+                                onClick = {
+                                    onHomeStateChange(LoginScreenModel.PageState.Loign)
+                                }
+                            )
+                            .testTag(TestTags.Login.login_tab)
                     ) {
-                        Box(
+                        Text(
+                            text = "Login",
+                            color = if (pageState == LoginScreenModel.PageState.Loign) MaterialTheme.colors.onPrimary else MaterialTheme.colors.onSurface,
                             modifier = Modifier
-                                .background(if (screenModel.homeState.value == LoginScreenModel.PageState.Loign) MaterialTheme.colors.primary else MaterialTheme.colors.surface)
-                                .fillMaxWidth(0.5f)
-                                .fillMaxHeight()
-                                .clickable (
-                                    onClick = {
-                                        screenModel.onHomeStateChange(LoginScreenModel.PageState.Loign)
-                                    }
-                                )
-                        ) {
-                            Text(
-                                text = "Login",
-                                color = if (screenModel.homeState.value == LoginScreenModel.PageState.Loign) MaterialTheme.colors.onPrimary else MaterialTheme.colors.onSurface,
-                                modifier = Modifier
-                                    .align(Alignment.Center)
-                            )
-                        }
-                        Box(
-                            modifier = Modifier
-                                .background(if (screenModel.homeState.value == LoginScreenModel.PageState.Register) MaterialTheme.colors.primary else MaterialTheme.colors.surface)
-                                .fillMaxWidth()
-                                .fillMaxHeight()
-                                .clickable (
-                                    onClick = {
-                                        screenModel.onHomeStateChange(LoginScreenModel.PageState.Register)
-                                    }
-                                )
-                        ) {
-                            Text(
-                                text = "Register",
-                                color = if (screenModel.homeState.value == LoginScreenModel.PageState.Register) MaterialTheme.colors.onPrimary else MaterialTheme.colors.onSurface,
-                                modifier = Modifier
-                                    .align(Alignment.Center)
-                            )
-                        }
+                                .align(Alignment.Center)
+                        )
                     }
                     Box(
                         modifier = Modifier
-                            .background(MaterialTheme.colors.primary)
+                            .background(if (pageState == LoginScreenModel.PageState.Register) MaterialTheme.colors.primary else MaterialTheme.colors.surface)
                             .fillMaxWidth()
-                            .height(2.dp)
-                    )
-                    when(screenModel.homeState.value){
-                        LoginScreenModel.PageState.Loign -> {
-                            LoginBox(
-                                modifier = Modifier
-                                    .align(Alignment.CenterHorizontally),
-                                screenModel = screenModel,
-                                loginViewModel = screenModel.loginViewModel.value
+                            .fillMaxHeight()
+                            .clickable (
+                                onClick = {
+                                    onHomeStateChange(LoginScreenModel.PageState.Register)
+                                }
                             )
-                        }
-                        LoginScreenModel.PageState.Register -> {
-                            RegisterBox(
-                                modifier = Modifier
-                                    .align(Alignment.CenterHorizontally),
-                                screenModel = screenModel,
-                                registerViewModel = screenModel.registerViewModel.value
-                            )
-                        }
+                            .testTag(TestTags.Login.register_tab)
+                    ) {
+                        Text(
+                            text = "Register",
+                            color = if (pageState == LoginScreenModel.PageState.Register) MaterialTheme.colors.onPrimary else MaterialTheme.colors.onSurface,
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                        )
+                    }
+                }
+                Box(
+                    modifier = Modifier
+                        .background(MaterialTheme.colors.primary)
+                        .fillMaxWidth()
+                        .height(2.dp)
+                )
+                CustomLinearProgressIndicator(loading)
+
+                when(pageState){
+                    LoginScreenModel.PageState.Loign -> {
+                        LoginBox(
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally),
+                            //screenModel = screenModel,
+                            loading = loading,
+                            loginViewModel = loginViewModel,
+                            loginInterface = loginInterface,
+                        )
+                    }
+                    LoginScreenModel.PageState.Register -> {
+                        RegisterBox(
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally),
+                            //screenModel = screenModel,
+                            loading = loading,
+                            registerViewModel = registerViewModel,
+                            registerInterface = registerInterface
+                        )
                     }
                 }
             }
-        }
-        val dialogConfig = screenModel.dialogConfig.value
-        if(dialogConfig is LoginScreenModel.DialogConfig.ErrorDialog){
-            ErrorDialog(
-                title = dialogConfig.title,
-                message = dialogConfig.message,
-                buttonText = "Ok",
-                onClick = {
-                    screenModel.closeDialog()
-                }
-            )
         }
     }
 }
@@ -149,12 +173,14 @@ class LoginScreen : Screen{
 
 @Composable
 fun LoginBox(modifier: Modifier,
-             screenModel : LoginScreenModel,
-             loginViewModel : LoginViewModel){
+             loading : Boolean,
+             loginViewModel : LoginViewModel,
+             loginInterface : LoginInterface
+){
 
     Column(
         modifier = modifier
-            .padding(10.dp)
+            .padding(10.dp),
     ) {
 
         StyledOutlinedTextField(
@@ -163,10 +189,11 @@ fun LoginBox(modifier: Modifier,
                 .padding(top = 5.dp),
             label = { Text("UserName") },
             singleLine = true,
-            enabled = !screenModel.pageLoading.value,
+            enabled = !loading,
             onValueChange = { value ->
-                screenModel.onLoginUserNameChange(value)
+                loginInterface.onLoginUserNameChange(value)
             },
+            testTag = TestTags.Login.user_name,
         )
         StyledPasswordOutlinedTextField(
             loginViewModel.password,
@@ -174,19 +201,21 @@ fun LoginBox(modifier: Modifier,
                 .padding(top = 5.dp),
             label = { Text("Password") },
             singleLine = true,
-            enabled = !screenModel.pageLoading.value,
+            enabled = !loading,
             onValueChange = { value ->
-                screenModel.onLoginPasswordChange(value)
+                loginInterface.onLoginPasswordChange(value)
             },
+            testTag = TestTags.Login.password,
         )
 
         Button(
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
-                .padding(top = 10.dp),
-            enabled = !screenModel.pageLoading.value,
+                .padding(top = 10.dp)
+                .testTag(TestTags.Login.login_button),
+            enabled = !loading,
             onClick = {
-                screenModel.onLoginClick()
+                loginInterface.onLoginClick()
             },
         ) {
             Text("Login")
@@ -196,12 +225,15 @@ fun LoginBox(modifier: Modifier,
 
 @Composable
 fun RegisterBox(modifier: Modifier,
-                screenModel : LoginScreenModel,
-                registerViewModel : RegisterViewModel){
+                loading : Boolean,
+                registerViewModel : RegisterViewModel,
+                registerInterface: RegisterInterface
+){
 
     Column(
         modifier = modifier
             .padding(10.dp)
+            .testTag("registerColumn")
     ) {
         StyledOutlinedTextField(
             registerViewModel.userName,
@@ -209,10 +241,11 @@ fun RegisterBox(modifier: Modifier,
                 .padding(top = 5.dp),
             label = { Text("UserName") },
             singleLine = true,
-            enabled = !screenModel.pageLoading.value,
+            enabled = !loading,
             onValueChange = { value ->
-                screenModel.onRegisterUserNameChange(value)
-            }
+                registerInterface.onRegisterUserNameChange(value)
+            },
+            testTag = TestTags.Login.user_name
         )
         StyledOutlinedTextField(
             registerViewModel.email,
@@ -220,10 +253,11 @@ fun RegisterBox(modifier: Modifier,
                 .padding(top = 5.dp),
             label = { Text("Email") },
             singleLine = true,
-            enabled = !screenModel.pageLoading.value,
+            enabled = !loading,
             onValueChange = { value ->
-                screenModel.onRegisterEmailChange(value)
-            }
+                registerInterface.onRegisterEmailChange(value)
+            },
+            testTag = TestTags.Login.email
         )
         StyledPasswordOutlinedTextField(
             registerViewModel.password,
@@ -231,10 +265,11 @@ fun RegisterBox(modifier: Modifier,
                 .padding(top = 5.dp),
             label = { Text("Password") },
             singleLine = true,
-            enabled = !screenModel.pageLoading.value,
+            enabled = !loading,
             onValueChange = { value ->
-                screenModel.onRegisterPasswordChange(value)
-            }
+                registerInterface.onRegisterPasswordChange(value)
+            },
+            testTag = TestTags.Login.password
         )
 
         StyledPasswordOutlinedTextField(
@@ -243,18 +278,21 @@ fun RegisterBox(modifier: Modifier,
                 .padding(top = 5.dp),
             label = { Text("re-enter Password") },
             singleLine = true,
-            enabled = !screenModel.pageLoading.value,
+            enabled = !loading,
             onValueChange = { value ->
-                screenModel.onRegisterReEnterPasswordChange(value)
-            }
+                registerInterface.onRegisterReEnterPasswordChange(value)
+            },
+            testTag = TestTags.Login.re_enter_password
         )
 
         Button(
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
-                .padding(top = 10.dp),
+                .padding(top = 10.dp)
+                .testTag(TestTags.Login.register_button),
+            enabled = !loading,
             onClick = {
-                screenModel.onRegisterClick()
+                registerInterface.onRegisterClick()
             },
         ) {
             Text("Register")

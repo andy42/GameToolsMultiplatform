@@ -1,5 +1,6 @@
 package com.jaehl.gameTool.common.data.repo
 
+import com.jaehl.gameTool.common.data.FlowResource
 import com.jaehl.gameTool.common.data.Resource
 import com.jaehl.gameTool.common.data.local.GameLocalSource
 import com.jaehl.gameTool.common.data.model.Game
@@ -9,11 +10,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
 interface GameRepo {
-    suspend fun getGames() : Flow<Resource<List<Game>>>
-    suspend fun getGame(id : Int) : Game
-    suspend fun getGameFlow(id : Int) : Flow<Resource<Game>>
-
-    suspend fun getGameItemCategories(gameId : Int) : Flow<Resource<List<ItemCategory>>>
+    suspend fun getGames() : FlowResource<List<Game>>
+    suspend fun getGameFlow(id : Int) : FlowResource<Game>
+    suspend fun getGameItemCategories(gameId : Int) : FlowResource<List<ItemCategory>>
 
     suspend fun createGame(name : String, itemCategories : List<Int>, icon : Int, banner : Int) : Game
     suspend fun updateGame(id : Int, name : String, itemCategories : List<Int>, icon : Int, banner : Int) : Game
@@ -40,7 +39,7 @@ class GameRepoImp(
         }
     }
 
-    override suspend fun getGameItemCategories(gameId: Int): Flow<Resource<List<ItemCategory>>> = flow {
+    override suspend fun getGameItemCategories(gameId: Int): FlowResource<List<ItemCategory>> = flow {
         emit(
             Resource.Loading(gameLocalSource.getGame(gameId).itemCategories)
         )
@@ -54,11 +53,7 @@ class GameRepoImp(
         }
     }
 
-    override suspend fun getGame(id: Int): Game {
-        return gameService.getGame(id)
-    }
-
-    override suspend fun getGameFlow(id: Int): Flow<Resource<Game>> = flow{
+    override suspend fun getGameFlow(id: Int): FlowResource<Game> = flow{
         try {
             emit(Resource.Loading(gameLocalSource.getGame(id)))
             val game = gameService.getGame(id)

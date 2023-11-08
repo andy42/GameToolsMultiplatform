@@ -21,16 +21,15 @@ class ItemServiceRetroFit(
         ).data
     }
 
-    override suspend fun getItems(gameId: Int): List<Item> {
+    override suspend fun getItems(gameId: Int?): List<Item> {
+        if(gameId == null) {
+            return serverApi.getItems(
+                bearerToken = tokenProvider.getBearerAccessToken(),
+            ).data
+        }
         return serverApi.getItems(
             bearerToken = tokenProvider.getBearerAccessToken(),
             gameId = gameId
-        ).data
-    }
-
-    override suspend fun getItems(): List<Item> {
-        return serverApi.getItems(
-            bearerToken = tokenProvider.getBearerAccessToken(),
         ).data
     }
 

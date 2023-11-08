@@ -22,7 +22,10 @@ class CollectionServiceRetroFit (
         ).data
     }
 
-    override suspend fun getCollections(gameId: Int): List<Collection> {
+    override suspend fun getCollections(gameId: Int?): List<Collection> {
+        if(gameId == null){
+            return getCollections()
+        }
         return serverApi.getCollections(
             bearerToken = tokenProvider.getBearerAccessToken(),
             gameId = gameId

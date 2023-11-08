@@ -1,6 +1,7 @@
 package com.jaehl.gameTool.common.data.repo
 
 import com.jaehl.gameTool.common.JobDispatcher
+import com.jaehl.gameTool.common.data.FlowResource
 import com.jaehl.gameTool.common.data.Resource
 import com.jaehl.gameTool.common.data.local.CollectionLocalSource
 import com.jaehl.gameTool.common.data.model.Collection
@@ -12,10 +13,8 @@ import kotlinx.coroutines.flow.flow
 
 
 interface CollectionRepo {
-    suspend fun getCollections(gameId : Int) : Flow<List<Collection>>
-    suspend fun getCollectionsFlow(gameId : Int) : Flow<Resource<List<Collection>>>
-    suspend fun getCollection(collectionId : Int) : Collection
-    suspend fun getCollectionFlow(collectionId : Int) : Flow<Resource<Collection>>
+    suspend fun getCollectionsFlow(gameId : Int? = null) : FlowResource<List<Collection>>
+    suspend fun getCollectionFlow(collectionId : Int) : FlowResource<Collection>
     suspend fun updateCollection(collectionId: Int, body : UpdateCollectionRequest) : Collection
 
     suspend fun addCollection(data : NewCollectionRequest) : Collection
@@ -37,14 +36,7 @@ class CollectionRepoImp(
     private val collectionLocalSource : CollectionLocalSource
 ) : CollectionRepo {
 
-    override suspend fun getCollections(gameId : Int) = flow {
-        emit(collectionLocalSource.getCollections(gameId))
-        val collections = collectionService.getCollections(gameId)
-        collectionLocalSource.updateCollections(gameId, collections)
-       emit(collections)
-    }
-
-    override suspend fun getCollectionsFlow(gameId: Int): Flow<Resource<List<Collection>>> = flow {
+    override suspend fun getCollectionsFlow(gameId: Int?): FlowResource<List<Collection>> = flow {
         try {
             emit(Resource.Loading(collectionLocalSource.getCollections(gameId)))
             val collections = collectionService.getCollections(gameId)
@@ -56,7 +48,7 @@ class CollectionRepoImp(
         }
     }
 
-    override suspend fun getCollectionFlow(collectionId: Int): Flow<Resource<Collection>> = flow {
+    override suspend fun getCollectionFlow(collectionId: Int): FlowResource<Collection> = flow {
 
         try {
             emit(Resource.Loading(collectionLocalSource.getCollection(collectionId)))
@@ -67,12 +59,6 @@ class CollectionRepoImp(
         catch (t: Throwable){
             emit(Resource.Error(t))
         }
-    }
-
-    override suspend fun getCollection(collectionId: Int): Collection {
-        val collection = collectionService.getCollection(collectionId)
-        collectionLocalSource.updateCollection(collection)
-        return collection
     }
 
     override suspend fun deleteCollection(collectionId: Int) {

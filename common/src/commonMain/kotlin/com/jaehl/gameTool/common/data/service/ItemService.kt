@@ -5,8 +5,7 @@ import com.jaehl.gameTool.common.data.model.ItemCategory
 
 interface ItemService {
     suspend fun getItem(id : Int) : Item
-    suspend fun getItems(gameId : Int) : List<Item>
-    suspend fun getItems() : List<Item>
+    suspend fun getItems(gameId : Int? = null) : List<Item>
     suspend fun addItem(
         game : Int,
         name : String,

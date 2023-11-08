@@ -38,10 +38,6 @@ class RegisterValidator {
     }
 
     fun onValidateReEnterPassword(password : String, reEnterPassword : String) : Boolean {
-        if(reEnterPassword.isEmpty()){
-            listener?.onRegisterReEnterPasswordError("you most re-enter your password")
-            return false
-        }
         if(password != reEnterPassword){
             listener?.onRegisterReEnterPasswordError("you password does not match")
             return false

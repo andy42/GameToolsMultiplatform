@@ -10,6 +10,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -115,16 +116,23 @@ fun HomePage(
         AppBar(
             title = "Home",
             actions = {
-                IconButton(content = {
-                    Icon(Icons.Outlined.Refresh, "Refresh", tint = Color.White)
-                }, onClick = {
-                    onRefreshClick()
-                })
-                IconButton(content = {
-                    Icon(Icons.Outlined.AccountBox, "Settings", tint = Color.White)
-                }, onClick = {
-                    onAccountClick()
-                })
+                IconButton(
+                    content = {
+                        Icon(Icons.Outlined.Refresh, "Refresh", tint = Color.White)
+                    },
+                    onClick = {
+                        onRefreshClick()
+                    }
+                )
+                IconButton(
+                    modifier = Modifier.testTag("navAccountDetails"),
+                    content = {
+                        Icon(Icons.Outlined.AccountBox, "accountDetails", tint = Color.White)
+                    },
+                    onClick = {
+                        onAccountClick()
+                    }
+                )
             }
         )
         CustomLinearProgressIndicator(loading)

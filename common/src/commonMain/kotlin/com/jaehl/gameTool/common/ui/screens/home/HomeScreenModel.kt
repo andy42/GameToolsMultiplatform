@@ -6,11 +6,12 @@ import cafe.adriel.voyager.core.model.ScreenModel
 import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.AppConfig
 import com.jaehl.gameTool.common.data.Resource
+import com.jaehl.gameTool.common.data.model.Collection
 import com.jaehl.gameTool.common.data.model.Game
+import com.jaehl.gameTool.common.data.model.Item
+import com.jaehl.gameTool.common.data.model.Recipe
 import com.jaehl.gameTool.common.data.model.User
-import com.jaehl.gameTool.common.data.repo.GameRepo
-import com.jaehl.gameTool.common.data.repo.TokenProvider
-import com.jaehl.gameTool.common.data.repo.UserRepo
+import com.jaehl.gameTool.common.data.repo.*
 import com.jaehl.gameTool.common.extensions.postSwap
 import com.jaehl.gameTool.common.ui.UiExceptionHandler
 import com.jaehl.gameTool.common.ui.screens.launchIo
@@ -25,6 +26,9 @@ class HomeScreenModel(
     private val jobDispatcher : JobDispatcher,
     private val gameRepo : GameRepo,
     private val userRepo: UserRepo,
+    private val itemRepo: ItemRepo,
+    private val recipeRepo: RecipeRepo,
+    private val collectionRepo: CollectionRepo,
     private val tokenProvider: TokenProvider,
     private val appConfig: AppConfig,
     private val serverBackup : ServerBackup,
@@ -45,15 +49,22 @@ class HomeScreenModel(
         dataRefresh()
     }
 
-    private suspend fun updateUi( userResource : Resource<User>, gamesResource : Resource<List<Game>>) {
-        pageLoading.value = userResource is Resource.Loading || gamesResource is Resource.Loading
+    private suspend fun updateUi(
+        userResource : Resource<User>,
+        gamesResource : Resource<List<Game>>,
+        itemSResource : Resource<List<Item>>,
+        recipesResource : Resource<List<Recipe>>,
+        collectionsResource : Resource<List<Collection>>
+
+    ) {
+        pageLoading.value = userResource is Resource.Loading
+                || gamesResource is Resource.Loading
+                || itemSResource is Resource.Loading
+                || recipesResource is Resource.Loading
+                || collectionsResource is Resource.Loading
 
         if(userResource is Resource.Error){
             onException(userResource.exception)
-            return
-        }
-        if(gamesResource is Resource.Error){
-            onException(gamesResource.exception)
             return
         }
 
@@ -66,6 +77,18 @@ class HomeScreenModel(
         showAdminTools.value = listOf(
             User.Role.Admin
         ).contains(user.role)
+
+        //if userUnverified then all other api call with return forbidden errors so exit
+        if(userUnverified){
+            return
+        }
+
+        listOf<Resource<*>>(gamesResource, itemSResource, recipesResource, collectionsResource).forEach { resource ->
+            if(resource is Resource.Error){
+                onException(resource.exception)
+                return
+            }
+        }
 
         showEditGames.value = listOf(
             User.Role.Admin,
@@ -82,11 +105,22 @@ class HomeScreenModel(
     suspend fun dataRefresh() {
         pageLoading.value = true
         launchIo(jobDispatcher, ::onException){
+//            combine(
+//                userRepo.getUserSelFlow(),
+//                gameRepo.getGames(),
+//
+//            ) { user, games ->
+//                updateUi(user, games)
+//            }.collect()
+
             combine(
                 userRepo.getUserSelFlow(),
-                gameRepo.getGames()
-            ) { user, games ->
-                updateUi(user, games)
+                gameRepo.getGames(),
+                itemRepo.getItems(),
+                recipeRepo.getRecipesFlow(),
+                collectionRepo.getCollectionsFlow()
+            ) { user, games, itemSResource, recipesResource , collectionsResource ->
+                updateUi(user, games, itemSResource, recipesResource, collectionsResource)
             }.collect()
         }
     }

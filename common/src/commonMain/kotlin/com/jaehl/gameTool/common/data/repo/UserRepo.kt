@@ -18,11 +18,8 @@ import java.util.*
 interface UserRepo {
     suspend fun login(userName : String, password : String)
     suspend fun register(userName : String, email : String, password : String)
-    suspend fun getUserSelf() : User
     suspend fun getUserSelFlow() : Flow<Resource<User>>
-    suspend fun getUser(userId : Int) : User
     suspend fun getUserFlow(userId : Int) : Flow<Resource<User>>
-    suspend fun getUsers() : List<User>
     suspend fun getUsersFlow() : Flow<Resource<List<User>>>
     suspend fun changeUserRole(userId : Int, role: User.Role) : User
     suspend fun changePassword(userId: Int, password: String)
@@ -53,10 +50,6 @@ class UserRepoImp(
         )
     }
 
-    override suspend fun getUserSelf(): User {
-        return userService.getSelf(bearerToken = getBearerAccessToken())
-    }
-
     override suspend fun getUserSelFlow(): Flow<Resource<User>> = flow {
         try {
             userLocalSource.getUserSelf()?.let {
@@ -71,10 +64,6 @@ class UserRepoImp(
         }
     }
 
-    override suspend fun getUser(userId: Int): User {
-        return userService.getUser(bearerToken = getBearerAccessToken(), userId)
-    }
-
     override suspend fun getUserFlow(userId: Int): Flow<Resource<User>> = flow {
         try {
             userLocalSource.getUser(userId)?.let {
@@ -87,10 +76,6 @@ class UserRepoImp(
         catch (t: Throwable) {
             emit(Resource.Error(t))
         }
-    }
-
-    override suspend fun getUsers(): List<User> {
-        return userService.getUsers(bearerToken = getBearerAccessToken())
     }
 
     override suspend fun getUsersFlow(): Flow<Resource<List<User>>> = flow {

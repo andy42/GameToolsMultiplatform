@@ -1,6 +1,7 @@
 package com.jaehl.gameTool.common.data.repo
 
 import com.jaehl.gameTool.common.JobDispatcher
+import com.jaehl.gameTool.common.data.FlowResource
 import com.jaehl.gameTool.common.data.Resource
 import com.jaehl.gameTool.common.data.local.ItemLocalSource
 import com.jaehl.gameTool.common.data.model.Item
@@ -10,9 +11,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
 interface ItemRepo {
-    suspend fun getItems(gameId : Int) : List<Item>
-    suspend fun getItemsFlow(gameId : Int) : Flow<Resource<List<Item>>>
-    suspend fun getItemFlow(id : Int) : Flow<Resource<Item>>
+    suspend fun getItems(gameId : Int? = null) : FlowResource<List<Item>>
+    suspend fun getItem(id : Int) : FlowResource<Item>
     suspend fun getItemCached(id : Int) : Item?
 
     suspend fun addItem(
@@ -30,7 +30,7 @@ interface ItemRepo {
         image : Int
     ) : Item
 
-    suspend fun getItemCategories() : Flow<Resource<List<ItemCategory>>>
+    suspend fun getItemCategories() : FlowResource<List<ItemCategory>>
     suspend fun addItemCategory(name : String) : ItemCategory
 }
 
@@ -41,7 +41,7 @@ class ItemRepoImp(
     private val itemLocalSource : ItemLocalSource,
 ) : ItemRepo {
 
-    override suspend fun getItemsFlow(gameId : Int) = flow {
+    override suspend fun getItems(gameId : Int?) = flow {
         try {
             emit(Resource.Loading(itemLocalSource.getItems(gameId)))
             val items = itemService.getItems(gameId)
@@ -51,10 +51,6 @@ class ItemRepoImp(
         catch (t :Throwable){
             emit(Resource.Error(t))
         }
-    }
-
-    override suspend fun getItems(gameId: Int): List<Item> {
-        return itemLocalSource.getItems(gameId)
     }
 
     override suspend fun getItemCached(id: Int): Item? {
@@ -68,7 +64,7 @@ class ItemRepoImp(
         }
     }
 
-    override suspend fun getItemFlow(id: Int) = flow {
+    override suspend fun getItem(id: Int) = flow {
         try {
             emit(Resource.Loading(itemLocalSource.getItem(id)))
             val item = itemService.getItem(id)

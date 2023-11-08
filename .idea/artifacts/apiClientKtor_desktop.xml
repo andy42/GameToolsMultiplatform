@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="apiClientKtor-desktop">
+    <output-path>$PROJECT_DIR$/apiClientKtor/build/libs</output-path>
+    <root id="archive" name="apiClientKtor-desktop.jar">
+      <element id="module-output" name="GameTools.apiClientKtor.desktopMain" />
+    </root>
+  </artifact>
+</component>

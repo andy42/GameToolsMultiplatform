@@ -123,21 +123,6 @@ class CollectionEditScreenModel (
         this.config = config
 
         unsavedChanges = false
-        launchIo(
-            jobDispatcher,
-            onException = { t: Throwable ->
-
-            }
-        ) {
-            if(config.collectionId != null) {
-                title.value = "Update Collection"
-                loadCollection(config.collectionId)
-            } else {
-                title.value = "New Collection"
-            }
-        }
-
-
 
         launchIo(
             jobDispatcher,
@@ -146,7 +131,7 @@ class CollectionEditScreenModel (
             if(config.collectionId != null) {
                 combine(
                     collectionRepo.getCollectionFlow(config.collectionId),
-                    itemRepo.getItemsFlow(config.gameId),
+                    itemRepo.getItems(config.gameId),
                     gameRepo.getGameItemCategories(config.gameId)
                 ) { collectionResource, items, itemCategories ->
                     updateUi(collectionResource, items, itemCategories)
@@ -154,7 +139,7 @@ class CollectionEditScreenModel (
             }
             else {
                 combine(
-                    itemRepo.getItemsFlow(config.gameId),
+                    itemRepo.getItems(config.gameId),
                     gameRepo.getGameItemCategories(config.gameId)
                 ) { items, itemCategories ->
                     updateUi(null, items, itemCategories)
@@ -165,43 +150,6 @@ class CollectionEditScreenModel (
 
     private fun onException(t : Throwable) {
         System.err.println(t.message)
-    }
-
-    private suspend fun loadCollection(collectionId : Int) {
-        val collection = collectionRepo.getCollection(collectionId)
-
-        groupAddIndex = 0
-        groupMap.clear()
-
-        collectionName.value = collectionName.value.copy(
-            value = collection.name
-        )
-
-        val groups = collection.groups.map { group ->
-
-            val itemAmountMap = linkedMapOf<Int, ItemAmountViewModel>()
-            group.itemAmounts.forEach { itemAmount ->
-                itemAmountMap[itemAmount.itemId] = ItemAmountViewModel(
-                    itemModel = itemRepo.getItemCached(
-                            itemAmount.itemId)?.toItemModel(appConfig, tokenProvider) ?: throw Exception("Item Not Found : ${itemAmount.itemId}"
-                        ),
-                    amount = itemAmount.amount
-                )
-            }
-
-            GroupViewModel(
-                id = groupAddIndex++,
-                severId = group.id,
-                name = TextFieldValue(value = group.name),
-                itemList = itemAmountMap
-            )
-        }
-
-        groups.forEach {
-            groupMap[it.id] = it
-        }
-        groupList.postSwap(groupMap.values)
-
     }
 
     fun onCollectionTextChange(value : String) {

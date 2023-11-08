@@ -20,9 +20,9 @@ class CollectionServiceKtor(
         )
     }
 
-    override suspend fun getCollections(gameId: Int): List<Collection> {
+    override suspend fun getCollections(gameId: Int?): List<Collection> {
         return requestUtil.createRequest(
-            url = "collections?gameId=$gameId",
+            url = "collections${if(gameId == null) "" else "?gameId=$gameId"}",
             HttpMethod.Get
         )
     }

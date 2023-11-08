@@ -5,11 +5,11 @@ import com.jaehl.gameTool.common.data.model.ItemCategory
 import com.jaehl.gameTool.common.ui.util.UiException
 
 interface ItemLocalSource {
-    suspend fun getItems(gameId : Int) : List<Item>
+    suspend fun getItems(gameId : Int?) : List<Item>
     suspend fun getItem(itemId : Int) : Item
 
     suspend fun updateItem(item : Item)
-    suspend fun updateItems(gameId : Int, items : List<Item>)
+    suspend fun updateItems(gameId : Int?, items : List<Item>)
 
     suspend fun getItemCategories() : List<ItemCategory>
     suspend fun addItemCategory(itemCategory : ItemCategory)
@@ -21,8 +21,12 @@ class ItemLocalSourceInMemory() : ItemLocalSource {
     private val itemsMap = hashMapOf<Int, Item>()
     private var itemCategories = arrayListOf<ItemCategory>()
 
-    override suspend fun getItems(gameId: Int): List<Item> {
-        return itemsMap.values.filter { it.game == gameId }
+    override suspend fun getItems(gameId: Int?): List<Item> {
+        if (gameId == null) {
+            return itemsMap.values.toList()
+        } else {
+            return itemsMap.values.filter { it.game == gameId }
+        }
     }
 
     override suspend fun getItem(itemId: Int): Item {
@@ -33,9 +37,11 @@ class ItemLocalSourceInMemory() : ItemLocalSource {
         itemsMap[item.id] = item
     }
 
-    override suspend fun updateItems(gameId: Int, items: List<Item>) {
-        itemsMap.entries.removeIf{
-            it.value.game == gameId
+    override suspend fun updateItems(gameId: Int?, items: List<Item>) {
+        if(gameId != null) {
+            itemsMap.entries.removeIf {
+                it.value.game == gameId
+            }
         }
         items.forEach {
             itemsMap[it.id] = it

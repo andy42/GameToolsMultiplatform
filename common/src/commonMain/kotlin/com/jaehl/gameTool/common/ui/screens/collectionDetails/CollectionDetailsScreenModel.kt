@@ -58,7 +58,7 @@ class CollectionDetailsScreenModel (
         launchIo(jobDispatcher, ::onException) {
             combine(
                 collectionRepo.getCollectionFlow(config.collectionId),
-                itemRepo.getItemsFlow(config.gameId),
+                itemRepo.getItems(config.gameId),
                 recipeRepo.getRecipesFlow(config.gameId)
             ) { collectionResource : Resource<Collection>, itemResource: Resource<List<Item>>, recipesResource: Resource<List<Recipe>> ->
                 updateUi(collectionResource, itemResource, recipesResource)
@@ -93,12 +93,14 @@ class CollectionDetailsScreenModel (
         }
 
         val collection = collectionResource.getDataOrThrow()
+        val recipeMap = HashMap<Int, Recipe>()
 
         val recipeOutputMap = LinkedHashMap<Int, ArrayList<Recipe>>()
         recipesResource.getDataOrThrow().forEach { recipe ->
             recipe.output.forEach {itemAmount ->
                 recipeOutputMap[itemAmount.itemId] = updateRecipeOutputArray(recipeOutputMap[itemAmount.itemId], recipe)
             }
+            recipeMap[recipe.id] = recipe
         }
 
         val itemMap = HashMap<Int, Item>()
@@ -122,6 +124,9 @@ class CollectionDetailsScreenModel (
                 group.itemRecipePreferenceMap,
                 getRecipesForOutput = {itemId ->
                     recipeOutputMap[itemId] ?: listOf()
+                },
+                getRecipe = { recipeId ->
+                    recipeMap[recipeId]
                 }
             )
             val baseNodes = itemRecipeInverter.invertItemRecipes(nodes)
@@ -155,11 +160,13 @@ class CollectionDetailsScreenModel (
     private suspend fun mergeItemRecipesNodes(
         items : List<ItemAmountViewModel>,
         itemRecipePreferenceMap : Map<Int, Int?>,
-        getRecipesForOutput : (itemId : Int) -> List<Recipe>) : List<ItemRecipeNode, >{
+        getRecipesForOutput : (itemId : Int) -> List<Recipe>,
+        getRecipe : (recipeId : Int) -> Recipe?
+    ) : List<ItemRecipeNode, >{
 
         var recipeMap = HashMap<Int, ItemAmount>()
         items.forEach { item ->
-            val recipe = recipeRepo.getRecipe(getRecipeIdForItem(item.itemModel.id, itemRecipePreferenceMap) ?: return@forEach)
+            val recipe = getRecipe(getRecipeIdForItem(item.itemModel.id, itemRecipePreferenceMap) ?: return@forEach) ?: return@forEach
 
             recipe.input.forEach {
                 if(recipeMap.containsKey(it.itemId)){
@@ -216,14 +223,15 @@ class CollectionDetailsScreenModel (
         if(itemRecipePreferenceMap.containsKey(itemId)) {
             return itemRecipePreferenceMap[itemId]
         } else {
-            return recipeRepo.getRecipesForOutput(itemId).firstOrNull()?.id
+            return recipeRepo.getRecipesForOutputCached(config.gameId, itemId).firstOrNull()?.id
         }
     }
 
     fun onRecipeChangeClick(itemId : Int, groupId : Int) = launchIo(jobDispatcher, ::onException){
+
         val recipePickerData = RecipePickerData(
             selectedRecipeId = getRecipeIdForItem(itemId, groupsMap[groupId]?.itemRecipePreferenceMap ?: hashMapOf()),
-            recipes = recipeRepo.getRecipesForOutput(itemId)
+            recipes = recipeRepo.getRecipesForOutputCached(config.gameId, itemId)
                 .map { recipe ->
                     RecipePickerData.RecipeViewModel(
                         id = recipe.id,

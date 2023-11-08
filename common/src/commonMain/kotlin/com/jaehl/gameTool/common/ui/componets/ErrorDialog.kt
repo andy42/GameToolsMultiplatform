@@ -9,8 +9,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.jaehl.gameTool.common.ui.AppColor
+import com.jaehl.gameTool.common.ui.TestTags
 
 @Composable
 fun ErrorDialog(
@@ -23,7 +25,9 @@ fun ErrorDialog(
         .fillMaxWidth()
         .fillMaxHeight()
         .clickable(interactionSource = MutableInteractionSource(), indication = null, onClick = {})
-        .background(AppColor.dialogBackground)) {
+        .background(AppColor.dialogBackground)
+        .testTag(TestTags.General.error_dialog)
+    ) {
         Column(
             modifier = Modifier
                 .width(400.dp)
@@ -34,7 +38,10 @@ fun ErrorDialog(
         ) {
             TopAppBar(
                 title = {
-                    Text(title)
+                    Text(
+                        modifier = Modifier.testTag(TestTags.General.error_dialog_title),
+                        text = title
+                    )
                 },
                 backgroundColor = MaterialTheme.colors.error,
                 contentColor = MaterialTheme.colors.onError,
@@ -42,7 +49,8 @@ fun ErrorDialog(
             )
             Text(
                 modifier = Modifier
-                    .padding(10.dp),
+                    .padding(10.dp)
+                    .testTag(TestTags.General.error_dialog_message),
                 text = message
             )
             Row (

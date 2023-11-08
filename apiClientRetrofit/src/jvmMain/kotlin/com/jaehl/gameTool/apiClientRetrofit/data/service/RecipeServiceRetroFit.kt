@@ -14,7 +14,10 @@ class RecipeServiceRetroFit(
     val tokenProvider : TokenProvider
 ) : RecipeService {
 
-    override suspend fun getRecipes(gameId: Int): List<Recipe> {
+    override suspend fun getRecipes(gameId: Int?): List<Recipe> {
+        if(gameId == null){
+            return getRecipes()
+        }
         return serverApi.getRecipes(
             bearerToken = tokenProvider.getBearerAccessToken(),
             gameId = gameId
