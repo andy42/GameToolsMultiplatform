@@ -111,6 +111,7 @@ class ItemDetailsScreenModel(
         itemInfo.value = item.toItemInfoModel(appConfig, tokenProvider)
 
         val recipes = recipeOutputMap[item.id] ?: listOf()
+        recipeMap.clear()
         recipes.mapNotNull { recipe ->
             val node = itemRecipeNodeUtil.buildTree(
                 itemAmount= ItemAmountViewModel(

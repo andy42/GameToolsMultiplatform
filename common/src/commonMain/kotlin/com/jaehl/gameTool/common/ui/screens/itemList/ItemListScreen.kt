@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.lifecycle.LifecycleEffect
 import cafe.adriel.voyager.core.screen.Screen
@@ -21,6 +22,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.jaehl.gameTool.common.data.model.ItemCategory
 import com.jaehl.gameTool.common.ui.AppColor
+import com.jaehl.gameTool.common.ui.TestTags
 import com.jaehl.gameTool.common.ui.componets.*
 import com.jaehl.gameTool.common.ui.screens.itemDetails.ItemDetailsScreen
 import com.jaehl.gameTool.common.ui.screens.itemEdit.ItemEditScreen
@@ -223,6 +225,7 @@ fun ItemRow(
 ){
     Row (
         modifier = Modifier
+            .testTag(TestTags.ItemList.item_row)
             .clickable {  onItemClick(item.id) }
             .background(if(index.mod(2) == 0) AppColor.rowBackgroundEven else AppColor.rowBackgroundOdd),
         verticalAlignment = Alignment.CenterVertically

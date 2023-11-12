@@ -20,6 +20,7 @@ import cafe.adriel.voyager.kodein.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.jaehl.gameTool.common.ui.AppColor
+import com.jaehl.gameTool.common.ui.TestTags
 import com.jaehl.gameTool.common.ui.componets.*
 import com.jaehl.gameTool.common.ui.screens.userDetails.UserDetailsScreen
 import com.jaehl.gameTool.common.ui.screens.backupList.BackupListScreen
@@ -27,6 +28,7 @@ import com.jaehl.gameTool.common.ui.screens.gameDetails.GameDetailsScreen
 import com.jaehl.gameTool.common.ui.screens.gameEdit.GameEditScreen
 import com.jaehl.gameTool.common.ui.screens.login.LoginScreen
 import com.jaehl.gameTool.common.ui.screens.users.UsersScreen
+import com.jaehl.gameTool.common.ui.viewModel.DialogViewModel
 
 class HomeScreen : Screen {
 
@@ -41,20 +43,21 @@ class HomeScreen : Screen {
             }
         )
 
-        LaunchedEffect(screenModel.logoutEvent.value){
-            if(screenModel.logoutEvent.value){
+        LaunchedEffect(screenModel.logoutEvent){
+            if(screenModel.logoutEvent){
                 navigator.popAll()
                 navigator.push(LoginScreen())
-                screenModel.logoutEvent.value = false
+                screenModel.logoutEvent = false
             }
         }
 
         HomePage(
-            loading = screenModel.pageLoading.value,
+            loading = screenModel.pageLoading,
             games = screenModel.games,
-            showAdminTools = screenModel.showAdminTools.value,
-            showEditGames = screenModel.showEditGames.value,
-            userUnverified = screenModel.userUnverified.value,
+            dialogViewModel = screenModel.dialogViewModel,
+            showAdminTools = screenModel.showAdminTools,
+            showEditGames = screenModel.showEditGames,
+            userUnverified = screenModel.userUnverified,
             onAccountClick = {
                 navigator.push(UserDetailsScreen())
             },
@@ -81,13 +84,10 @@ class HomeScreen : Screen {
             },
             onRefreshClick = {
                 screenModel.onRefreshClick()
-            }
+            },
+            closeDialog = screenModel::closeDialog,
+            forceLogout = screenModel::forceLogout
         )
-
-        val dialogViewModel = screenModel.dialogViewModel.value
-
-        ErrorDialog(dialogViewModel, onClose = screenModel::closeDialog)
-        ForceLogoutDialog(dialogViewModel, onClose = screenModel::forceLogout)
     }
 }
 
@@ -95,6 +95,7 @@ class HomeScreen : Screen {
 fun HomePage(
     loading : Boolean,
     games: List<GameModel>,
+    dialogViewModel : DialogViewModel,
     showAdminTools : Boolean,
     showEditGames : Boolean,
     userUnverified : Boolean,
@@ -104,7 +105,9 @@ fun HomePage(
     onGameClick : (gameId: Int) -> Unit,
     onGameEditClick : (gameId: Int) -> Unit,
     onBackupClick : () -> Unit,
-    onRefreshClick : () -> Unit
+    onRefreshClick : () -> Unit,
+    closeDialog : () -> Unit,
+    forceLogout : () -> Unit
 ) {
     val state : ScrollState = rememberScrollState()
     Column(
@@ -184,6 +187,9 @@ fun HomePage(
             }
         }
     }
+
+    ErrorDialog(dialogViewModel, onClose = closeDialog)
+    ForceLogoutDialog(dialogViewModel, onClose = forceLogout)
 }
 
 @Composable
@@ -344,6 +350,7 @@ fun GameRow(
 ) {
     Row (
         modifier = Modifier
+            .testTag(TestTags.Home.game_row)
             .clickable {
                 onGameClick(game.id)
             }

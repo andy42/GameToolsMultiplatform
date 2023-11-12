@@ -90,4 +90,11 @@ class ItemRepoMock(
         itemCategoriesMap[itemCategory.id] = itemCategory
         return itemCategory
     }
+
+    fun clear() {
+        itemList.clear()
+
+        getItemListError = null
+        getItemError = null
+    }
 }

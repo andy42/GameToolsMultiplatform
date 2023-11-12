@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.flow
 
 class GameRepoMock : GameRepo {
 
-    val gameList : ArrayList<Game> = arrayListOf()
+    var gameList : ArrayList<Game> = arrayListOf()
     val itemCategoryList : ArrayList<ItemCategory> = arrayListOf()
 
     var gameListResourceError : Resource.Error? = null
@@ -92,5 +92,14 @@ class GameRepoMock : GameRepo {
 
     override suspend fun delete(id: Int) {
         gameList.removeIf{it.id == id}
+    }
+
+    fun clear() {
+        gameList.clear()
+        itemCategoryList.clear()
+
+        gameListResourceError = null
+        gameResourceError = null
+        itemCategoryListError = null
     }
 }

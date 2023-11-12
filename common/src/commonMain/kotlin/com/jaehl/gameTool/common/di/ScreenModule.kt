@@ -17,16 +17,14 @@ import com.jaehl.gameTool.common.ui.screens.itemDetails.ItemDetailsScreenModel
 import com.jaehl.gameTool.common.ui.screens.itemEdit.ItemEditScreenModel
 import com.jaehl.gameTool.common.ui.screens.itemList.ItemListScreenModel
 import com.jaehl.gameTool.common.ui.screens.login.LoginScreenModel
-import com.jaehl.gameTool.common.ui.screens.login.LoginValidator
-import com.jaehl.gameTool.common.ui.screens.login.RegisterValidator
 import com.jaehl.gameTool.common.ui.screens.users.UsersScreenModel
 import com.jaehl.gameTool.common.ui.screens.collectionEdit.CollectionEditScreenModel
 import com.jaehl.gameTool.common.ui.screens.gameEdit.GameEditScreenModel
 import com.jaehl.gameTool.common.ui.screens.gameEdit.GameEditValidator
 import com.jaehl.gameTool.common.ui.screens.itemEdit.ItemEditValidator
+import com.jaehl.gameTool.common.ui.screens.login.usecases.*
 import com.jaehl.gameTool.common.ui.util.ItemRecipeInverter
 import com.jaehl.gameTool.common.ui.util.ItemRecipeNodeUtil
-import com.jaehl.gameTool.common.ui.util.ServerBackup
 import org.kodein.di.*
 
 object ScreenModule {
@@ -38,13 +36,34 @@ object ScreenModule {
             }
         }
 
+        bind<LoginUseCase>() { provider {
+            LoginUseCaseImp(
+                instance<JobDispatcher>(),
+                instance<UserRepo>(),
+                instance<UiExceptionHandler>(),
+            )
+        } }
+
+        bind<RegisterUseCase> { provider {
+            RegisterUseCaseImp(
+                instance<JobDispatcher>(),
+                instance<UserRepo>(),
+                instance<UiExceptionHandler>(),
+            )
+        } }
+
         bind<LoginScreenModel> { provider {
             LoginScreenModel(
                 instance<JobDispatcher>(),
-                instance<UserRepo>(),
                 instance<TokenProvider>(),
-                LoginValidator(),
-                RegisterValidator()
+                ValidateLoginUserName(),
+                ValidateLoginPassword(),
+                ValidateRegisterUserName(),
+                ValidateRegisterEmail(),
+                ValidateRegisterPassword(),
+                ValidateRegisterReEnterPassword(),
+                instance<LoginUseCase>(),
+                instance<RegisterUseCase>()
             )}}
 
         bind<UsersScreenModel> { provider {
@@ -63,7 +82,6 @@ object ScreenModule {
                 instance<CollectionRepo>(),
                 instance<TokenProvider>(),
                 instance<AppConfig>(),
-                instance<ServerBackup>(),
                 instance<UiExceptionHandler>()
             )}}
 

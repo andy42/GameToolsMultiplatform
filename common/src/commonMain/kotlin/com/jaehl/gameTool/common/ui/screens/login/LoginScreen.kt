@@ -24,6 +24,9 @@ import com.jaehl.gameTool.common.ui.componets.ErrorDialog
 import com.jaehl.gameTool.common.ui.componets.StyledOutlinedTextField
 import com.jaehl.gameTool.common.ui.componets.StyledPasswordOutlinedTextField
 import com.jaehl.gameTool.common.ui.screens.home.HomeScreen
+import com.jaehl.gameTool.common.ui.viewModel.DialogViewModel
+
+import com.jaehl.gameTool.common.ui.screens.login.LoginScreenModel.PageEvent
 
 class LoginScreen : Screen{
 
@@ -38,25 +41,23 @@ class LoginScreen : Screen{
             }
         )
 
-        LaunchedEffect(screenModel.navigateToHome.value){
-            if(screenModel.navigateToHome.value) {
+        LaunchedEffect(screenModel.navigateToHome){
+            if(screenModel.navigateToHome) {
                 navigator.push(HomeScreen())
-                screenModel.navigateToHome.value = false
+                screenModel.clearEvents()
             }
         }
 
         LoginPage(
-            loading = screenModel.pageLoading.value,
-            pageState = screenModel.pageState.value,
-            loginViewModel = screenModel.loginViewModel.value,
-            registerViewModel = screenModel.registerViewModel.value,
+            loading = screenModel.pageLoading,
+            pageState = screenModel.pageState,
+            loginViewModel = screenModel.loginViewModel,
+            registerViewModel = screenModel.registerViewModel,
+            dialogViewModel = screenModel.dialogViewModel,
             onHomeStateChange = screenModel::onHomeStateChange,
-            loginInterface = screenModel,
-            registerInterface = screenModel,
+            onEvent = screenModel::onEvent,
+            closeDialog = screenModel::closeDialog
         )
-
-        val dialogViewModel = screenModel.dialogViewModel.value
-        ErrorDialog(dialogViewModel, screenModel::closeDialog)
     }
 }
 
@@ -66,9 +67,10 @@ fun LoginPage(
     pageState : LoginScreenModel.PageState,
     loginViewModel : LoginViewModel,
     registerViewModel : RegisterViewModel,
+    dialogViewModel : DialogViewModel,
     onHomeStateChange : (pageState : LoginScreenModel.PageState) -> Unit,
-    loginInterface : LoginInterface,
-    registerInterface: RegisterInterface
+    onEvent : (event : PageEvent) -> Unit,
+    closeDialog : () -> Unit
 ) {
     val focusManager = LocalFocusManager.current
     Box(
@@ -148,26 +150,26 @@ fun LoginPage(
                         LoginBox(
                             modifier = Modifier
                                 .align(Alignment.CenterHorizontally),
-                            //screenModel = screenModel,
                             loading = loading,
                             loginViewModel = loginViewModel,
-                            loginInterface = loginInterface,
+                            onEvent = onEvent
                         )
                     }
                     LoginScreenModel.PageState.Register -> {
                         RegisterBox(
                             modifier = Modifier
                                 .align(Alignment.CenterHorizontally),
-                            //screenModel = screenModel,
                             loading = loading,
                             registerViewModel = registerViewModel,
-                            registerInterface = registerInterface
+                            onEvent = onEvent
                         )
                     }
                 }
             }
         }
     }
+
+    ErrorDialog(dialogViewModel, closeDialog)
 }
 
 
@@ -175,7 +177,7 @@ fun LoginPage(
 fun LoginBox(modifier: Modifier,
              loading : Boolean,
              loginViewModel : LoginViewModel,
-             loginInterface : LoginInterface
+             onEvent : (event : LoginScreenModel.PageEvent) -> Unit
 ){
 
     Column(
@@ -191,7 +193,7 @@ fun LoginBox(modifier: Modifier,
             singleLine = true,
             enabled = !loading,
             onValueChange = { value ->
-                loginInterface.onLoginUserNameChange(value)
+                onEvent(PageEvent.LoginUserNameChange(value))
             },
             testTag = TestTags.Login.user_name,
         )
@@ -203,7 +205,7 @@ fun LoginBox(modifier: Modifier,
             singleLine = true,
             enabled = !loading,
             onValueChange = { value ->
-                loginInterface.onLoginPasswordChange(value)
+                onEvent(PageEvent.LoginPasswordChange(value))
             },
             testTag = TestTags.Login.password,
         )
@@ -215,7 +217,7 @@ fun LoginBox(modifier: Modifier,
                 .testTag(TestTags.Login.login_button),
             enabled = !loading,
             onClick = {
-                loginInterface.onLoginClick()
+                onEvent(PageEvent.LoginButtonClick)
             },
         ) {
             Text("Login")
@@ -227,9 +229,8 @@ fun LoginBox(modifier: Modifier,
 fun RegisterBox(modifier: Modifier,
                 loading : Boolean,
                 registerViewModel : RegisterViewModel,
-                registerInterface: RegisterInterface
+                onEvent : (event : LoginScreenModel.PageEvent) -> Unit
 ){
-
     Column(
         modifier = modifier
             .padding(10.dp)
@@ -243,7 +244,7 @@ fun RegisterBox(modifier: Modifier,
             singleLine = true,
             enabled = !loading,
             onValueChange = { value ->
-                registerInterface.onRegisterUserNameChange(value)
+                onEvent(PageEvent.RegisterUserNameChange(value))
             },
             testTag = TestTags.Login.user_name
         )
@@ -255,7 +256,7 @@ fun RegisterBox(modifier: Modifier,
             singleLine = true,
             enabled = !loading,
             onValueChange = { value ->
-                registerInterface.onRegisterEmailChange(value)
+                onEvent(PageEvent.RegisterEmailChange(value))
             },
             testTag = TestTags.Login.email
         )
@@ -267,7 +268,7 @@ fun RegisterBox(modifier: Modifier,
             singleLine = true,
             enabled = !loading,
             onValueChange = { value ->
-                registerInterface.onRegisterPasswordChange(value)
+                onEvent(PageEvent.RegisterPasswordChange(value))
             },
             testTag = TestTags.Login.password
         )
@@ -280,7 +281,7 @@ fun RegisterBox(modifier: Modifier,
             singleLine = true,
             enabled = !loading,
             onValueChange = { value ->
-                registerInterface.onRegisterReEnterPasswordChange(value)
+                onEvent(PageEvent.RegisterReEnterPasswordChange(value))
             },
             testTag = TestTags.Login.re_enter_password
         )
@@ -292,7 +293,7 @@ fun RegisterBox(modifier: Modifier,
                 .testTag(TestTags.Login.register_button),
             enabled = !loading,
             onClick = {
-                registerInterface.onRegisterClick()
+                onEvent(PageEvent.RegisterButtonClick)
             },
         ) {
             Text("Register")

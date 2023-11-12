@@ -6,9 +6,13 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import com.jaehl.gameTool.common.ui.TestTags
 import com.jaehl.gameTool.common.ui.componets.TextFieldValue
+import com.jaehl.gameTool.common.ui.viewModel.ClosedDialogViewModel
+import com.jaehl.gameTool.common.ui.viewModel.DialogViewModel
 import org.junit.Rule
 import kotlin.test.Test
 import kotlin.test.assertEquals
+
+import com.jaehl.gameTool.common.ui.screens.login.LoginScreenModel.PageEvent
 
 class LoginPageTest {
 
@@ -208,6 +212,7 @@ class LoginPageTest {
         private var pageState = LoginScreenModel.PageState.Loign
         private var loginViewModel = LoginViewModel()
         private var registerViewModel = RegisterViewModel()
+        private var dialogViewModel : DialogViewModel = ClosedDialogViewModel
 
         fun setLoading(loading : Boolean) = apply {
             this.loading = loading
@@ -241,6 +246,10 @@ class LoginPageTest {
             )
         }
 
+        fun setDialogViewModel(dialogViewModel : DialogViewModel) = apply {
+            this.dialogViewModel = dialogViewModel
+        }
+
         @Composable
         fun build() {
             LoginPage(
@@ -248,58 +257,62 @@ class LoginPageTest {
                 pageState = pageState,
                 loginViewModel = loginViewModel,
                 registerViewModel = registerViewModel,
+                dialogViewModel = dialogViewModel,
                 onHomeStateChange = loginPageInterface::onHomeStateChange,
-                loginInterface = loginPageInterface,
-                registerInterface = loginPageInterface
+                onEvent = loginPageInterface::onEvent,
+                closeDialog = loginPageInterface::closeDialog
             )
         }
     }
 
-    class LoginPageInterface() : LoginInterface, RegisterInterface {
+    class LoginPageInterface(){
 
         var pageState : LoginScreenModel.PageState? = null
         fun onHomeStateChange(pageState: LoginScreenModel.PageState) {
             this.pageState = pageState
         }
 
-        var loginUserName : String? = null
-        override fun onLoginUserNameChange(value: String) {
-            loginUserName = value
+       var loginUserName : String? = null
+       var loginPassword : String? = null
+       var isLoginButtonCLicked = false
+       var registerUserName : String? = null
+       var registerEmail : String? = null
+       var registerPassword : String? = null
+       var registerReEnterPassword : String? = null
+       var isRegisterButtonCLicked = false
+
+        fun onEvent(event : PageEvent) {
+            when (event) {
+                is PageEvent.LoginUserNameChange -> {
+                    loginUserName = event.userName
+                }
+                is PageEvent.LoginPasswordChange -> {
+                    loginPassword = event.password
+                }
+                is PageEvent.LoginButtonClick -> {
+                    isLoginButtonCLicked = true
+                }
+                is PageEvent.RegisterUserNameChange -> {
+                    registerUserName = event.userName
+                }
+                is PageEvent.RegisterEmailChange -> {
+                    registerEmail = event.email
+                }
+                is PageEvent.RegisterPasswordChange -> {
+                    registerPassword = event.password
+                }
+                is PageEvent.RegisterReEnterPasswordChange -> {
+                    registerReEnterPassword = event.reEnterPassword
+                }
+                is PageEvent.RegisterButtonClick -> {
+                    isRegisterButtonCLicked = true
+                }
+            }
         }
 
-        var loginPassword : String? = null
-        override fun onLoginPasswordChange(value: String) {
-            loginPassword = value
-        }
-
-        var isLoginButtonCLicked = false
-        override fun onLoginClick() {
-            isLoginButtonCLicked = true
-        }
-
-        var registerUserName : String? = null
-        override fun onRegisterUserNameChange(value: String) {
-            registerUserName = value
-        }
-
-        var registerEmail : String? = null
-        override fun onRegisterEmailChange(value: String) {
-            registerEmail = value
-        }
-
-        var registerPassword : String? = null
-        override fun onRegisterPasswordChange(value: String) {
-            registerPassword = value
-        }
-
-        var registerReEnterPassword : String? = null
-        override fun onRegisterReEnterPasswordChange(value: String) {
-            registerReEnterPassword = value
-        }
-
-        var isRegisterButtonCLicked = false
-        override fun onRegisterClick() {
-            isRegisterButtonCLicked = true
+        var onCloseDialogClicked = false
+        fun closeDialog() {
+            onCloseDialogClicked = true
         }
 
         fun clear(){
@@ -312,6 +325,7 @@ class LoginPageTest {
             registerPassword = null
             registerReEnterPassword = null
             isRegisterButtonCLicked = false
+            onCloseDialogClicked = false
         }
     }
 }

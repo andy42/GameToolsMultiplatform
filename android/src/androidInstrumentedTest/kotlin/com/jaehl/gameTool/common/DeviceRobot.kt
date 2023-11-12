@@ -17,6 +17,7 @@ class DeviceRobot {
     private val device : UiDevice
     private val basicSamplePackage = "com.jaehl.gameTool.GameTool"
     private val launchTimeout = 5000L
+    private val timeout : Long = 1000L
 
     init {
         device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
@@ -63,10 +64,10 @@ class DeviceRobot {
     }
 
     fun asHomeScreen() : HomeRobot {
-        return HomeRobot(device)
+        return HomeRobot(device, timeout)
     }
 
     fun asLoginScreen() : LoginScreenRobot {
-        return LoginScreenRobot(device)
+        return LoginScreenRobot(device, timeout)
     }
 }

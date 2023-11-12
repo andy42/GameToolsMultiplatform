@@ -23,4 +23,10 @@ class TokenProviderMock : TokenProvider {
         accessToken = ""
         isRefreshTokenValid = false
     }
+
+    fun clear(){
+        refreshToken = ""
+        accessToken = ""
+        isRefreshTokenValid = false
+    }
 }

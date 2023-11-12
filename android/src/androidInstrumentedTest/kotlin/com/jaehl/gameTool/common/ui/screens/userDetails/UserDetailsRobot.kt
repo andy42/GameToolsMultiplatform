@@ -7,7 +7,10 @@ import com.jaehl.gameTool.common.ui.screens.login.LoginScreenRobot
 import org.hamcrest.CoreMatchers
 import org.junit.Assert
 
-class UserDetailsRobot(private val device: UiDevice) {
+class UserDetailsRobot(
+    private val device: UiDevice,
+    private val timeout : Long
+) {
 
     val logoutButton = "logout"
     fun assertTitleUserDetails() = apply {
@@ -16,7 +19,7 @@ class UserDetailsRobot(private val device: UiDevice) {
     }
     fun clickLogoutAndTransition() : LoginScreenRobot {
         device.findObject(By.res( logoutButton))
-            .clickAndWait(Until.newWindow(), 3000L)
-        return LoginScreenRobot(device)
+            .clickAndWait(Until.newWindow(), timeout)
+        return LoginScreenRobot(device, timeout)
     }
 }

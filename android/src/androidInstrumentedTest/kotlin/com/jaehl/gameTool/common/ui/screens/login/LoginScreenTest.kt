@@ -1,6 +1,8 @@
 package com.jaehl.gameTool.common.ui.screens.login
 
+
 import com.jaehl.gameTool.common.DeviceRobot
+import com.jaehl.gameTool.common.LoginCredentials
 import org.junit.Test
 
 import com.jaehl.gameTool.common.ui.screens.login.LoginScreenRobot.TextFieldId
@@ -9,19 +11,22 @@ class LoginScreenTest {
 
     private var deviceRobot = DeviceRobot()
 
+    val loginCredentials = LoginCredentials(
+        userName = "test",
+        password = "password"
+    )
+
     @Test
     fun loginTest(){
-        val userName = "test"
-        val password = "password"
 
         deviceRobot
             .setup()
             .logoutIfNeeded()
-            .textFieldEnterValue(TextFieldId.UserName, userName)
-            .textFieldEnterValue(TextFieldId.Password, password)
-            .assertTextFieldValue(TextFieldId.UserName, userName)
+            .textFieldEnterValue(TextFieldId.UserName, loginCredentials.userName)
+            .textFieldEnterValue(TextFieldId.Password, loginCredentials.password)
+            .assertTextFieldValue(TextFieldId.UserName, loginCredentials.userName)
             .clickTextFieldShowPassword(TextFieldId.Password)
-            .assertTextFieldValue(TextFieldId.Password, password)
+            .assertTextFieldValue(TextFieldId.Password, loginCredentials.password)
             .loginClickAndTransition()
             .assertTitleHome()
     }
@@ -51,5 +56,17 @@ class LoginScreenTest {
             .clickButton(LoginScreenRobot.ButtonId.LoginButton)
             .waitUnitLoadingFinished()
             .assertErrorDialog("Login Error", "Login credentials incorrect")
+    }
+
+    @Test
+    fun testRun(){
+        deviceRobot
+            .setup()
+            .logoutIfNeeded()
+            .loginUser(loginCredentials.userName, loginCredentials.password)
+            .clickGameRowAndTransition(0)
+            .waitUnitLoadingFinished()
+            .clickItemsButtonAndTransition()
+            .clickItemRowAndTransition(0)
     }
 }

@@ -3,6 +3,9 @@ package com.jaehl.gameTool.common.ui
 object TestTags {
     object General {
 
+        const val nav_title = "navTitle"
+        const val nav_back_button = "navBackButton"
+
         const val error_dialog = "errorDialog"
         const val error_dialog_title = "errorDialogTitle"
         const val error_dialog_message = "errorDialogMessage"
@@ -28,6 +31,20 @@ object TestTags {
         const val re_enter_password = "reEnterPassword"
         const val login_button = "loginButton"
         const val register_button = "registerButton"
+    }
+
+    object Home {
+        const val game_row = "gameRow"
+        const val nav_account_details = "navAccountDetails"
+    }
+
+    object GameDetails {
+        const val items_button = "itemsButton"
+        const val collections_button = "collectionsButton"
+    }
+
+    object ItemList {
+        const val item_row = "itemRow"
     }
 }
 

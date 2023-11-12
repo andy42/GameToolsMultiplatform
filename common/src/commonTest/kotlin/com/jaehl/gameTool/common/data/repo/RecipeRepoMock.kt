@@ -90,4 +90,11 @@ class RecipeRepoMock : RecipeRepo {
     override suspend fun deleteRecipe(recipeId: Int) {
         recipeList.removeIf{it.id == recipeId }
     }
+
+    fun clear() {
+        recipeList.clear()
+
+        getRecipesError = null
+        getRecipeError = null
+    }
 }

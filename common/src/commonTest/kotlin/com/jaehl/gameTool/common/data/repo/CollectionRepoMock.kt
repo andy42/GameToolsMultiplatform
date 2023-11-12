@@ -104,4 +104,11 @@ class CollectionRepoMock : CollectionRepo {
     ): Collection.Group {
         TODO("Not yet implemented")
     }
+
+    fun clear() {
+        collectionList.clear()
+
+        getCollectionsError = null
+        getCollectionError = null
+    }
 }

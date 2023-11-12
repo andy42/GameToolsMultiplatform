@@ -8,7 +8,10 @@ import com.jaehl.gameTool.common.ui.screens.home.HomeRobot
 import org.hamcrest.CoreMatchers
 import org.junit.Assert
 
-class LoginScreenRobot(private val device: UiDevice) {
+class LoginScreenRobot(
+    private val device: UiDevice,
+    private val timeout : Long
+) {
 
     enum class TextFieldId(val value : String) {
         UserName(TestTags.Login.user_name),
@@ -38,7 +41,7 @@ class LoginScreenRobot(private val device: UiDevice) {
     }
     fun assertTextFieldErrorText(textFieldId : TextFieldId, value : String) = apply {
         val errorTextTag = TestTags.General.textFieldError(textFieldId.value)
-        device.wait(Until.findObject(By.res( errorTextTag)), 3000L)
+        device.wait(Until.findObject(By.res( errorTextTag)), timeout)
         val errorText = device.findObject(By.res(errorTextTag))
         Assert.assertThat(errorText.getText(), CoreMatchers.`is`(CoreMatchers.equalTo(value)))
     }
@@ -50,9 +53,9 @@ class LoginScreenRobot(private val device: UiDevice) {
 
     fun loginClickAndTransition() : HomeRobot {
         device.findObject(By.res( ButtonId.LoginButton.value))
-            .clickAndWait(Until.newWindow(), 5000L)
+            .clickAndWait(Until.newWindow(), timeout)
 
-        return HomeRobot(device)
+        return HomeRobot(device, timeout)
     }
 
     fun loginUser(userName : String, password : String) : HomeRobot {
@@ -62,7 +65,7 @@ class LoginScreenRobot(private val device: UiDevice) {
     }
 
     fun assertErrorDialog(title : String, message: String) = apply {
-        device.wait(Until.findObject(By.res( TestTags.General.error_dialog_title)), 3000L)
+        device.wait(Until.findObject(By.res( TestTags.General.error_dialog_title)), timeout)
         val errorDialogTitle = device.findObject(By.res( TestTags.General.error_dialog_title))
         Assert.assertThat(errorDialogTitle.getText(), CoreMatchers.`is`(CoreMatchers.equalTo(title)))
 
@@ -71,6 +74,6 @@ class LoginScreenRobot(private val device: UiDevice) {
     }
 
     fun waitUnitLoadingFinished() = apply {
-        device.wait(Until.gone(By.res( TestTags.General.loading_indicator)), 3000L)
+        device.wait(Until.gone(By.res( TestTags.General.loading_indicator)), timeout)
     }
 }

@@ -12,11 +12,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.kodein.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.jaehl.gameTool.common.ui.TestTags
 import com.jaehl.gameTool.common.ui.componets.AppBar
 import com.jaehl.gameTool.common.ui.componets.CustomLinearProgressIndicator
 import com.jaehl.gameTool.common.ui.componets.ItemIcon
@@ -122,7 +124,8 @@ fun GameDetailsPage(
                     )
                     Button(
                         modifier = Modifier
-                            .width(200.dp),
+                            .width(200.dp)
+                            .testTag(TestTags.GameDetails.items_button),
                         onClick = {
                             onOpenItemsClick()
                         }
@@ -132,7 +135,8 @@ fun GameDetailsPage(
 
                     Button(
                         modifier = Modifier
-                            .width(200.dp),
+                            .width(200.dp)
+                            .testTag(TestTags.GameDetails.collections_button),
                         onClick = {
                             onOpenCollectionsClick()
                         }
