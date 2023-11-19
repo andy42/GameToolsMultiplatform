@@ -7,6 +7,7 @@ import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.coroutineScope
 import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.repo.TokenProvider
+import com.jaehl.gameTool.common.ui.Strings
 import com.jaehl.gameTool.common.ui.componets.TextFieldValue
 import com.jaehl.gameTool.common.ui.screens.launchIo
 import com.jaehl.gameTool.common.ui.screens.login.usecases.*
@@ -93,14 +94,14 @@ class LoginScreenModel(
             }
             is UiException.ServerConnectionError -> {
                 dialogViewModel = ErrorDialogViewModel(
-                    title = "Connection Error",
-                    message = "Oops, seems like you can not connect to the server"
+                    title = Strings.General.dialogErrorConnectionErrorTitle,
+                    message = Strings.General.dialogErrorConnectionErrorMessage
                 )
             }
             else -> {
                 dialogViewModel = ErrorDialogViewModel(
-                    title = "Error",
-                    message = "Oops something went wrong"
+                    title = Strings.General.dialogErrorTitle,
+                    message = Strings.General.dialogErrorGeneralMessage
                 )
             }
         }

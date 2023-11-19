@@ -35,7 +35,20 @@ object TestTags {
 
     object Home {
         const val game_row = "gameRow"
+        const val game_row_title = "gameRowTitle"
+        const val game_row_edit_button = "gameRowEditButton"
         const val nav_account_details = "navAccountDetails"
+
+        const val user_message_card = "userMessageCard"
+        const val user_message_title = "userMessageTitle"
+        const val user_message_text = "userMessageText"
+
+        const val admin_tools_card = "admin_tools_card"
+        const val admin_tools_backup_button = "adminToolsBackupButton"
+        const val admin_tools_users_button = "adminToolsUserButton"
+
+        const val games_card = "gamesCard"
+        const val games_add_game = "gamesAddGame"
     }
 
     object GameDetails {

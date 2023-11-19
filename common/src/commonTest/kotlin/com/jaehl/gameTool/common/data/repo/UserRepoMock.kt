@@ -75,6 +75,11 @@ class UserRepoMock : UserRepo{
 
     }
 
+    override suspend fun clearData() {
+        userSelf = null
+        users = arrayListOf()
+    }
+
     fun clear() {
         userSelf = null
         users = arrayListOf()

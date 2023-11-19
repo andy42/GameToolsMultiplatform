@@ -12,10 +12,11 @@ import com.jaehl.gameTool.common.data.model.Collection
 import com.jaehl.gameTool.common.data.model.Game
 import com.jaehl.gameTool.common.data.model.Item
 import com.jaehl.gameTool.common.data.model.Recipe
-import com.jaehl.gameTool.common.data.model.User
 import com.jaehl.gameTool.common.data.repo.*
+import com.jaehl.gameTool.common.domain.model.UserPermissions
 import com.jaehl.gameTool.common.extensions.postSwap
 import com.jaehl.gameTool.common.ui.UiExceptionHandler
+import com.jaehl.gameTool.common.domain.useCase.GetUserPermissionsUseCase
 import com.jaehl.gameTool.common.ui.screens.launchIo
 import com.jaehl.gameTool.common.ui.util.UiException
 import com.jaehl.gameTool.common.ui.viewModel.ClosedDialogViewModel
@@ -30,6 +31,7 @@ class HomeScreenModel(
     private val itemRepo: ItemRepo,
     private val recipeRepo: RecipeRepo,
     private val collectionRepo: CollectionRepo,
+    private val getUserState : GetUserPermissionsUseCase,
     private val tokenProvider: TokenProvider,
     private val appConfig: AppConfig,
     private val uiExceptionHandler : UiExceptionHandler
@@ -50,7 +52,7 @@ class HomeScreenModel(
     }
 
     private suspend fun updateUi(
-        userResource : Resource<User>,
+        userPermissionsResource : Resource<UserPermissions>,
         gamesResource : Resource<List<Game>>,
         itemSResource : Resource<List<Item>>,
         recipesResource : Resource<List<Recipe>>,
@@ -58,34 +60,24 @@ class HomeScreenModel(
 
     ) {
 
-        if(userResource is Resource.Error){
-            onException(userResource.exception)
+        if(userPermissionsResource is Resource.Error){
+            onException(userPermissionsResource.exception)
             return
         }
 
-        val user = userResource.getDataOrThrow()
-        val userUnverified = listOf(
-            User.Role.Unverified
-        ).contains(user.role)
-        this.userUnverified = userUnverified
-
-        showAdminTools = listOf(
-            User.Role.Admin
-        ).contains(user.role)
+        val userState = userPermissionsResource.getDataOrThrow()
+        userUnverified = !userState.isVerified
+        showAdminTools = userState.isAdmin
+        showEditGames = userState.gameEditPermission
 
         //if userUnverified then all other api call with return forbidden errors so exit
-        if(!userUnverified){
+        if(userState.isVerified){
             listOf<Resource<*>>(gamesResource, itemSResource, recipesResource, collectionsResource).forEach { resource ->
                 if(resource is Resource.Error){
                     onException(resource.exception)
                     return
                 }
             }
-
-            showEditGames = listOf(
-                User.Role.Admin,
-                User.Role.Contributor
-            ).contains(user.role)
 
             this.games.postSwap(
                 gamesResource.getDataOrThrow().map {
@@ -94,18 +86,16 @@ class HomeScreenModel(
             )
         }
 
-        pageLoading = userResource is Resource.Loading
-                || gamesResource is Resource.Loading
-                || itemSResource is Resource.Loading
-                || recipesResource is Resource.Loading
-                || collectionsResource is Resource.Loading
+        pageLoading = listOf(
+            userPermissionsResource, gamesResource, itemSResource, recipesResource, collectionsResource
+        ).any { it is Resource.Loading }
     }
 
     suspend fun dataRefresh() {
         pageLoading = true
         launchIo(jobDispatcher, ::onException){
             combine(
-                userRepo.getUserSelFlow(),
+                getUserState(),
                 gameRepo.getGames(),
                 itemRepo.getItems(),
                 recipeRepo.getRecipesFlow(),

@@ -3,6 +3,7 @@ package com.jaehl.gameTool.common.ui.screens.login
 import com.jaehl.gameTool.common.JobDispatcherTest
 import com.jaehl.gameTool.common.data.repo.TokenProviderMock
 import com.jaehl.gameTool.common.data.repo.UserRepoMock
+import com.jaehl.gameTool.common.ui.Strings
 import com.jaehl.gameTool.common.ui.UiExceptionHandlerImp
 import com.jaehl.gameTool.common.ui.componets.TextFieldValue
 import com.jaehl.gameTool.common.ui.screens.login.usecases.*
@@ -72,7 +73,8 @@ class LoginScreenModelTest {
         screenModel.onEvent(PageEvent.LoginPasswordChange("password"))
         screenModel.onEvent(PageEvent.LoginButtonClick)
         advanceUntilIdle()
-        assertEquals(screenModel.dialogViewModel, ErrorDialogViewModel("Error", "Oops something went wrong"))
+
+        assertEquals(screenModel.dialogViewModel, ErrorDialogViewModel(Strings.General.dialogErrorTitle, Strings.General.dialogErrorGeneralMessage))
     }
 
     @Test
@@ -104,8 +106,8 @@ class LoginScreenModelTest {
         advanceUntilIdle()
         assertEquals(
             LoginViewModel(
-                userName = TextFieldValue(value = userName, error = "you most enter an user name"),
-                password = TextFieldValue(value = password, error = "you most enter a password")
+                userName = TextFieldValue(value = userName, error = Strings.Login.validateLoginUserNameEmpty),
+                password = TextFieldValue(value = password, error = Strings.Login.validateLoginPasswordEmpty)
             ),
             screenModel.loginViewModel
         )
@@ -149,14 +151,23 @@ class LoginScreenModelTest {
         screenModel.onEvent(PageEvent.RegisterReEnterPasswordChange(reEnterPassword))
         screenModel.onEvent(PageEvent.RegisterButtonClick)
         advanceUntilIdle()
+
+        val registerViewModel = screenModel.registerViewModel
         assertEquals(
-            RegisterViewModel(
-                userName = TextFieldValue(value = userName, error = "you most enter a userName"),
-                email = TextFieldValue(value = email, error = "you most enter an email"),
-                password = TextFieldValue(value = password, error = "you most enter a password"),
-                reEnterPassword = TextFieldValue(value = reEnterPassword, error = "you password does not match"),
-            ),
-            screenModel.registerViewModel
+            TextFieldValue(value = userName, error = Strings.Login.validateRegisterUserNameEmpty),
+            registerViewModel.userName
+        )
+        assertEquals(
+            TextFieldValue(value = email, error = Strings.Login.validateRegisterEmailEmpty),
+            registerViewModel.email
+        )
+        assertEquals(
+            TextFieldValue(value = password, error = Strings.Login.validateRegisterPasswordEmpty),
+            registerViewModel.password
+        )
+        assertEquals(
+            TextFieldValue(value = reEnterPassword, error = Strings.Login.validateRegisterReEnterPasswordMismatch),
+            registerViewModel.reEnterPassword
         )
     }
 }

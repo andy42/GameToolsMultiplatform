@@ -408,7 +408,7 @@ class ItemEditScreenModel(
         )
 
         this.config = Config(gameId = config.gameId, itemId = newItem.id)
-        if(closePageAfter) {
+        if(!closePageAfter) {
             loadData()
         }
         unsavedChanges = false

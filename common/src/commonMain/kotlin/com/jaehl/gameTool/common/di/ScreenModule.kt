@@ -21,6 +21,7 @@ import com.jaehl.gameTool.common.ui.screens.users.UsersScreenModel
 import com.jaehl.gameTool.common.ui.screens.collectionEdit.CollectionEditScreenModel
 import com.jaehl.gameTool.common.ui.screens.gameEdit.GameEditScreenModel
 import com.jaehl.gameTool.common.ui.screens.gameEdit.GameEditValidator
+import com.jaehl.gameTool.common.domain.useCase.GetUserPermissionsUseCaseImp
 import com.jaehl.gameTool.common.ui.screens.itemEdit.ItemEditValidator
 import com.jaehl.gameTool.common.ui.screens.login.usecases.*
 import com.jaehl.gameTool.common.ui.util.ItemRecipeInverter
@@ -80,6 +81,9 @@ object ScreenModule {
                 instance<ItemRepo>(),
                 instance<RecipeRepo>(),
                 instance<CollectionRepo>(),
+                GetUserPermissionsUseCaseImp(
+                    instance<UserRepo>()
+                ),
                 instance<TokenProvider>(),
                 instance<AppConfig>(),
                 instance<UiExceptionHandler>()

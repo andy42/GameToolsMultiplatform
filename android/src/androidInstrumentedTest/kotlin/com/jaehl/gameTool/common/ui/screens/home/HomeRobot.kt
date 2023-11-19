@@ -42,4 +42,13 @@ class HomeRobot(
         device.findObjects(By.res( TestTags.Home.game_row))[rowIndex].clickAndWait(Until.newWindow(), timeout)
         return GameDetailsRobot(device, timeout)
     }
+
+    fun clickGameRowWithTitleAndTransition(title : String) : GameDetailsRobot {
+        device.wait(Until.hasObject(By.res( TestTags.Home.game_row)), timeout)
+        device.findObject(By.res( TestTags.Home.game_row).hasChild(
+            By.text(title))
+         ).clickAndWait(Until.newWindow(), timeout)
+
+        return GameDetailsRobot(device, timeout)
+    }
 }

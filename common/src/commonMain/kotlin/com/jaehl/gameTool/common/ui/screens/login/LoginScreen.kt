@@ -18,6 +18,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.kodein.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.jaehl.gameTool.common.ui.Strings
 import com.jaehl.gameTool.common.ui.TestTags
 import com.jaehl.gameTool.common.ui.componets.CustomLinearProgressIndicator
 import com.jaehl.gameTool.common.ui.componets.ErrorDialog
@@ -111,7 +112,7 @@ fun LoginPage(
                             .testTag(TestTags.Login.login_tab)
                     ) {
                         Text(
-                            text = "Login",
+                            text = Strings.Login.loginTab,
                             color = if (pageState == LoginScreenModel.PageState.Loign) MaterialTheme.colors.onPrimary else MaterialTheme.colors.onSurface,
                             modifier = Modifier
                                 .align(Alignment.Center)
@@ -130,7 +131,7 @@ fun LoginPage(
                             .testTag(TestTags.Login.register_tab)
                     ) {
                         Text(
-                            text = "Register",
+                            text = Strings.Login.registerTab,
                             color = if (pageState == LoginScreenModel.PageState.Register) MaterialTheme.colors.onPrimary else MaterialTheme.colors.onSurface,
                             modifier = Modifier
                                 .align(Alignment.Center)
@@ -189,7 +190,7 @@ fun LoginBox(modifier: Modifier,
             loginViewModel.userName,
             modifier = Modifier
                 .padding(top = 5.dp),
-            label = { Text("UserName") },
+            label = { Text(Strings.Login.userNameTitle) },
             singleLine = true,
             enabled = !loading,
             onValueChange = { value ->
@@ -201,7 +202,7 @@ fun LoginBox(modifier: Modifier,
             loginViewModel.password,
             modifier = Modifier
                 .padding(top = 5.dp),
-            label = { Text("Password") },
+            label = { Text(Strings.Login.passwordTitle) },
             singleLine = true,
             enabled = !loading,
             onValueChange = { value ->
@@ -220,7 +221,7 @@ fun LoginBox(modifier: Modifier,
                 onEvent(PageEvent.LoginButtonClick)
             },
         ) {
-            Text("Login")
+            Text(Strings.Login.loginButton)
         }
     }
 }
@@ -240,7 +241,7 @@ fun RegisterBox(modifier: Modifier,
             registerViewModel.userName,
             modifier = Modifier
                 .padding(top = 5.dp),
-            label = { Text("UserName") },
+            label = { Text( Strings.Login.userNameTitle) },
             singleLine = true,
             enabled = !loading,
             onValueChange = { value ->
@@ -252,7 +253,7 @@ fun RegisterBox(modifier: Modifier,
             registerViewModel.email,
             modifier = Modifier
                 .padding(top = 5.dp),
-            label = { Text("Email") },
+            label = { Text(Strings.Login.emailTitle) },
             singleLine = true,
             enabled = !loading,
             onValueChange = { value ->
@@ -264,7 +265,7 @@ fun RegisterBox(modifier: Modifier,
             registerViewModel.password,
             modifier = Modifier
                 .padding(top = 5.dp),
-            label = { Text("Password") },
+            label = { Text(Strings.Login.passwordTitle) },
             singleLine = true,
             enabled = !loading,
             onValueChange = { value ->
@@ -277,7 +278,7 @@ fun RegisterBox(modifier: Modifier,
             registerViewModel.reEnterPassword,
             modifier = Modifier
                 .padding(top = 5.dp),
-            label = { Text("re-enter Password") },
+            label = { Text(Strings.Login.reEnterPasswordTitle) },
             singleLine = true,
             enabled = !loading,
             onValueChange = { value ->
@@ -296,7 +297,7 @@ fun RegisterBox(modifier: Modifier,
                 onEvent(PageEvent.RegisterButtonClick)
             },
         ) {
-            Text("Register")
+            Text(Strings.Login.registerButton)
         }
     }
 }

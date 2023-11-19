@@ -9,6 +9,7 @@ import com.jaehl.gameTool.common.data.model.ItemCategory
 import com.jaehl.gameTool.common.data.repo.*
 import com.jaehl.gameTool.common.ui.UiExceptionHandlerImp
 import com.jaehl.gameTool.common.ui.componets.ImageResource
+import com.jaehl.gameTool.common.domain.useCase.GetUserPermissionsUseCaseImp
 import com.jaehl.gameTool.common.ui.util.UiException
 import com.jaehl.gameTool.common.ui.viewModel.ErrorDialogViewModel
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -29,6 +30,7 @@ class HomeScreenModelTest {
 
     private val gameRepoMock = GameRepoMock()
     private val userRepoMock = UserRepoMock()
+    private val getUserPermissionsUseCase = GetUserPermissionsUseCaseImp(userRepoMock)
     private val itemRepoMock = ItemRepoMock(itemCategoriesMap)
     private val recipeRepoMock = RecipeRepoMock()
     private val collectionRepoMock = CollectionRepoMock()
@@ -43,6 +45,7 @@ class HomeScreenModelTest {
             itemRepoMock,
             recipeRepoMock,
             collectionRepoMock,
+            getUserPermissionsUseCase,
             tokenProviderMock,
             AppConfig(baseUrl = baseUrl),
             uiExceptionHandler

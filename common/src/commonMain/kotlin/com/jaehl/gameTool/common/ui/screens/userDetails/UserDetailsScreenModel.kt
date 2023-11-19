@@ -85,6 +85,7 @@ class UserDetailsScreenModel(
 
     fun logoutClick() = launchIo(jobDispatcher, ::onException) {
         tokenProvider.clearTokens()
+        userRepo.clearData()
         logoutEvent.value = true
     }
 

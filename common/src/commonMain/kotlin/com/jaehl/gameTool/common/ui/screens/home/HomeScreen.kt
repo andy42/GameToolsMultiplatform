@@ -20,6 +20,7 @@ import cafe.adriel.voyager.kodein.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.jaehl.gameTool.common.ui.AppColor
+import com.jaehl.gameTool.common.ui.Strings
 import com.jaehl.gameTool.common.ui.TestTags
 import com.jaehl.gameTool.common.ui.componets.*
 import com.jaehl.gameTool.common.ui.screens.userDetails.UserDetailsScreen
@@ -85,8 +86,8 @@ class HomeScreen : Screen {
             onRefreshClick = {
                 screenModel.onRefreshClick()
             },
-            closeDialog = screenModel::closeDialog,
-            forceLogout = screenModel::forceLogout
+            onCloseDialog = screenModel::closeDialog,
+            onForceLogout = screenModel::forceLogout
         )
     }
 }
@@ -106,8 +107,8 @@ fun HomePage(
     onGameEditClick : (gameId: Int) -> Unit,
     onBackupClick : () -> Unit,
     onRefreshClick : () -> Unit,
-    closeDialog : () -> Unit,
-    forceLogout : () -> Unit
+    onCloseDialog : () -> Unit,
+    onForceLogout : () -> Unit
 ) {
     val state : ScrollState = rememberScrollState()
     Column(
@@ -188,8 +189,8 @@ fun HomePage(
         }
     }
 
-    ErrorDialog(dialogViewModel, onClose = closeDialog)
-    ForceLogoutDialog(dialogViewModel, onClose = forceLogout)
+    ErrorDialog(dialogViewModel, onClose = onCloseDialog)
+    ForceLogoutDialog(dialogViewModel, onClose = onForceLogout)
 }
 
 @Composable
@@ -200,6 +201,7 @@ fun UserMessage(
 ) {
     Card(
         modifier = modifier
+            .testTag(TestTags.Home.user_message_card)
     ) {
         Column(
             modifier = Modifier
@@ -214,7 +216,8 @@ fun UserMessage(
             ) {
                 Text(
                     modifier = Modifier
-                        .padding(start = 10.dp, top = 12.dp, bottom = 12.dp),
+                        .padding(start = 10.dp, top = 12.dp, bottom = 12.dp)
+                        .testTag(TestTags.Home.user_message_title),
                     color = MaterialTheme.colors.onSecondary,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -223,7 +226,8 @@ fun UserMessage(
             }
             Text(
                 modifier = Modifier
-                    .padding(start = 10.dp, top = 12.dp, bottom = 12.dp),
+                    .padding(start = 10.dp, top = 12.dp, bottom = 12.dp)
+                    .testTag(TestTags.Home.user_message_text),
                 color = MaterialTheme.colors.onSurface,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -242,6 +246,7 @@ fun AdminTools(
 ) {
     Card(
         modifier = modifier
+            .testTag(TestTags.Home.admin_tools_card)
     ) {
         Column(
             modifier = Modifier
@@ -260,7 +265,7 @@ fun AdminTools(
                     color = MaterialTheme.colors.onSecondary,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
-                    text = "Admin Tools"
+                    text = Strings.Home.adminToolsTitle
                 )
             }
             Row(
@@ -270,21 +275,23 @@ fun AdminTools(
             ) {
                 Button(
                     modifier = Modifier
-                        .padding(start = 10.dp),
+                        .padding(start = 10.dp)
+                        .testTag(TestTags.Home.admin_tools_backup_button),
                     onClick = {
                         onBackupClick()
                     }
                 ){
-                    Text("Backups")
+                    Text(Strings.Home.backupTitle)
                 }
                 Button(
                     modifier = Modifier
-                        .padding(start = 10.dp),
+                        .padding(start = 10.dp)
+                        .testTag(TestTags.Home.admin_tools_users_button),
                     onClick = {
                         onUsersClick()
                     }
                 ){
-                    Text("Users")
+                    Text(Strings.Home.usersTitle)
                 }
             }
 
@@ -305,6 +312,7 @@ fun GamesCard(
 
     Card(
         modifier = modifier
+            .testTag(TestTags.Home.games_card)
     ) {
         Column(
             modifier = Modifier
@@ -326,11 +334,16 @@ fun GamesCard(
                     text = "Games"
                 )
                 if(showEditGames) {
-                    IconButton(content = {
-                        Icon(Icons.Outlined.Add, "Add Game", tint = MaterialTheme.colors.onSecondary)
-                    }, onClick = {
-                        onCreateGameClick()
-                    })
+                    IconButton(
+                        modifier = Modifier
+                            .testTag(TestTags.Home.games_add_game),
+                        content = {
+                            Icon(Icons.Outlined.Add, "Add Game", tint = MaterialTheme.colors.onSecondary)
+
+                        }, onClick = {
+                            onCreateGameClick()
+                        }
+                    )
                 }
             }
             games.forEachIndexed{ index, gameModel ->
@@ -369,13 +382,19 @@ fun GameRow(
             modifier = Modifier
                 .weight(1f)
                 .padding(start = 10.dp)
+                .testTag(TestTags.Home.game_row_title)
         )
         if(showEditGames) {
-            IconButton(content = {
-                Icon(Icons.Outlined.Edit, "Edit", tint = Color.Black)
-            }, onClick = {
-                onGameEditClick(game.id)
-            })
+            IconButton(
+                modifier = Modifier
+                    .testTag(TestTags.Home.game_row_edit_button),
+                content = {
+                    Icon(Icons.Outlined.Edit, "Edit", tint = Color.Black)
+                },
+                onClick = {
+                    onGameEditClick(game.id)
+                }
+            )
         }
     }
 }

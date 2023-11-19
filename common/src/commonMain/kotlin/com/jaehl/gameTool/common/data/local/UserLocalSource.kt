@@ -11,6 +11,8 @@ interface UserLocalSource {
 
     suspend fun updateUser(user: User)
     suspend fun updateUsers(users : List<User>)
+
+    suspend fun clear()
 }
 
 class UserLocalSourceInMemory : UserLocalSource {
@@ -43,5 +45,10 @@ class UserLocalSourceInMemory : UserLocalSource {
         users.forEach { user ->
             userMap[user.id] = user
         }
+    }
+
+    override suspend fun clear() {
+        userMap.clear()
+        userSelf = null
     }
 }

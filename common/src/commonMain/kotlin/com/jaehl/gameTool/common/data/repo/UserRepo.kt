@@ -23,6 +23,7 @@ interface UserRepo {
     suspend fun getUsersFlow() : Flow<Resource<List<User>>>
     suspend fun changeUserRole(userId : Int, role: User.Role) : User
     suspend fun changePassword(userId: Int, password: String)
+    suspend fun clearData()
 }
 
 interface TokenProvider {
@@ -104,6 +105,10 @@ class UserRepoImp(
             userId = userId,
             password = password
         )
+    }
+
+    override suspend fun clearData() {
+        userLocalSource.clear()
     }
 
     override suspend fun getBearerRefreshToken(): String {
