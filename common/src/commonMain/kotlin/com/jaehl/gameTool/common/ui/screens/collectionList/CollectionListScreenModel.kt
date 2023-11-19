@@ -4,18 +4,19 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import cafe.adriel.voyager.core.model.ScreenModel
 import com.jaehl.gameTool.common.JobDispatcher
+import com.jaehl.gameTool.common.data.Resource
 import com.jaehl.gameTool.common.data.model.Collection
 import com.jaehl.gameTool.common.data.repo.CollectionRepo
 import com.jaehl.gameTool.common.extensions.postSwap
-import com.jaehl.gameTool.common.ui.screens.home.HomeScreenModel
 import com.jaehl.gameTool.common.ui.screens.launchIo
 
 class CollectionListScreenModel (
-    val jobDispatcher : JobDispatcher,
-    val collectionRepo : CollectionRepo
+    private val jobDispatcher : JobDispatcher,
+    private val collectionRepo : CollectionRepo
 ) : ScreenModel {
 
     private lateinit var config : Config
+    var pageLoading = mutableStateOf(false)
 
     var collections = mutableStateListOf<CollectionViewModel>()
 
@@ -24,25 +25,47 @@ class CollectionListScreenModel (
     fun setup(config : Config) {
         this.config = config
 
+        loadCollection()
+    }
+
+    fun loadCollection() {
         launchIo(
             jobDispatcher = jobDispatcher,
-            onException = ::onError
+            onException = ::onException
         ){
-            loadCollection()
+            pageLoading.value = true
+
+            collectionRepo.getCollectionsFlow(config.gameId).collect { collectionsResource ->
+                updateUi(collectionsResource)
+            }
         }
     }
 
-    private suspend fun loadCollection(){
-        collectionRepo.getCollections(config.gameId).collect { collections ->
-            val collectionViewModels = collections.map { it.toCollectionViewModel() }
-            this.collections.postSwap(collectionViewModels)
+    private suspend fun updateUi(
+        collectionsResource : Resource<List<Collection>>
+    ) {
+        this.pageLoading.value = collectionsResource is Resource.Loading
+        if(collectionsResource is Resource.Error){
+            this.onException(collectionsResource.exception)
+            return
         }
+
+        this.collections.postSwap(
+            collectionsResource.getDataOrThrow().map { it.toCollectionViewModel() }
+        )
     }
 
-    fun onCollectionDelete(collectionId : Int) = launchIo(jobDispatcher =jobDispatcher, onException = ::onError) {
+    fun onException(t : Throwable) {
+        System.err.println(t.message)
+        pageLoading.value = false
+    }
+
+    fun onCollectionDelete(collectionId : Int) = launchIo(jobDispatcher =jobDispatcher, onException = ::onException) {
+        pageLoading.value = true
         collectionRepo.deleteCollection(collectionId = collectionId)
         loadCollection()
         closeDialog()
+        pageLoading.value = false
     }
 
     fun onCollectionDeleteClick(collectionId : Int) {
@@ -51,10 +74,6 @@ class CollectionListScreenModel (
 
     fun closeDialog() {
         dialogConfig.value = DialogConfig.Closed
-    }
-
-    private fun onError(t : Throwable) {
-        System.err.println(t.message)
     }
 
     data class Config(

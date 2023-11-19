@@ -1,7 +1,5 @@
 package com.jaehl.gameTool.apiClientRetrofit.data.model
 
-import retrofit2.Call
-
 data class Response<T>(
     val data : T
 )

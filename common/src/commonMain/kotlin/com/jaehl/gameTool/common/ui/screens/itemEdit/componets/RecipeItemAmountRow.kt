@@ -17,6 +17,7 @@ import com.jaehl.gameTool.common.ui.viewModel.ItemAmountViewModel
 
 @Composable
 fun RecipeItemAmountRow(
+    enabled: Boolean,
     recipeId : Int,
     isInput : Boolean,
     index : Int,
@@ -33,6 +34,7 @@ fun RecipeItemAmountRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedButton(
+            enabled = enabled,
             modifier = Modifier.width(200.dp).padding(top = 10.dp),
             onClick = {
                 openItemPicker(recipeId,isInput, itemAmount.itemModel.id)
@@ -58,6 +60,7 @@ fun RecipeItemAmountRow(
         }
 
         OutlinedTextField(
+            enabled = enabled,
             modifier =
                 Modifier
                     .padding(start = 10.dp)
@@ -75,6 +78,7 @@ fun RecipeItemAmountRow(
             label = { Text("count") }
         )
         IconButton(
+            enabled = enabled,
             modifier = Modifier
                 .requiredWidth(IntrinsicSize.Max)
                 .padding(start = 10.dp)

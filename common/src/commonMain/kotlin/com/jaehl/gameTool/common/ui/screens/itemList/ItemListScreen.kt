@@ -10,11 +10,10 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.lifecycle.LifecycleEffect
 import cafe.adriel.voyager.core.screen.Screen
@@ -23,12 +22,12 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.jaehl.gameTool.common.data.model.ItemCategory
 import com.jaehl.gameTool.common.ui.AppColor
-import com.jaehl.gameTool.common.ui.componets.AppBar
-import com.jaehl.gameTool.common.ui.componets.CustomVerticalScrollbar
-import com.jaehl.gameTool.common.ui.componets.ItemCategoryPickDialog
-import com.jaehl.gameTool.common.ui.componets.ItemIcon
+import com.jaehl.gameTool.common.ui.TestTags
+import com.jaehl.gameTool.common.ui.componets.*
 import com.jaehl.gameTool.common.ui.screens.itemDetails.ItemDetailsScreen
 import com.jaehl.gameTool.common.ui.screens.itemEdit.ItemEditScreen
+import com.jaehl.gameTool.common.ui.viewModel.ErrorDialogViewModel
+import com.jaehl.gameTool.common.ui.viewModel.ItemCategoryPickerDialogViewModel
 
 class ItemListScreen(
     val gameId : Int
@@ -48,6 +47,7 @@ class ItemListScreen(
         )
 
         ItemListPage(
+            loading = screenModel.pageLoading.value,
             items = screenModel.items,
             searchText = screenModel.searchText.value,
             filterCategory = screenModel.categoryFilter.value,
@@ -75,11 +75,11 @@ class ItemListScreen(
             }
         )
 
-        val dialogConfig = screenModel.dialogConfig.value
-        if(dialogConfig is ItemListScreenModel.DialogConfig.DialogItemCategoryPicker){
+        val dialogConfig = screenModel.dialogViewModel.value
+        if(dialogConfig is ItemCategoryPickerDialogViewModel){
             ItemCategoryPickDialog(
                 title = "Category",
-                categoryList = dialogConfig.itemCategories,
+                categoryList = screenModel.itemCategories,
                 onCategoryClick = { itemCategory ->
                     screenModel.categoryFilter.value = itemCategory
                     screenModel.closeDialog()
@@ -93,12 +93,24 @@ class ItemListScreen(
                 }
             )
         }
+
+        if(dialogConfig is ErrorDialogViewModel){
+            ErrorDialog(
+                title = dialogConfig.title,
+                message = dialogConfig.message,
+                buttonText = "Ok",
+                onClick = {
+                    screenModel.closeDialog()
+                }
+            )
+        }
     }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ItemListPage(
+    loading : Boolean,
     items : List<ItemRowModel>,
     searchText : String,
     filterCategory : ItemCategory,
@@ -113,11 +125,12 @@ fun ItemListPage(
     Column(modifier = Modifier) {
         AppBar(
             title = "Items",
-            backButtonEnabled = true,
+            showBackButton = true,
             onBackClick = {
                 onBackClick()
             }
         )
+        CustomLinearProgressIndicator(loading)
 
         Column(modifier = Modifier.padding(20.dp)) {
             if(showEditItems) {
@@ -212,6 +225,7 @@ fun ItemRow(
 ){
     Row (
         modifier = Modifier
+            .testTag(TestTags.ItemList.item_row)
             .clickable {  onItemClick(item.id) }
             .background(if(index.mod(2) == 0) AppColor.rowBackgroundEven else AppColor.rowBackgroundOdd),
         verticalAlignment = Alignment.CenterVertically

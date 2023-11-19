@@ -5,7 +5,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import com.jaehl.gameTool.apiClientKtor.di.ApiClientKtorModule
 import com.jaehl.gameTool.apiClientRetrofit.data.DebugSslSocketFactory
 import com.jaehl.gameTool.apiClientRetrofit.di.ApiClientRetrofitModule
 import com.jaehl.gameTool.common.App
@@ -47,8 +46,8 @@ fun main() = application {
                     )
                 }
             }
-            //bind<AppConfig> { provider { AppConfig(baseUrl = "https://gametoolsapi.63bit.com:5443") } }
-            bind<AppConfig> { provider { AppConfig(baseUrl = "http://0.0.0.0:8080") } }
+            bind<AppConfig> { provider { AppConfig(baseUrl = "https://gametoolsapi.63bit.com:5443") } }
+            //bind<AppConfig> { provider { AppConfig(baseUrl = "http://0.0.0.0:8080") } }
             bind<AuthLocalStore> {
                 singleton {
                     AuthLocalStoreJsonFile(
@@ -77,7 +76,7 @@ fun main() = application {
             }
             import(DataModule.create())
             import(ScreenModule.create())
-            import(ApiClientRetrofitModule.create(trustAllCerts = true))
+            import(ApiClientRetrofitModule.create(trustAllCerts = true, addDelay = false))
             //import(ApiClientKtorModule.create())
         }
 

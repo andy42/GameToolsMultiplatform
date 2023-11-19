@@ -15,9 +15,18 @@ kotlin {
             dependencies {
                 implementation(project(":common"))
                 implementation(project(":apiClientRetrofit"))
+                implementation(project(":apiClientKtor"))
+
+                implementation(compose.runtime)
+                implementation(compose.foundation)
+                implementation(compose.material)
+
                 implementation("org.kodein.di:kodein-di-framework-compose:$kodeinVersion")
                 implementation("androidx.datastore:datastore-preferences:1.0.0")
-                implementation("io.ktor:ktor-client-apache5:$ktorVersion")
+
+                implementation("io.ktor:ktor-client-android:$ktorVersion")
+                implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+                implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
             }
         }
     }
@@ -45,6 +54,7 @@ android {
         targetSdk = (findProperty("android.targetSdk") as String).toInt()
         versionCode = 1
         versionName = "1.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -53,4 +63,12 @@ android {
     kotlin {
         jvmToolchain(11)
     }
+}
+
+dependencies {
+    implementation("io.ktor:ktor-client-android:2.3.3")
+    androidTestImplementation("androidx.test:core:1.6.0-alpha01")
+    androidTestImplementation("androidx.test.ext:junit:1.2.0-alpha01")
+    androidTestImplementation("androidx.test:runner:1.6.0-alpha03")
+    androidTestImplementation("androidx.test.uiautomator:uiautomator:2.3.0-alpha03")
 }

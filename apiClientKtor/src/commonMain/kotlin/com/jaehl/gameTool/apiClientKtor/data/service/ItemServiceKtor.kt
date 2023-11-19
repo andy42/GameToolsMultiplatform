@@ -18,16 +18,9 @@ class ItemServiceKtor(
         )
     }
 
-    override suspend fun getItems(gameId: Int): List<Item> {
+    override suspend fun getItems(gameId: Int?): List<Item> {
         return requestUtil.createRequest(
-            url = "items?gameId=$gameId",
-            HttpMethod.Get
-        )
-    }
-
-    override suspend fun getItems(): List<Item> {
-        return requestUtil.createRequest(
-            url = "items",
+            url = "items${if(gameId == null) "" else "?gameId=$gameId"}",
             HttpMethod.Get
         )
     }

@@ -12,8 +12,8 @@ import com.jaehl.gameTool.common.data.service.UserService
 
 
 class UserServiceRetrofit(
-    val serverApi : ServerApi,
-    val exceptionHandler : ExceptionHandler
+    private val serverApi : ServerApi,
+    private val exceptionHandler : ExceptionHandler
 ) : UserService {
 
     override suspend fun login(userName: String, password: String): UserTokens = exceptionHandler.tryBlock {

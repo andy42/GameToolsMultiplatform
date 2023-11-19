@@ -16,6 +16,7 @@ import com.jaehl.gameTool.common.ui.screens.itemEdit.ItemEditScreenModel
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun RecipeCard(
+    enabled : Boolean,
     recipeIndex : Int,
     recipe : ItemEditScreenModel.RecipeViewModel,
     openItemPicker : (recipeId : Int, isInput : Boolean, itemId : Int?) -> Unit,
@@ -38,9 +39,10 @@ fun RecipeCard(
         Text(text = "Crafted At", modifier = Modifier.padding(top = 20.dp))
         FlowRow(modifier = Modifier) {
             recipe.craftingAtList.forEach { item ->
-                CraftedAtChip(recipe.id, item, onRecipeCraftedAtDelete)
+                CraftedAtChip(enabled, recipe.id, item, onRecipeCraftedAtDelete)
             }
             Button(
+                enabled =enabled,
                 onClick = {
                     onAddRecipeCraftedAtClick(recipe.id)
                     //viewModel.onOpenItemPicker(ItemEditViewModel.ItemPickerType.CreatedAt(recipeIndex))
@@ -55,6 +57,7 @@ fun RecipeCard(
         Text(text = "Output", modifier = Modifier.padding(top = 20.dp))
         recipe.output.forEachIndexed { index, itemAmountViewModel ->
             RecipeItemAmountRow(
+                enabled,
                 recipe.id,
                 isInput = false,
                 index = index,
@@ -64,18 +67,23 @@ fun RecipeCard(
                 onItemAmountDelete = onItemAmountDelete
             )
         }
-        Button(modifier = Modifier.padding(top = 10.dp), onClick = {
-            openItemPicker(
-                recipe.id,
-                false,
-                null
-            )
-        }) {
+        Button(
+            enabled = enabled,
+            modifier = Modifier.padding(top = 10.dp),
+            onClick = {
+                openItemPicker(
+                    recipe.id,
+                    false,
+                    null
+                )
+            }
+        ) {
             Text("Add Output")
         }
         Text(text = "Input", modifier = Modifier.padding(top = 20.dp))
         recipe.input.forEachIndexed { index, itemAmountViewModel ->
             RecipeItemAmountRow(
+                enabled,
                 recipeId = recipe.id,
                 isInput = true,
                 index = index,
@@ -92,19 +100,22 @@ fun RecipeCard(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
 
-            Button(onClick = {
-                openItemPicker(
-                    recipe.id,
+            Button(
+                enabled = enabled,
+                onClick = {
+                    openItemPicker(
+                        recipe.id,
                     true,
                     null
-                )
-            }) {
+                    )
+                }
+            ) {
                 Text("Add Input")
             }
             Button(
+                enabled = enabled,
                 onClick = {
                     onRecipeDelete(recipe.id)
-                    //viewModel.onRecipeDelete(recipeIndex)
                 },
                 colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.error)
             ) {

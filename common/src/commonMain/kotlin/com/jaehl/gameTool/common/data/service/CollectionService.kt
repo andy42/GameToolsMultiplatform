@@ -8,7 +8,7 @@ import com.jaehl.gameTool.common.data.model.request.UpdateCollectionRequest
 
 interface CollectionService {
     suspend fun getCollections() : List<Collection>
-    suspend fun getCollections(gameId : Int) : List<Collection>
+    suspend fun getCollections(gameId : Int?) : List<Collection>
     suspend fun getCollection(collectionId : Int) : Collection
 
     suspend fun addCollection(data : NewCollectionRequest) : Collection

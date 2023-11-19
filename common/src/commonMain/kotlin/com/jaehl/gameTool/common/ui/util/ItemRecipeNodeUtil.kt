@@ -5,7 +5,6 @@ import com.jaehl.gameTool.common.data.model.ItemAmount
 import com.jaehl.gameTool.common.data.model.ItemRecipeNode
 import com.jaehl.gameTool.common.data.model.Recipe
 import com.jaehl.gameTool.common.data.repo.ItemRepo
-import com.jaehl.gameTool.common.data.repo.RecipeRepo
 import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.extensions.toItemModel
 import com.jaehl.gameTool.common.ui.viewModel.ItemAmountViewModel
@@ -14,12 +13,11 @@ import kotlin.math.ceil
 
 class ItemRecipeNodeUtil(
     private val itemRepo : ItemRepo,
-    private val recipeRepo : RecipeRepo,
     private val appConfig : AppConfig,
     private val tokenProvider: TokenProvider
 ) {
     private suspend fun itemAmountViewModel(itemAmount : ItemAmount, multiplier : Int = 1) : ItemAmountViewModel{
-        val item = itemRepo.getItem(itemAmount.itemId) ?: throw ItemNotFoundException(itemAmount.itemId)
+        val item = itemRepo.getItemCached(itemAmount.itemId) ?: throw ItemNotFoundException(itemAmount.itemId)
         return ItemAmountViewModel(
             itemModel = item.toItemModel(appConfig, tokenProvider),
             amount = itemAmount.amount * multiplier
@@ -42,16 +40,18 @@ class ItemRecipeNodeUtil(
         itemAmount : ItemAmount,
         parentNode : ItemRecipeNode? = null,
         recipeId : Int? = null,
-        itemRecipePreferenceMap : Map<Int, Int?> = hashMapOf()
+        itemRecipePreferenceMap : Map<Int, Int?> = hashMapOf(),
+        getRecipesForOutput : (itemId : Int) -> List<Recipe>
     ) : ItemRecipeNode?{
-        return buildTree(itemAmountViewModel(itemAmount), parentNode, recipeId, itemRecipePreferenceMap)
+        return buildTree(itemAmountViewModel(itemAmount), parentNode, recipeId, itemRecipePreferenceMap, getRecipesForOutput)
     }
 
     suspend fun buildTree(
         itemAmount : ItemAmountViewModel,
         parentNode : ItemRecipeNode? = null,
         recipeId : Int? = null,
-        itemRecipePreferenceMap : Map<Int, Int?> = hashMapOf()
+        itemRecipePreferenceMap : Map<Int, Int?> = hashMapOf(),
+        getRecipesForOutput : (itemId : Int) -> List<Recipe>
     ) : ItemRecipeNode?{
 //        if (itemAmount.item.categories.contains(ItemCategory.Resources) && recipeId == null){
 //            return ItemRecipeNode(
@@ -59,7 +59,8 @@ class ItemRecipeNodeUtil(
 //                parentNode = WeakReference(parentNode),
 //                itemAmount = itemAmount)
 //        }
-        val recipes = recipeRepo.getRecipesForOutput(itemAmount.itemModel.id)
+
+        val recipes = getRecipesForOutput(itemAmount.itemModel.id)
         if(recipes.isEmpty()){
             return ItemRecipeNode(
                 recipe = null,
@@ -108,7 +109,9 @@ class ItemRecipeNodeUtil(
                     recipeMultiplier
                 ),
                 node,
-                itemRecipePreferenceMap = itemRecipePreferenceMap)
+                itemRecipePreferenceMap = itemRecipePreferenceMap,
+                getRecipesForOutput= getRecipesForOutput
+            )
         }
 
         node.inputs = ArrayList(inputs)

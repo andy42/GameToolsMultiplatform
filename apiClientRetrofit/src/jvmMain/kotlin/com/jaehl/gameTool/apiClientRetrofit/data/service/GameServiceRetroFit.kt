@@ -9,9 +9,9 @@ import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.data.service.GameService
 
 class GameServiceRetroFit(
-    val serverApi : ServerApi,
-    val tokenProvider : TokenProvider,
-    val exceptionHandler : ExceptionHandler
+    private val serverApi : ServerApi,
+    private val tokenProvider : TokenProvider,
+    private val exceptionHandler : ExceptionHandler
 ) : GameService {
 
     override suspend fun createGame(name: String, itemCategories : List<Int>, icon : Int, banner : Int) : Game = exceptionHandler.tryBlock {

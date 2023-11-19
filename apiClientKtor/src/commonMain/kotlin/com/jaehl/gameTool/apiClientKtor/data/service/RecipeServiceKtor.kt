@@ -12,9 +12,9 @@ class RecipeServiceKtor(
     private val requestUtil : RequestUtil
 ) : RecipeService{
 
-    override suspend fun getRecipes(gameId: Int): List<Recipe> {
+    override suspend fun getRecipes(gameId: Int?): List<Recipe> {
         return requestUtil.createRequest(
-            url = "recipes?gameId=$gameId",
+            url = "recipes${if(gameId == null) "" else "?gameId=$gameId"}",
             HttpMethod.Get
         )
     }

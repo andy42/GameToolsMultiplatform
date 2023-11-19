@@ -113,14 +113,20 @@ fun Modifier.dashedBorder(width: Dp, brush: Brush, shape: Shape, on: Dp, off: Dp
                                     floatArrayOf(on.toPx(), off.toPx())
                                 )
                             )
-                            pathClip = if (outline is Outline.Rounded) {
-                                Path().apply { addRoundRect(outline.roundRect) }
-                            } else if (outline is Outline.Generic) {
-                                outline.path
-                            } else {
-                                // should not get here because we check for Outline.Rectangle
-                                // above
-                                null
+                            pathClip = when (outline) {
+                                is Outline.Rounded -> {
+                                    Path().apply { addRoundRect(outline.roundRect) }
+                                }
+
+                                is Outline.Generic -> {
+                                    outline.path
+                                }
+
+                                else -> {
+                                    // should not get here because we check for Outline.Rectangle
+                                    // above
+                                    null
+                                }
                             }
 
                             insetPath =

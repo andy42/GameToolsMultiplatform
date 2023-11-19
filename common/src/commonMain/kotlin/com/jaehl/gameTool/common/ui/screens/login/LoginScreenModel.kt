@@ -1,16 +1,21 @@
 package com.jaehl.gameTool.common.ui.screens.login
 
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import cafe.adriel.voyager.core.model.ScreenModel
+import cafe.adriel.voyager.core.model.coroutineScope
 import com.jaehl.gameTool.common.JobDispatcher
-import com.jaehl.gameTool.common.data.model.ItemCategory
 import com.jaehl.gameTool.common.data.repo.TokenProvider
-import com.jaehl.gameTool.common.data.repo.UserRepo
+import com.jaehl.gameTool.common.ui.Strings
 import com.jaehl.gameTool.common.ui.componets.TextFieldValue
-import com.jaehl.gameTool.common.ui.screens.itemEdit.ItemEditScreenModel
 import com.jaehl.gameTool.common.ui.screens.launchIo
+import com.jaehl.gameTool.common.ui.screens.login.usecases.*
 import com.jaehl.gameTool.common.ui.util.UiException
-import com.jaehl.gameTool.common.ui.viewModel.ItemModel
+import com.jaehl.gameTool.common.ui.viewModel.ClosedDialogViewModel
+import com.jaehl.gameTool.common.ui.viewModel.DialogViewModel
+import com.jaehl.gameTool.common.ui.viewModel.ErrorDialogViewModel
+import kotlinx.coroutines.launch
 
 data class LoginViewModel(
     val userName : TextFieldValue = TextFieldValue(value = ""),
@@ -25,145 +30,78 @@ data class RegisterViewModel(
 )
 
 class LoginScreenModel(
-    val jobDispatcher : JobDispatcher,
-    val userRepo : UserRepo,
-    val tokenProvider : TokenProvider,
-    val loginValidator : LoginValidator,
-    val registerValidator: RegisterValidator
-) : ScreenModel, LoginValidator.LoginValidatorListener, RegisterValidator.RegisterValidatorListener {
-    var loginViewModel = mutableStateOf(LoginViewModel())
+    private val jobDispatcher : JobDispatcher,
+    private val tokenProvider : TokenProvider,
+    private val validateLoginUserName: ValidateLoginUserName,
+    private val validateLoginPassword: ValidateLoginPassword,
+    private val validateRegisterUserName: ValidateRegisterUserName,
+    private val validateRegisterEmail: ValidateRegisterEmail,
+    private val validateRegisterPassword: ValidateRegisterPassword,
+    private val validateRegisterReEnterPassword: ValidateRegisterReEnterPassword,
+    private val loginUseCase : LoginUseCase,
+    private val registerUseCase : RegisterUseCase
+) : ScreenModel {
+    var loginViewModel by mutableStateOf(LoginViewModel())
         private set
 
-    var registerViewModel = mutableStateOf(RegisterViewModel())
+    var registerViewModel by mutableStateOf(RegisterViewModel())
         private set
 
-    var homeState = mutableStateOf<PageState>(PageState.Loign)
+    var pageState by mutableStateOf(PageState.Loign)
         private set
 
-    var pageLoading = mutableStateOf<Boolean>(false)
+    var pageLoading by mutableStateOf(false)
+        private set
 
-    var navigateToHome = mutableStateOf<Boolean>(false)
+    var navigateToHome by mutableStateOf(false)
+        private set
 
-    val dialogConfig = mutableStateOf<DialogConfig>(DialogConfig.Closed)
-
-    init {
-        loginValidator.listener = this
-        registerValidator.listener = this
-    }
+    var dialogViewModel by mutableStateOf<DialogViewModel>(ClosedDialogViewModel)
+        private set
 
     fun setup() = launchIo(jobDispatcher, ::onException) {
-        launchIo(jobDispatcher, ::onException) {
-            if(tokenProvider.isRefreshTokenValid()) {
-                navigateToHome.value = true
-            }
+        if(tokenProvider.isRefreshTokenValid()) {
+            navigateToHome = true
         }
     }
 
     override fun onDispose() {
         super.onDispose()
-        navigateToHome.value  = false
+        navigateToHome  = false
     }
 
-    fun onLoginUserNameChange(email : String) {
-        loginViewModel.value = loginViewModel.value.copy(
-            userName = loginViewModel.value.userName.copy(
-                value = email,
-                error = ""
-            )
-        )
-
-    }
-
-    fun onLoginPasswordChange(password : String) {
-        loginViewModel.value = loginViewModel.value.copy(
-            password = loginViewModel.value.password.copy(
-                value = password,
-                error = ""
-            )
-        )
-    }
-
-    fun onRegisterUserNameChange(userName : String) {
-        registerViewModel.value = registerViewModel.value.copy(
-            userName = registerViewModel.value.userName.copy(
-                value = userName,
-                error = ""
-            )
-        )
-    }
-
-    fun onRegisterEmailChange(email : String) {
-        registerViewModel.value = registerViewModel.value.copy(
-            email = registerViewModel.value.email.copy(
-                value = email,
-                error = ""
-            )
-        )
-    }
-
-    fun onRegisterPasswordChange(password : String) {
-        registerViewModel.value = registerViewModel.value.copy(
-            password = registerViewModel.value.password.copy(
-                value = password,
-                error = ""
-            )
-        )
-    }
-
-    fun onRegisterReEnterPasswordChange(reEnterPassword : String) {
-        registerViewModel.value = registerViewModel.value.copy(
-            reEnterPassword = registerViewModel.value.reEnterPassword.copy(
-                value = reEnterPassword,
-                error = ""
-            )
-        )
+    fun clearEvents() {
+        navigateToHome = false
     }
 
     fun onHomeStateChange(state : PageState) {
-        loginViewModel.value = LoginViewModel()
-        registerViewModel.value = RegisterViewModel()
-        homeState.value = state
+        loginViewModel = LoginViewModel()
+        registerViewModel = RegisterViewModel()
+        pageState = state
     }
 
-    fun onLoginClick() {
-
-        val email = loginViewModel.value.userName.value
-        val password = loginViewModel.value.password.value
-
-        if(!loginValidator.onValidate(email, password)){
-            return
-        }
-
-        pageLoading.value = true
-
-        launchIo(
-            jobDispatcher,
-            onException = ::onException
-        ){
-            userRepo.login(email, password)
-            pageLoading.value = false
-            navigateToHome.value = true
-        }
+    private fun showDialog(dialogViewModel : DialogViewModel) {
+        this.dialogViewModel = dialogViewModel
     }
 
     private fun handelUiException(e : UiException) {
         when (e) {
             is UiException.ForbiddenError -> {
-                dialogConfig.value = DialogConfig.ErrorDialog(
+                dialogViewModel = ErrorDialogViewModel(
                     title = "Login Error",
                     message = "Login credentials incorrect"
                 )
             }
             is UiException.ServerConnectionError -> {
-                dialogConfig.value = DialogConfig.ErrorDialog(
-                    title = "Connection Error",
-                    message = "Oops, seems like you can not connect to the server"
+                dialogViewModel = ErrorDialogViewModel(
+                    title = Strings.General.dialogErrorConnectionErrorTitle,
+                    message = Strings.General.dialogErrorConnectionErrorMessage
                 )
             }
             else -> {
-                dialogConfig.value = DialogConfig.ErrorDialog(
-                    title = "Error",
-                    message = "Oops something went wrong"
+                dialogViewModel = ErrorDialogViewModel(
+                    title = Strings.General.dialogErrorTitle,
+                    message = Strings.General.dialogErrorGeneralMessage
                 )
             }
         }
@@ -174,90 +112,157 @@ class LoginScreenModel(
             handelUiException(t)
         }
         System.err.println(t.message)
-        pageLoading.value = false
-    }
-
-    fun onRegisterClick() {
-        val userName = registerViewModel.value.userName.value
-        val email = registerViewModel.value.email.value
-        val password = registerViewModel.value.password.value
-        val reEnterPassword = registerViewModel.value.reEnterPassword.value
-
-        if(!registerValidator.onValidate(
-                userName= userName,
-                email = email,
-                password = password,
-                reEnterPassword = reEnterPassword
-        )){
-            return
-        }
-
-        pageLoading.value = true
-
-        launchIo(
-            jobDispatcher,
-            onException = ::onException
-        ){
-            userRepo.register(
-                userName = userName,
-                email = email,
-                password = password
-            )
-            pageLoading.value = false
-            navigateToHome.value = true
-        }
+        pageLoading = false
     }
 
     fun onNavigatedToHome(){
-        navigateToHome.value = false
+        navigateToHome = false
     }
 
     fun closeDialog() {
-        dialogConfig.value = DialogConfig.Closed
+        dialogViewModel = ClosedDialogViewModel
     }
 
-    override fun onLoginEmailError(error: String) {
-        loginViewModel.value = loginViewModel.value.copy(
-            userName = loginViewModel.value.userName.copySetError(error)
+    sealed class PageEvent {
+        data class LoginUserNameChange(val userName : String) : PageEvent()
+        data class LoginPasswordChange(val password : String) : PageEvent()
+        data object LoginButtonClick : PageEvent()
+        data class RegisterUserNameChange(val userName : String) : PageEvent()
+        data class RegisterEmailChange(val email : String) : PageEvent()
+        data class RegisterPasswordChange(val password : String) : PageEvent()
+        data class RegisterReEnterPasswordChange(val reEnterPassword : String) : PageEvent()
+        data object RegisterButtonClick : PageEvent()
+    }
+
+    private fun loginClicked() {
+        val userName = loginViewModel.userName.value
+        val password = loginViewModel.password.value
+
+        val userNameResult = validateLoginUserName(userName)
+        userNameResult.errorMessage?.let { errorMessage ->
+            loginViewModel = loginViewModel.copy(
+                userName = TextFieldValue(userName, errorMessage)
+            )
+        }
+
+        val passwordResult = validateLoginPassword(password)
+        passwordResult.errorMessage?.let { errorMessage ->
+            loginViewModel = loginViewModel.copy(
+                password = TextFieldValue(password, errorMessage)
+            )
+        }
+
+        //exit if validation failed
+        if(listOf(userNameResult, passwordResult).any { !it.success }) return
+
+        coroutineScope.launch(jobDispatcher.io()) {
+            if(loginUseCase(
+                    userName = userName,
+                    password = password,
+                    showDialog = ::showDialog,
+                    showLoading = { loading ->
+                        pageLoading = loading
+                    }
+                )){
+                navigateToHome = true
+            }
+        }
+    }
+
+    fun registerClicked() {
+        val userName = registerViewModel.userName.value
+        val email = registerViewModel.email.value
+        val password = registerViewModel.password.value
+        val reEnterPassword = registerViewModel.reEnterPassword.value
+
+        val userNameResult = validateRegisterUserName(userName)
+        userNameResult.errorMessage?.let { errorMessage ->
+            registerViewModel = registerViewModel.copy(
+                userName = TextFieldValue(userName, errorMessage)
+            )
+        }
+
+        val emailResult = validateRegisterEmail(userName)
+        emailResult.errorMessage?.let { errorMessage ->
+            registerViewModel = registerViewModel.copy(
+                email = TextFieldValue(email, errorMessage)
+            )
+        }
+
+        val passwordResult = validateRegisterPassword(password)
+        passwordResult.errorMessage?.let { errorMessage ->
+            registerViewModel = registerViewModel.copy(
+                password = TextFieldValue(password, errorMessage)
+            )
+        }
+
+        val reEnterPasswordResult = validateRegisterReEnterPassword(
+            password = password,
+            reEnterPassword = reEnterPassword
         )
+        reEnterPasswordResult.errorMessage?.let { errorMessage ->
+            registerViewModel = registerViewModel.copy(
+                reEnterPassword = TextFieldValue(reEnterPassword, errorMessage)
+            )
+        }
+
+        //exit if validation failed
+        if(listOf(userNameResult, emailResult, passwordResult, reEnterPasswordResult).any { !it.success }) return
+
+        coroutineScope.launch(jobDispatcher.io()) {
+            if(registerUseCase(
+                    userName = userName,
+                    email = email,
+                    password = password,
+                    showDialog = ::showDialog,
+                    showLoading = { loading ->
+                        pageLoading = loading
+                    }
+                )){
+                navigateToHome = true
+            }
+        }
     }
 
-    override fun onLoginPasswordError(error: String) {
-        loginViewModel.value = loginViewModel.value.copy(
-            password = loginViewModel.value.password.copySetError(error)
-        )
-    }
-
-    override fun onRegisterUserNameError(error: String) {
-        registerViewModel.value = registerViewModel.value.copy(
-            userName = registerViewModel.value.userName.copySetError(error)
-        )
-    }
-
-    override fun onRegisterEmailError(error: String) {
-        registerViewModel.value = registerViewModel.value.copy(
-            email = registerViewModel.value.email.copySetError(error)
-        )
-    }
-
-    override fun onRegisterPasswordError(error: String) {
-        registerViewModel.value = registerViewModel.value.copy(
-            password = registerViewModel.value.password.copySetError(error)
-        )
-    }
-
-    override fun onRegisterReEnterPasswordError(error: String) {
-        registerViewModel.value = registerViewModel.value.copy(
-            reEnterPassword = registerViewModel.value.reEnterPassword.copySetError(error)
-        )
-    }
-
-    sealed class DialogConfig {
-        data object Closed : DialogConfig()
-        data class ErrorDialog(
-            val title : String,
-            val message : String
-        ) : DialogConfig()
+    fun onEvent(pageEvent : PageEvent) {
+        when(pageEvent){
+            is PageEvent.LoginUserNameChange -> {
+                loginViewModel = loginViewModel.copy(
+                    userName = TextFieldValue(pageEvent.userName)
+                )
+            }
+            is PageEvent.LoginPasswordChange -> {
+                loginViewModel = loginViewModel.copy(
+                    password = TextFieldValue(pageEvent.password)
+                )
+            }
+            is PageEvent.RegisterUserNameChange -> {
+                registerViewModel = registerViewModel.copy(
+                    userName = TextFieldValue(pageEvent.userName)
+                )
+            }
+            is PageEvent.RegisterEmailChange -> {
+                registerViewModel = registerViewModel.copy(
+                    email = TextFieldValue(pageEvent.email)
+                )
+            }
+            is PageEvent.RegisterPasswordChange -> {
+                registerViewModel = registerViewModel.copy(
+                    password = TextFieldValue(pageEvent.password)
+                )
+            }
+            is PageEvent.RegisterReEnterPasswordChange -> {
+                registerViewModel = registerViewModel.copy(
+                    reEnterPassword = TextFieldValue(pageEvent.reEnterPassword)
+                )
+            }
+            is PageEvent.LoginButtonClick -> {
+                loginClicked()
+            }
+            is PageEvent.RegisterButtonClick -> {
+                registerClicked()
+            }
+        }
     }
 
     enum class PageState {

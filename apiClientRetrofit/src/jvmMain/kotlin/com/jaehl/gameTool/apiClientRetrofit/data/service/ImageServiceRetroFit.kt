@@ -1,7 +1,6 @@
 package com.jaehl.gameTool.apiClientRetrofit.data.service
 
 import com.jaehl.gameTool.apiClientRetrofit.data.api.ServerApi
-import com.jaehl.gameTool.common.data.model.Image
 import com.jaehl.gameTool.common.data.model.ImageMetaData
 import com.jaehl.gameTool.common.data.model.ImageType
 import com.jaehl.gameTool.common.data.repo.TokenProvider
@@ -15,8 +14,8 @@ import okhttp3.ResponseBody
 import java.io.File
 
 class ImageServiceRetroFit(
-    val serverApi : ServerApi,
-    val tokenProvider : TokenProvider
+    private val serverApi : ServerApi,
+    private val tokenProvider : TokenProvider
 ) : ImageService {
     override suspend fun addImage(imageFile: File, imageType : ImageType, description : String): ImageMetaData {
 
@@ -44,11 +43,11 @@ class ImageServiceRetroFit(
     }
 
     override suspend fun getImage(id: Int): ByteArray {
-        val image : ResponseBody? = serverApi.getImage(
+        val image : ResponseBody = serverApi.getImage(
             bearerToken = tokenProvider.getBearerRefreshToken(),
             id = id
         )
 
-        return image?.bytes() ?: throw Exception("Image error")
+        return image.bytes()
     }
 }

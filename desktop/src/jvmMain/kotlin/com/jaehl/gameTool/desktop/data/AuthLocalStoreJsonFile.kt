@@ -22,10 +22,9 @@ class AuthLocalStoreJsonFile(
     }
     private fun loadUserTokens() : UserTokens? {
         val file = getAuthFile()
-        if(file.exists()) {
-            return Json.decodeFromString(file.readText())
-        }
-        else return null
+        return if(file.exists()) {
+            Json.decodeFromString(file.readText())
+        } else null
     }
 
     override suspend fun getUserTokens(): UserTokens {

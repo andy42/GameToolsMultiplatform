@@ -4,6 +4,8 @@ import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.AppConfig
 import com.jaehl.gameTool.common.data.repo.*
 import com.jaehl.gameTool.common.data.service.ImageService
+import com.jaehl.gameTool.common.ui.UiExceptionHandler
+import com.jaehl.gameTool.common.ui.UiExceptionHandlerImp
 import com.jaehl.gameTool.common.ui.screens.userDetails.UserDetailsScreenModel
 import com.jaehl.gameTool.common.ui.screens.backupList.BackupListScreenModel
 import com.jaehl.gameTool.common.ui.screens.collectionDetails.CollectionDetailsScreenModel
@@ -15,28 +17,54 @@ import com.jaehl.gameTool.common.ui.screens.itemDetails.ItemDetailsScreenModel
 import com.jaehl.gameTool.common.ui.screens.itemEdit.ItemEditScreenModel
 import com.jaehl.gameTool.common.ui.screens.itemList.ItemListScreenModel
 import com.jaehl.gameTool.common.ui.screens.login.LoginScreenModel
-import com.jaehl.gameTool.common.ui.screens.login.LoginValidator
-import com.jaehl.gameTool.common.ui.screens.login.RegisterValidator
 import com.jaehl.gameTool.common.ui.screens.users.UsersScreenModel
 import com.jaehl.gameTool.common.ui.screens.collectionEdit.CollectionEditScreenModel
 import com.jaehl.gameTool.common.ui.screens.gameEdit.GameEditScreenModel
 import com.jaehl.gameTool.common.ui.screens.gameEdit.GameEditValidator
+import com.jaehl.gameTool.common.domain.useCase.GetUserPermissionsUseCaseImp
 import com.jaehl.gameTool.common.ui.screens.itemEdit.ItemEditValidator
+import com.jaehl.gameTool.common.ui.screens.login.usecases.*
 import com.jaehl.gameTool.common.ui.util.ItemRecipeInverter
 import com.jaehl.gameTool.common.ui.util.ItemRecipeNodeUtil
-import com.jaehl.gameTool.common.ui.util.ServerBackup
 import org.kodein.di.*
 
 object ScreenModule {
     fun create() = DI.Module(name = "Screens") {
 
+        bind<UiExceptionHandler> {
+            provider {
+                UiExceptionHandlerImp()
+            }
+        }
+
+        bind<LoginUseCase>() { provider {
+            LoginUseCaseImp(
+                instance<JobDispatcher>(),
+                instance<UserRepo>(),
+                instance<UiExceptionHandler>(),
+            )
+        } }
+
+        bind<RegisterUseCase> { provider {
+            RegisterUseCaseImp(
+                instance<JobDispatcher>(),
+                instance<UserRepo>(),
+                instance<UiExceptionHandler>(),
+            )
+        } }
+
         bind<LoginScreenModel> { provider {
             LoginScreenModel(
                 instance<JobDispatcher>(),
-                instance<UserRepo>(),
                 instance<TokenProvider>(),
-                LoginValidator(),
-                RegisterValidator()
+                ValidateLoginUserName(),
+                ValidateLoginPassword(),
+                ValidateRegisterUserName(),
+                ValidateRegisterEmail(),
+                ValidateRegisterPassword(),
+                ValidateRegisterReEnterPassword(),
+                instance<LoginUseCase>(),
+                instance<RegisterUseCase>()
             )}}
 
         bind<UsersScreenModel> { provider {
@@ -50,9 +78,15 @@ object ScreenModule {
                 instance<JobDispatcher>(),
                 instance<GameRepo>(),
                 instance<UserRepo>(),
+                instance<ItemRepo>(),
+                instance<RecipeRepo>(),
+                instance<CollectionRepo>(),
+                GetUserPermissionsUseCaseImp(
+                    instance<UserRepo>()
+                ),
                 instance<TokenProvider>(),
                 instance<AppConfig>(),
-                instance<ServerBackup>()
+                instance<UiExceptionHandler>()
             )}}
 
         bind<GameDetailsScreenModel> { provider {
@@ -82,7 +116,8 @@ object ScreenModule {
                 appConfig = instance<AppConfig>(),
                 itemRepo = instance<ItemRepo>(),
                 userRepo = instance<UserRepo>(),
-                gameRepo = instance<GameRepo>()
+                gameRepo = instance<GameRepo>(),
+                instance<UiExceptionHandler>()
             )}}
 
         bind<ItemDetailsScreenModel> { provider {
@@ -119,7 +154,8 @@ object ScreenModule {
                 instance<AppConfig>(),
                 instance<TokenProvider>(),
                 instance<ItemRecipeNodeUtil>(),
-                instance<ItemRecipeInverter>()
+                instance<ItemRecipeInverter>(),
+                instance<UiExceptionHandler>()
             )}}
 
         bind<CollectionEditScreenModel> { provider {
@@ -130,6 +166,7 @@ object ScreenModule {
                 instance<GameRepo>(),
                 instance<AppConfig>(),
                 instance<TokenProvider>(),
+                instance<UiExceptionHandler>()
             )}}
 
         bind<CollectionListScreenModel> { provider {

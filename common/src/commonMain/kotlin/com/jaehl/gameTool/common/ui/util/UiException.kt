@@ -6,4 +6,5 @@ sealed class UiException() : Throwable() {
     class ForbiddenError(override val cause: Throwable? = null) : UiException()
     class UnauthorizedError(override val cause: Throwable? = null) : UiException()
     class GeneralError(override val cause: Throwable? = null) : UiException()
+    class NotFound(override val message: String?, override val cause: Throwable? = null) : UiException()
 }

@@ -1,15 +1,16 @@
 package com.jaehl.gameTool.common.ui.screens.home
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -19,14 +20,16 @@ import cafe.adriel.voyager.kodein.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.jaehl.gameTool.common.ui.AppColor
-import com.jaehl.gameTool.common.ui.componets.AppBar
-import com.jaehl.gameTool.common.ui.componets.ErrorDialog
-import com.jaehl.gameTool.common.ui.componets.ItemIcon
+import com.jaehl.gameTool.common.ui.Strings
+import com.jaehl.gameTool.common.ui.TestTags
+import com.jaehl.gameTool.common.ui.componets.*
 import com.jaehl.gameTool.common.ui.screens.userDetails.UserDetailsScreen
 import com.jaehl.gameTool.common.ui.screens.backupList.BackupListScreen
 import com.jaehl.gameTool.common.ui.screens.gameDetails.GameDetailsScreen
 import com.jaehl.gameTool.common.ui.screens.gameEdit.GameEditScreen
+import com.jaehl.gameTool.common.ui.screens.login.LoginScreen
 import com.jaehl.gameTool.common.ui.screens.users.UsersScreen
+import com.jaehl.gameTool.common.ui.viewModel.DialogViewModel
 
 class HomeScreen : Screen {
 
@@ -41,11 +44,21 @@ class HomeScreen : Screen {
             }
         )
 
+        LaunchedEffect(screenModel.logoutEvent){
+            if(screenModel.logoutEvent){
+                navigator.popAll()
+                navigator.push(LoginScreen())
+                screenModel.logoutEvent = false
+            }
+        }
+
         HomePage(
+            loading = screenModel.pageLoading,
             games = screenModel.games,
-            showAdminTools = screenModel.showAdminTools.value,
-            showEditGames = screenModel.showEditGames.value,
-            userUnverified = screenModel.userUnverified.value,
+            dialogViewModel = screenModel.dialogViewModel,
+            showAdminTools = screenModel.showAdminTools,
+            showEditGames = screenModel.showEditGames,
+            userUnverified = screenModel.userUnverified,
             onAccountClick = {
                 navigator.push(UserDetailsScreen())
             },
@@ -72,26 +85,18 @@ class HomeScreen : Screen {
             },
             onRefreshClick = {
                 screenModel.onRefreshClick()
-            }
+            },
+            onCloseDialog = screenModel::closeDialog,
+            onForceLogout = screenModel::forceLogout
         )
-
-        val dialogConfig = screenModel.dialogConfig.value
-        if(dialogConfig is HomeScreenModel.DialogConfig.ErrorDialog){
-            ErrorDialog(
-                title = dialogConfig.title,
-                message = dialogConfig.message,
-                buttonText = "Ok",
-                onClick = {
-                    screenModel.closeDialog()
-                }
-            )
-        }
     }
 }
 
 @Composable
 fun HomePage(
+    loading : Boolean,
     games: List<GameModel>,
+    dialogViewModel : DialogViewModel,
     showAdminTools : Boolean,
     showEditGames : Boolean,
     userUnverified : Boolean,
@@ -101,8 +106,11 @@ fun HomePage(
     onGameClick : (gameId: Int) -> Unit,
     onGameEditClick : (gameId: Int) -> Unit,
     onBackupClick : () -> Unit,
-    onRefreshClick : () -> Unit
+    onRefreshClick : () -> Unit,
+    onCloseDialog : () -> Unit,
+    onForceLogout : () -> Unit
 ) {
+    val state : ScrollState = rememberScrollState()
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -112,22 +120,31 @@ fun HomePage(
         AppBar(
             title = "Home",
             actions = {
-                IconButton(content = {
-                    Icon(Icons.Outlined.Refresh, "Refresh", tint = Color.White)
-                }, onClick = {
-                    onRefreshClick()
-                })
-                IconButton(content = {
-                    Icon(Icons.Outlined.AccountBox, "Settings", tint = Color.White)
-                }, onClick = {
-                    onAccountClick()
-                })
+                IconButton(
+                    content = {
+                        Icon(Icons.Outlined.Refresh, "Refresh", tint = Color.White)
+                    },
+                    onClick = {
+                        onRefreshClick()
+                    }
+                )
+                IconButton(
+                    modifier = Modifier.testTag("navAccountDetails"),
+                    content = {
+                        Icon(Icons.Outlined.AccountBox, "accountDetails", tint = Color.White)
+                    },
+                    onClick = {
+                        onAccountClick()
+                    }
+                )
             }
         )
+        CustomLinearProgressIndicator(loading)
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight()
+                .verticalScroll(state)
 
         ) {
             if(showAdminTools) {
@@ -171,6 +188,9 @@ fun HomePage(
             }
         }
     }
+
+    ErrorDialog(dialogViewModel, onClose = onCloseDialog)
+    ForceLogoutDialog(dialogViewModel, onClose = onForceLogout)
 }
 
 @Composable
@@ -181,6 +201,7 @@ fun UserMessage(
 ) {
     Card(
         modifier = modifier
+            .testTag(TestTags.Home.user_message_card)
     ) {
         Column(
             modifier = Modifier
@@ -195,7 +216,8 @@ fun UserMessage(
             ) {
                 Text(
                     modifier = Modifier
-                        .padding(start = 10.dp, top = 12.dp, bottom = 12.dp),
+                        .padding(start = 10.dp, top = 12.dp, bottom = 12.dp)
+                        .testTag(TestTags.Home.user_message_title),
                     color = MaterialTheme.colors.onSecondary,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -204,7 +226,8 @@ fun UserMessage(
             }
             Text(
                 modifier = Modifier
-                    .padding(start = 10.dp, top = 12.dp, bottom = 12.dp),
+                    .padding(start = 10.dp, top = 12.dp, bottom = 12.dp)
+                    .testTag(TestTags.Home.user_message_text),
                 color = MaterialTheme.colors.onSurface,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -223,6 +246,7 @@ fun AdminTools(
 ) {
     Card(
         modifier = modifier
+            .testTag(TestTags.Home.admin_tools_card)
     ) {
         Column(
             modifier = Modifier
@@ -241,7 +265,7 @@ fun AdminTools(
                     color = MaterialTheme.colors.onSecondary,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
-                    text = "Admin Tools"
+                    text = Strings.Home.adminToolsTitle
                 )
             }
             Row(
@@ -251,21 +275,23 @@ fun AdminTools(
             ) {
                 Button(
                     modifier = Modifier
-                        .padding(start = 10.dp),
+                        .padding(start = 10.dp)
+                        .testTag(TestTags.Home.admin_tools_backup_button),
                     onClick = {
                         onBackupClick()
                     }
                 ){
-                    Text("Backups")
+                    Text(Strings.Home.backupTitle)
                 }
                 Button(
                     modifier = Modifier
-                        .padding(start = 10.dp),
+                        .padding(start = 10.dp)
+                        .testTag(TestTags.Home.admin_tools_users_button),
                     onClick = {
                         onUsersClick()
                     }
                 ){
-                    Text("Users")
+                    Text(Strings.Home.usersTitle)
                 }
             }
 
@@ -286,6 +312,7 @@ fun GamesCard(
 
     Card(
         modifier = modifier
+            .testTag(TestTags.Home.games_card)
     ) {
         Column(
             modifier = Modifier
@@ -307,11 +334,16 @@ fun GamesCard(
                     text = "Games"
                 )
                 if(showEditGames) {
-                    IconButton(content = {
-                        Icon(Icons.Outlined.Add, "Add Game", tint = MaterialTheme.colors.onSecondary)
-                    }, onClick = {
-                        onCreateGameClick()
-                    })
+                    IconButton(
+                        modifier = Modifier
+                            .testTag(TestTags.Home.games_add_game),
+                        content = {
+                            Icon(Icons.Outlined.Add, "Add Game", tint = MaterialTheme.colors.onSecondary)
+
+                        }, onClick = {
+                            onCreateGameClick()
+                        }
+                    )
                 }
             }
             games.forEachIndexed{ index, gameModel ->
@@ -331,6 +363,7 @@ fun GameRow(
 ) {
     Row (
         modifier = Modifier
+            .testTag(TestTags.Home.game_row)
             .clickable {
                 onGameClick(game.id)
             }
@@ -349,13 +382,19 @@ fun GameRow(
             modifier = Modifier
                 .weight(1f)
                 .padding(start = 10.dp)
+                .testTag(TestTags.Home.game_row_title)
         )
         if(showEditGames) {
-            IconButton(content = {
-                Icon(Icons.Outlined.Edit, "Edit", tint = Color.Black)
-            }, onClick = {
-                onGameEditClick(game.id)
-            })
+            IconButton(
+                modifier = Modifier
+                    .testTag(TestTags.Home.game_row_edit_button),
+                content = {
+                    Icon(Icons.Outlined.Edit, "Edit", tint = Color.Black)
+                },
+                onClick = {
+                    onGameEditClick(game.id)
+                }
+            )
         }
     }
 }

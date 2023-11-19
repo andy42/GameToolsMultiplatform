@@ -6,16 +6,15 @@ import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.coroutineScope
 import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.AppConfig
-import com.jaehl.gameTool.common.data.model.ImageType
-import com.jaehl.gameTool.common.data.model.Item
-import com.jaehl.gameTool.common.data.model.ItemAmount
-import com.jaehl.gameTool.common.data.model.ItemCategory
+import com.jaehl.gameTool.common.data.Resource
+import com.jaehl.gameTool.common.data.model.*
 import com.jaehl.gameTool.common.data.repo.GameRepo
 import com.jaehl.gameTool.common.data.repo.ItemRepo
 import com.jaehl.gameTool.common.data.repo.RecipeRepo
 import com.jaehl.gameTool.common.data.repo.TokenProvider
 import com.jaehl.gameTool.common.data.service.ImageService
 import com.jaehl.gameTool.common.extensions.post
+import com.jaehl.gameTool.common.extensions.postSwap
 import com.jaehl.gameTool.common.extensions.toItemAmountViewModel
 import com.jaehl.gameTool.common.extensions.toItemModel
 import com.jaehl.gameTool.common.ui.componets.ImageResource
@@ -25,33 +24,35 @@ import com.jaehl.gameTool.common.ui.screens.launchWithCatch
 import com.jaehl.gameTool.common.ui.screens.runWithCatch
 import com.jaehl.gameTool.common.ui.viewModel.ItemAmountViewModel
 import com.jaehl.gameTool.common.ui.viewModel.ItemModel
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import java.io.File
 
 class ItemEditScreenModel(
-    val jobDispatcher : JobDispatcher,
-    val itemRepo: ItemRepo,
-    val recipeRepo: RecipeRepo,
-    val gameRepo: GameRepo,
-    val imageService : ImageService,
-    val appConfig : AppConfig,
-    val tokenProvider: TokenProvider,
-    val itemEditValidator : ItemEditValidator
+    private val jobDispatcher : JobDispatcher,
+    private val itemRepo: ItemRepo,
+    private val recipeRepo: RecipeRepo,
+    private val gameRepo: GameRepo,
+    private val imageService : ImageService,
+    private val appConfig : AppConfig,
+    private val tokenProvider: TokenProvider,
+    private val itemEditValidator : ItemEditValidator
 ) : ScreenModel, ItemEditValidator.Listener{
 
     private lateinit var config : Config
 
     var title = mutableStateOf("")
-    var pageLoading = mutableStateOf<Boolean>(false)
+    var pageLoading = mutableStateOf(false)
 
     val viewModel = mutableStateOf(ViewModel())
     private var item : Item? = null
 
     val closePageEvent = mutableStateOf(false)
 
-    private var itemCategoriesFullList = listOf<ItemCategory>()
+    val itemCategories = mutableStateListOf<ItemCategory>()
 
-    private var items = listOf <ItemModel>()
+    var itemModels = mutableStateListOf<ItemModel>()
 
     private val recipeMap : HashMap<Int, RecipeViewModel> = hashMapOf()
     private var recipeIndex = 0
@@ -65,79 +66,108 @@ class ItemEditScreenModel(
 
     fun setup(config : Config) {
         this.config = config
-        launchIo(jobDispatcher, onException = ::onException) {
-                if(config.itemId != null) {
-                    loadItem(config.itemId)
-                } else {
-                    setNewItem()
-                }
-        }
 
-        launchIo(jobDispatcher, onException = ::onException) {
-            itemCategoriesFullList = gameRepo.getGame(config.gameId).itemCategories
-        }
-        launchIo(jobDispatcher, onException = ::onException) {
-            itemRepo.getItemsFlow(config.gameId).collect {
-                items = it.map { it.toItemModel(appConfig, tokenProvider) }
-            }
-        }
+        loadData()
     }
 
-    suspend fun loadItem(itemId : Int) {
-        title.value = "Update Item"
-        val item = itemRepo.getItem(itemId) ?: throw Exception("loadItem Item not found : $itemId")
-        this.item = item
+    private suspend fun updateUi(
+        gameResource : Resource<Game>,
+        itemsResource : Resource<List<Item>>,
+        recipesResource : Resource<List<Recipe>>,
+        itemCategoriesResource : Resource<List<ItemCategory>>
+    ) {
+        pageLoading.value = (gameResource is Resource.Loading
+                || itemsResource is Resource.Loading
+                || recipesResource is Resource.Loading
+                || itemCategoriesResource is Resource.Loading)
 
-        recipeRepo.preloadRecipes(config.gameId)
+        //if the Resource are empty might not have  loaded wait for server response
+        if(recipesResource is Resource.Loading && recipesResource.data.isEmpty()) return
 
-        recipeMap.clear()
-        recipeIndex = 0
-        recipeRepo.getRecipesForOutput(itemId)
-            .map { recipe ->
-                RecipeViewModel(
-                    id = recipeIndex++,
-                    serverID = recipe.id,
-                    isDeleted = false,
-                    craftingAtList = recipe.craftedAt.map { itemId ->
-                        itemRepo.getItem(itemId)?.toItemModel(appConfig, tokenProvider) ?: throw Exception("item not found : $itemId")
-                    },
-                    input = recipe.input.map { itemAmount ->
-                        itemAmount.toItemAmountViewModel(itemRepo, appConfig, tokenProvider)
-                    },
-                    output = recipe.output.map { itemAmount ->
-                        itemAmount.toItemAmountViewModel(itemRepo, appConfig, tokenProvider)
-                    }
+        listOf<Resource<*>>(gameResource, itemsResource, recipesResource, itemCategoriesResource).forEach {
+            if(it is Resource.Error){
+                onException(it.exception)
+                return
+            }
+        }
+
+        itemCategories.postSwap(
+            itemCategoriesResource.getDataOrThrow()
+        )
+
+        val items = itemsResource.getDataOrThrow()
+
+        itemModels.postSwap(
+            itemsResource.getDataOrThrow().map { it.toItemModel(appConfig, tokenProvider) }
+        )
+
+        val itemId = config.itemId
+        if(itemId == null){
+            title.value = "Add New Item"
+            viewModel.post(
+                ViewModel(
+                    itemName = TextFieldValue(value = ""),
+                    itemCategories = listOf(),
+                    allowAddRecipes = false
                 )
-            }
-            .forEach {
-                recipeMap[it.id] = it
-            }
-
-        viewModel.post(
-            ViewModel(
-                itemName = TextFieldValue(value = item.name),
-                icon = ImageResource.ImageApiResource(
-                    url = "${appConfig.baseUrl}/images/${item.image}",
-                    authHeader = tokenProvider.getBearerRefreshToken()
-                ),
-                itemCategories = item.categories,
-                allowAddRecipes = true,
-                recipeList = recipeMap.values.toList()
             )
-        )
+        }
+        else {
+            title.value = "Update Item"
+            val item = items.first { it.id == itemId }
+            this.item = item
 
-        this.pageLoading.value = false
+            recipeMap.clear()
+            recipesResource.getDataOrThrow()
+                .filter {  recipe ->
+                    recipe.output.firstOrNull { it.itemId == itemId } != null
+                }
+                .map { recipe ->
+                    RecipeViewModel(
+                        id = recipeIndex++,
+                        serverID = recipe.id,
+                        isDeleted = false,
+                        craftingAtList = recipe.craftedAt.map { itemId ->
+                            itemRepo.getItemCached(itemId)?.toItemModel(appConfig, tokenProvider) ?: throw Exception("item not found : $itemId")
+                        },
+                        input = recipe.input.map { itemAmount ->
+                            itemAmount.toItemAmountViewModel(itemRepo, appConfig, tokenProvider)
+                        },
+                        output = recipe.output.map { itemAmount ->
+                            itemAmount.toItemAmountViewModel(itemRepo, appConfig, tokenProvider)
+                        }
+                    )
+                }
+                .forEach {
+                    recipeMap[it.id] = it
+                }
+
+            viewModel.post(
+                ViewModel(
+                    itemName = TextFieldValue(value = item.name),
+                    icon = ImageResource.ImageApiResource(
+                        url = "${appConfig.baseUrl}/images/${item.image}",
+                        authHeader = tokenProvider.getBearerRefreshToken()
+                    ),
+                    itemCategories = item.categories,
+                    allowAddRecipes = true,
+                    recipeList = recipeMap.values.toList()
+                )
+            )
+        }
     }
 
-    suspend fun setNewItem(){
-        title.value = "Add New Item"
-        viewModel.post(
-            ViewModel(
-                itemName = TextFieldValue(value = ""),
-                itemCategories = listOf(),
-                allowAddRecipes = false
-            )
-        )
+    private fun loadData() {
+        launchIo(jobDispatcher, onException = ::onException) {
+            combine(
+                gameRepo.getGameFlow(config.gameId),
+                itemRepo.getItems(config.gameId),
+                recipeRepo.getRecipesFlow(config.gameId),
+                gameRepo.getGameItemCategories(config.gameId)
+            ) { gameResource, itemResource, recipesResource, itemCategoriesResource ->
+                updateUi(gameResource, itemResource, recipesResource, itemCategoriesResource)
+            }.collect()
+        }
     }
 
     fun onBackClick() {
@@ -191,12 +221,7 @@ class ItemEditScreenModel(
     }
 
     fun openDialogItemCategoryPicker() = launchIo(jobDispatcher, ::onException) {
-        dialogConfig.value = DialogConfig.DialogItemCategoryPicker(
-            itemCategories = (itemCategoriesFullList)
-                .filter {
-                    !viewModel.value.itemCategories.contains(it)
-                }
-        )
+        dialogConfig.value = DialogConfig.DialogItemCategoryPicker()
     }
 
     fun onDialogItemCategoryPickerSearchTextChange(searchText : String) {
@@ -208,7 +233,6 @@ class ItemEditScreenModel(
 
     fun openItemRecipePickerDialog(recipeId : Int, isInput : Boolean, itemId : Int?){
         dialogConfig.value = DialogConfig.ItemPickerDialog(
-            items = items,
             itemPickerType = ItemPickerType.ItemRecipePicker(
                 recipeId = recipeId,
                 isInput = isInput,
@@ -220,7 +244,6 @@ class ItemEditScreenModel(
 
     fun openItemCraftedAtPickerDialog(recipeId : Int){
         dialogConfig.value = DialogConfig.ItemPickerDialog(
-            items = items,
             itemPickerType = ItemPickerType.ItemCraftedAtPicker(
                 recipeId = recipeId
             ),
@@ -246,7 +269,7 @@ class ItemEditScreenModel(
         val recipe = recipeMap[recipeId] ?: throw Exception("recipeId not found $recipeId")
         val craftingAtList = recipe.craftingAtList.toMutableList()
         if(craftingAtList.firstOrNull { it.id == itemId } != null) return@launchWithCatch
-        val item = itemRepo.getItem(itemId)?: throw Exception("itemId not found $itemId")
+        val item = itemRepo.getItemCached(itemId)?: throw Exception("itemId not found $itemId")
         craftingAtList.add(item.toItemModel(appConfig, tokenProvider))
 
         recipeMap[recipeId] = recipe.copy(
@@ -285,7 +308,7 @@ class ItemEditScreenModel(
     fun onAddItemAmount(recipeId : Int, isInput : Boolean, itemId : Int) = launchWithCatch(::onException){
         val recipe = recipeMap[recipeId] ?: throw Exception("recipeId not found $recipeId")
         val list = (if(isInput) recipe.input else recipe.output).toMutableList()
-        val item = itemRepo.getItem(itemId)?: throw Exception("itemId not found $itemId")
+        val item = itemRepo.getItemCached(itemId)?: throw Exception("itemId not found $itemId")
         list.add(
             ItemAmountViewModel(
                 itemModel = item.toItemModel(appConfig, tokenProvider),
@@ -299,7 +322,7 @@ class ItemEditScreenModel(
         val recipe = recipeMap[recipeId] ?: throw Exception("recipeId not found $recipeId")
         val list = (if(isInput) recipe.input else recipe.output).toMutableList()
         val index = list.indexOfFirst { it.itemModel.id == oldItemId }
-        val item = itemRepo.getItem(newItemId)?: throw Exception("itemId not found $newItemId")
+        val item = itemRepo.getItemCached(newItemId)?: throw Exception("itemId not found $newItemId")
         list[index] = list[index].copy(
             itemModel = item.toItemModel(appConfig, tokenProvider)
         )
@@ -329,7 +352,7 @@ class ItemEditScreenModel(
 
     fun onRecipeAdd() = launchWithCatch(::onException) {
         val itemId = config.itemId ?: throw Exception("can not add a recipe that has not been added")
-        val item = itemRepo.getItem(itemId) ?: throw Exception("item not found $itemId")
+        val item = itemRepo.getItemCached(itemId) ?: throw Exception("item not found $itemId")
         val recipe = RecipeViewModel(
             id = recipeIndex++,
             serverID = null,
@@ -359,7 +382,7 @@ class ItemEditScreenModel(
         unsavedChanges = true
     }
 
-    private suspend fun saveNewItem(){
+    private suspend fun saveNewItem(closePageAfter : Boolean){
         if(!itemEditValidator.validate(
             name = viewModel.value.itemName.value,
             image = viewModel.value.icon
@@ -385,11 +408,13 @@ class ItemEditScreenModel(
         )
 
         this.config = Config(gameId = config.gameId, itemId = newItem.id)
-        loadItem(newItem.id)
+        if(!closePageAfter) {
+            loadData()
+        }
         unsavedChanges = false
     }
 
-    private suspend fun updateItem(){
+    private suspend fun updateItem(closePageAfter : Boolean){
 
         if(!itemEditValidator.validate(
                 name = viewModel.value.itemName.value,
@@ -411,7 +436,7 @@ class ItemEditScreenModel(
             ).id
         }
 
-        val item = itemRepo.updateItem(
+        itemRepo.updateItem(
             itemId = config.itemId ?: throw Exception("config itemId null"),
             game = config.gameId,
             name = viewModel.value.itemName.value,
@@ -428,8 +453,8 @@ class ItemEditScreenModel(
                recipeRepo.createRecipes(
                    gameId = config.gameId,
                    craftedAt = recipeViewModel.craftingAtList.map { it.id },
-                   input = recipeViewModel.input.map { ItemAmount(it.itemModel.id, it.amount) },
-                   output = recipeViewModel.output.map { ItemAmount(it.itemModel.id, it.amount) }
+                   input = recipeViewModel.input.map { ItemAmount(itemId = it.itemModel.id, amount = it.amount) },
+                   output = recipeViewModel.output.map { ItemAmount(itemId = it.itemModel.id, amount = it.amount) }
                )
            }
            else {
@@ -437,22 +462,27 @@ class ItemEditScreenModel(
                    recipeId = recipeViewModel.serverID,
                    gameId = config.gameId,
                    craftedAt = recipeViewModel.craftingAtList.map { it.id },
-                   input = recipeViewModel.input.map { ItemAmount(it.itemModel.id, it.amount) },
-                   output = recipeViewModel.output.map { ItemAmount(it.itemModel.id, it.amount) }
+                   input = recipeViewModel.input.map { ItemAmount(itemId = it.itemModel.id, amount = it.amount) },
+                   output = recipeViewModel.output.map { ItemAmount(itemId = it.itemModel.id, amount = it.amount) }
                )
            }
        }
-        loadItem(item.id)
+        if(closePageAfter) {
+            loadData()
+        }
         unsavedChanges = false
     }
 
     fun save(closePageAfter : Boolean = false) = launchIo(jobDispatcher, ::onException){
-        if(config.itemId == null){
-            saveNewItem()
-        } else {
-            updateItem()
-        }
+        pageLoading.value = true
         closeDialog()
+        if(config.itemId == null){
+            saveNewItem(closePageAfter)
+        } else {
+            updateItem(closePageAfter)
+        }
+        pageLoading.value = false
+
         if(closePageAfter){
             closePageEvent.value = true
         }
@@ -483,6 +513,7 @@ class ItemEditScreenModel(
                     itemCategories = itemCategories
                 )
         }
+        unsavedChanges = true
     }
 
     sealed class ItemPickerType {
@@ -500,11 +531,9 @@ class ItemEditScreenModel(
         data object Closed : DialogConfig()
         data object SaveWarningDialog : DialogConfig()
         data class DialogItemCategoryPicker(
-            val itemCategories : List<ItemCategory>,
             val searchText : String = ""
         ) : DialogConfig()
         data class ItemPickerDialog(
-            val items : List<ItemModel>,
             val itemPickerType : ItemPickerType,
             val searchText : String = ""
         ): DialogConfig()

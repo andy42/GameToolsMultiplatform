@@ -5,8 +5,10 @@ import androidx.compose.runtime.mutableStateOf
 import cafe.adriel.voyager.core.model.ScreenModel
 import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.AppConfig
+import com.jaehl.gameTool.common.data.Resource
 import com.jaehl.gameTool.common.data.model.Item
 import com.jaehl.gameTool.common.data.model.ItemRecipeNode
+import com.jaehl.gameTool.common.data.model.Recipe
 import com.jaehl.gameTool.common.data.model.User
 import com.jaehl.gameTool.common.data.repo.ItemRepo
 import com.jaehl.gameTool.common.data.repo.RecipeRepo
@@ -19,22 +21,24 @@ import com.jaehl.gameTool.common.extensions.toItemModel
 import com.jaehl.gameTool.common.ui.componets.ImageResource
 import com.jaehl.gameTool.common.ui.componets.RecipePickerData
 import com.jaehl.gameTool.common.ui.screens.runWithCatch
-import com.jaehl.gameTool.common.ui.util.ItemNotFoundException
 import com.jaehl.gameTool.common.ui.util.ItemRecipeInverter
 import com.jaehl.gameTool.common.ui.util.ItemRecipeNodeUtil
+import com.jaehl.gameTool.common.ui.util.UiException
 import com.jaehl.gameTool.common.ui.viewModel.ItemAmountViewModel
 import com.jaehl.gameTool.common.ui.viewModel.ItemModel
 import com.jaehl.gameTool.common.ui.viewModel.RecipeSettings
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
 
 class ItemDetailsScreenModel(
-    val jobDispatcher : JobDispatcher,
-    val tokenProvider: TokenProvider,
-    val itemRepo: ItemRepo,
-    val userRepo: UserRepo,
-    val recipeRepo: RecipeRepo,
-    val appConfig: AppConfig,
-    val itemRecipeNodeUtil : ItemRecipeNodeUtil,
-    val itemRecipeInverter: ItemRecipeInverter
+    private val jobDispatcher : JobDispatcher,
+    private val tokenProvider: TokenProvider,
+    private val itemRepo: ItemRepo,
+    private val userRepo: UserRepo,
+    private val recipeRepo: RecipeRepo,
+    private val appConfig: AppConfig,
+    private val itemRecipeNodeUtil : ItemRecipeNodeUtil,
+    private val itemRecipeInverter: ItemRecipeInverter
 ) : ScreenModel {
 
     private lateinit var config : Config
@@ -43,7 +47,7 @@ class ItemDetailsScreenModel(
 
     var dialogState = mutableStateOf<DialogState>(DialogState.Closed)
 
-    var pageLoading = mutableStateOf<Boolean>(false)
+    var pageLoading = mutableStateOf(false)
     var itemInfo = mutableStateOf(ItemInfoModel())
 
     private val itemRecipePreferenceMap =  hashMapOf<Int, Int?>()
@@ -64,56 +68,96 @@ class ItemDetailsScreenModel(
         dataRefresh()
     }
 
-    fun dataRefresh() {
-        launchIo(jobDispatcher, ::onException){
-            userRepo.getUserSelf().let { user ->
-                showEditItems.value = listOf(
-                    User.Role.Admin,
-                    User.Role.Contributor
-                ).contains(user.role)
+    private fun updateRecipeOutputArray(array : ArrayList<Recipe>?, recipe : Recipe) : ArrayList<Recipe>{
+        val array = array ?: arrayListOf()
+        array.add(recipe)
+        return array
+    }
+
+    private suspend fun updateUi(
+        userResource : Resource<User>,
+        itemResource : Resource<List<Item>>,
+        recipesResource : Resource<List<Recipe>>
+    ){
+
+
+        pageLoading.value = (userResource is Resource.Loading || itemResource is Resource.Loading || recipesResource is Resource.Loading)
+
+        listOf<Resource<*>>(userResource, itemResource, recipesResource).forEach {
+            if(it is Resource.Error){
+                onException(it.exception)
+                return
             }
         }
-        launchIo(
-            jobDispatcher,
-            onException = ::onException
-        ){
-            val item = itemRepo.getItem(config.itemId) ?: throw ItemNotFoundException(config.itemId)
 
-            itemInfo.value = item.toItemInfoModel(appConfig, tokenProvider)
-
-            recipeRepo.preloadRecipes(config.gameId)
-
-            recipeMap.clear()
-            recipeRepo.getRecipesForOutput(config.itemId).mapNotNull { recipe ->
-                val node = itemRecipeNodeUtil.buildTree(
-                    itemAmount= ItemAmountViewModel(
-                        itemModel = item.toItemModel(appConfig, tokenProvider),
-                        amount = recipe.output.first { it.itemId == config.itemId}.amount
-                    ),
-                    parentNode = null,
-                    recipeId = recipe.id,
-                    itemRecipePreferenceMap = itemRecipePreferenceMap
-                ) ?: return@mapNotNull null
-
-                val baseIngredients = itemRecipeInverter.invertItemRecipes(listOf(node))
-                RecipeViewModel(
-                    id = recipe.id,
-                    node = node,
-                    recipeSettings = recipePreferencesMap[recipe.id] ?: RecipeSettings(
-                        showBaseIngredients = false,
-                        collapseIngredients = true
-                    ),
-                    baseIngredients = baseIngredients,
-                    craftedAt = node.recipe?.craftedAt?.mapNotNull {
-                        itemRepo.getItem(it)?.toItemModel(appConfig, tokenProvider)
-                    } ?: listOf()
-                )
-            }.forEach {
-                recipeMap[it.id] = it
+        val recipeOutputMap = LinkedHashMap<Int, ArrayList<Recipe>>()
+        recipesResource.getDataOrThrow().forEach { recipe ->
+            recipe.output.forEach {itemAmount ->
+                recipeOutputMap[itemAmount.itemId] = updateRecipeOutputArray(recipeOutputMap[itemAmount.itemId], recipe)
             }
-            recipeModels.postSwap(recipeMap.values.toList())
+        }
 
-            this.pageLoading.value = false
+        showEditItems.value = listOf(
+            User.Role.Admin,
+            User.Role.Contributor
+        ).contains(userResource.getDataOrThrow().role)
+
+        val itemMap = HashMap<Int, Item>()
+        itemResource.getDataOrThrow().forEach { item ->
+            itemMap[item.id] = item
+        }
+        val item = itemMap[config.itemId] ?: throw UiException.NotFound("item not found : ${config.itemId}")
+
+        itemInfo.value = item.toItemInfoModel(appConfig, tokenProvider)
+
+        val recipes = recipeOutputMap[item.id] ?: listOf()
+        recipeMap.clear()
+        recipes.mapNotNull { recipe ->
+            val node = itemRecipeNodeUtil.buildTree(
+                itemAmount= ItemAmountViewModel(
+                    itemModel = item.toItemModel(appConfig, tokenProvider),
+                    amount = recipe.output.first { it.itemId == config.itemId}.amount
+                ),
+                parentNode = null,
+                recipeId = recipe.id,
+                itemRecipePreferenceMap = itemRecipePreferenceMap,
+                getRecipesForOutput = { itemId : Int ->
+                    recipeOutputMap[itemId]?.toList() ?: listOf<Recipe>()
+                }
+            ) ?: return@mapNotNull null
+
+            val baseIngredients = itemRecipeInverter.invertItemRecipes(listOf(node))
+            RecipeViewModel(
+                id = recipe.id,
+                node = node,
+                recipeSettings = recipePreferencesMap[recipe.id] ?: RecipeSettings(
+                    showBaseIngredients = false,
+                    collapseIngredients = true
+                ),
+                baseIngredients = baseIngredients,
+                craftedAt = node.recipe?.craftedAt?.mapNotNull {
+                    itemMap[it]?.toItemModel(appConfig, tokenProvider)
+                } ?: listOf()
+            )
+        }.forEach {
+            recipeMap[it.id] = it
+        }
+
+        recipeModels.postSwap(recipeMap.values.toList())
+    }
+
+    fun dataRefresh() {
+
+        launchIo(jobDispatcher, ::onException){
+
+            combine(
+                userRepo.getUserSelFlow(),
+                itemRepo.getItems(config.gameId),
+                recipeRepo.getRecipesFlow(config.gameId)
+            ) { userResource : Resource<User>, itemResource : Resource<List<Item>>, recipesResource : Resource<List<Recipe>> ->
+
+                updateUi(userResource, itemResource, recipesResource)
+            }.collect()
         }
     }
 
@@ -156,17 +200,17 @@ class ItemDetailsScreenModel(
     }
 
     private suspend fun getRecipeIdForItem(itemId : Int, itemRecipePreferenceMap: Map<Int, Int?>) : Int? {
-        if(itemRecipePreferenceMap.containsKey(itemId)) {
-            return itemRecipePreferenceMap[itemId]
+        return if(itemRecipePreferenceMap.containsKey(itemId)) {
+            itemRecipePreferenceMap[itemId]
         } else {
-            return recipeRepo.getRecipesForOutput(itemId).firstOrNull()?.id
+            recipeRepo.getRecipesForOutputCached(config.gameId, itemId).firstOrNull()?.id
         }
     }
 
     fun onRecipeChangeClick(itemId : Int, recipeId : Int) = launchIo(jobDispatcher, ::onException){
         val recipePickerData = RecipePickerData(
             selectedRecipeId = getRecipeIdForItem(itemId, itemRecipePreferenceMap),
-            recipes = recipeRepo.getRecipesForOutput(itemId)
+            recipes = recipeRepo.getRecipesForOutputCached(config.gameId, itemId)
                 .map { recipe ->
                     RecipePickerData.RecipeViewModel(
                         id = recipe.id,

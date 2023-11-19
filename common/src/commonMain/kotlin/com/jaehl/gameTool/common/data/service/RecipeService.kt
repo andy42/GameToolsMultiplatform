@@ -4,7 +4,7 @@ import com.jaehl.gameTool.common.data.model.ItemAmount
 import com.jaehl.gameTool.common.data.model.Recipe
 
 interface RecipeService {
-    suspend fun getRecipes(gameId : Int) : List<Recipe>
+    suspend fun getRecipes(gameId : Int?) : List<Recipe>
     suspend fun getRecipes() : List<Recipe>
     suspend fun getRecipe(recipeId : Int) : Recipe
     suspend fun createRecipes(

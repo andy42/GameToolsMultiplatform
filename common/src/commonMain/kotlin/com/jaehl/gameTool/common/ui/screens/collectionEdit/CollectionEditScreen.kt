@@ -7,8 +7,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -50,6 +48,7 @@ class CollectionEditScreen (
 
         Box {
             CollectionEditPage(
+                loading = screenModel.pageLoading.value,
                 title = screenModel.title.value,
                 collectionName = screenModel.collectionName.value,
                 onBackClick = {
@@ -169,6 +168,7 @@ class CollectionEditScreen (
 
 @Composable
 fun CollectionEditPage(
+    loading : Boolean,
     title : String,
     collectionName : TextFieldValue,
     onBackClick : () -> Unit,
@@ -189,12 +189,14 @@ fun CollectionEditPage(
     ) {
         AppBar(
             title = title,
-            backButtonEnabled = true,
+            enabledBackButton = !loading,
+            showBackButton = true,
             onBackClick = {
                 onBackClick()
             },
             actions = {
                 Button(
+                    enabled = !loading,
                     onClick = {
                         onSaveClick()
                     },
@@ -204,6 +206,7 @@ fun CollectionEditPage(
                 }
             }
         )
+        CustomLinearProgressIndicator(loading)
         Box(Modifier.fillMaxWidth()){
             Column(modifier = Modifier
                 .padding(20.dp)
@@ -211,6 +214,7 @@ fun CollectionEditPage(
             ) {
                 StyledOutlinedTextField(
                     collectionName,
+                    enabled = !loading,
                     modifier = Modifier
                         .padding(top = 5.dp, bottom = 20.dp),
                     label = { Text("Crafting list title") },
@@ -222,6 +226,7 @@ fun CollectionEditPage(
                 )
                 groupList.forEach { groupViewModel ->
                     Group(
+                        enabled = !loading,
                         groupViewModel = groupViewModel,
                         onGroupNameChange = onGroupNameChange,
                         onRemoveGroupClick = onRemoveGroupClick,
@@ -231,6 +236,7 @@ fun CollectionEditPage(
                     )
                 }
                 Button(
+                    enabled = !loading,
                     onClick = {
                         onAddNewGroupClick()
                     },
@@ -249,6 +255,7 @@ fun CollectionEditPage(
 
 @Composable
 fun Group(
+    enabled : Boolean,
     groupViewModel : GroupViewModel,
     onGroupNameChange : (groupId : Int, value : String) -> Unit,
     onRemoveGroupClick : (groupId : Int) -> Unit,
@@ -274,6 +281,7 @@ fun Group(
             ) {
 
                 OutlinedTextField(
+                    enabled = enabled,
                     value = groupViewModel.name.value,
                     onValueChange = { onGroupNameChange(groupViewModel.id, it) },
                     label = { Text("Group Name") },
@@ -282,6 +290,7 @@ fun Group(
                         .weight(1.0f)
                 )
                 IconButton(
+                    enabled = enabled,
                     content = {
                         Icon(Icons.Outlined.Delete, "delete", tint = Color.Black)
                     },
@@ -295,6 +304,7 @@ fun Group(
 
             groupViewModel.itemList.values.forEachIndexed { index, itemViewModel ->
                 ItemRecipeRow(
+                    enabled,
                     index,
                     groupViewModel.id,
                     itemViewModel,
@@ -303,6 +313,7 @@ fun Group(
                 )
             }
             Button(
+                enabled = enabled,
                 onClick = {
                     onAddItemClick(groupViewModel.id)
                 }
@@ -315,6 +326,7 @@ fun Group(
 
 @Composable
 fun ItemRecipeRow(
+    enabled : Boolean,
     index : Int,
     groupId : Int,
     itemViewModel : ItemAmountViewModel,
@@ -351,6 +363,7 @@ fun ItemRecipeRow(
         }
 
         OutlinedTextField(
+            enabled = enabled,
             modifier = Modifier
                 .requiredWidth(90.dp)
                 .padding(start = 10.dp),
@@ -362,6 +375,7 @@ fun ItemRecipeRow(
         )
 
         IconButton(
+            enabled = enabled,
             modifier = Modifier
                 .requiredWidth(IntrinsicSize.Max)
                 .padding(start = 10.dp)

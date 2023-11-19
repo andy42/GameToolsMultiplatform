@@ -22,6 +22,7 @@ import com.jaehl.gameTool.common.ui.viewModel.ItemModel
 
 @Composable
 fun CraftedAtChip(
+    enabled : Boolean,
     recipeId : Int,
     item : ItemModel,
     onRecipeCraftedAtDelete : (recipeId : Int, itemId : Int) -> Unit
@@ -45,13 +46,17 @@ fun CraftedAtChip(
             color = MaterialTheme.colors.onSecondary,
             modifier = Modifier
                 .padding(start = 5.dp))
-        IconButton(content = {
-            Icon(Icons.Outlined.Delete, "delete", tint = MaterialTheme.colors.onSecondary)
-        }, onClick = {
-            onRecipeCraftedAtDelete(
-                recipeId,
-                item.id
-            )
-        })
+        IconButton(
+            enabled = enabled,
+            content = {
+                Icon(Icons.Outlined.Delete, "delete", tint = MaterialTheme.colors.onSecondary)
+            },
+            onClick = {
+                onRecipeCraftedAtDelete(
+                    recipeId,
+                    item.id
+                )
+            }
+        )
     }
 }

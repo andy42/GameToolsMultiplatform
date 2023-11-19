@@ -7,30 +7,41 @@ import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
+import com.jaehl.gameTool.common.ui.TestTags
 
 @Composable
 fun AppBar(
     title: String,
-    backButtonEnabled: Boolean = false,
+    showBackButton: Boolean = false,
+    enabledBackButton : Boolean = true,
     onBackClick : () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     var navigationIcon : @Composable (() -> Unit)? = null
-    if(backButtonEnabled) navigationIcon = {
-        IconButton(content = {
-            Icon(Icons.Outlined.ArrowBack, "back", tint = Color.White)
-        }, onClick = {
-            onBackClick()
-        })
+    if(showBackButton) navigationIcon = {
+        IconButton(
+            modifier = Modifier
+                .testTag(TestTags.General.nav_back_button),
+            enabled = enabledBackButton,
+            content = {
+                Icon(Icons.Outlined.ArrowBack, "back", tint = Color.White)
+            },
+            onClick = {
+                onBackClick()
+            }
+        )
     }
 
     TopAppBar(
         title = {
-            Text(title)
+            Text(
+                modifier = Modifier.testTag(TestTags.General.nav_title),
+                text = title
+            )
         },
         navigationIcon = navigationIcon,
         actions = actions

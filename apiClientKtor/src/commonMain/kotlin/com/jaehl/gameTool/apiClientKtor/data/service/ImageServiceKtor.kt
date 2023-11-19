@@ -16,10 +16,10 @@ import io.ktor.http.*
 import java.io.File
 
 class ImageServiceKtor(
-    val client: HttpClient,
-    val appConfig : AppConfig,
-    val exceptionHandler : ExceptionHandler,
-    val tokenProvider : TokenProvider,
+    private val client: HttpClient,
+    private val appConfig : AppConfig,
+    private val exceptionHandler : ExceptionHandler,
+    private val tokenProvider : TokenProvider,
 ) : ImageService {
 
     override suspend fun addImage(imageFile: File, imageType: ImageType, description: String): ImageMetaData = exceptionHandler.tryBlock {

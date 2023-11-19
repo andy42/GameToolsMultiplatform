@@ -1,7 +1,10 @@
 package com.jaehl.gameTool.common.ui.screens.userDetails
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -10,6 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -19,10 +23,7 @@ import cafe.adriel.voyager.kodein.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.jaehl.gameTool.common.data.model.User
-import com.jaehl.gameTool.common.ui.componets.AppBar
-import com.jaehl.gameTool.common.ui.componets.ChangePasswordDialog
-import com.jaehl.gameTool.common.ui.componets.ErrorDialog
-import com.jaehl.gameTool.common.ui.componets.ListPickerDialog
+import com.jaehl.gameTool.common.ui.componets.*
 import com.jaehl.gameTool.common.ui.screens.login.LoginScreen
 
 class UserDetailsScreen(
@@ -49,6 +50,7 @@ class UserDetailsScreen(
         )
 
         AccountDetailsPage(
+            loading = screenModel.pageLoading.value,
             viewModel = screenModel.viewModel.value,
             onBackClick = {
                 navigator.pop()
@@ -81,7 +83,7 @@ class UserDetailsScreen(
         if(dialogConfig is UserDetailsScreenModel.DialogConfig.RolePickerConfig) {
             ListPickerDialog(
                 title = "Change User Role",
-                list = User.Role.values().map { com.jaehl.gameTool.common.ui.componets.ListItem(it.name, it) },
+                list = User.Role.entries.map { ListItem(it.name, it) },
                 onClose = {
                     selectedRoleIndex.value = -1
                     screenModel.closeDialog()
@@ -124,12 +126,14 @@ class UserDetailsScreen(
 
 @Composable
 fun AccountDetailsPage(
+    loading : Boolean,
     viewModel : UserDetailsScreenModel.ViewModel,
     onBackClick : () -> Unit,
     onLogoutClick : () -> Unit,
     onChangeUserRoleClick : () -> Unit,
     onChangePasswordClick : () -> Unit
 ) {
+    val state : ScrollState = rememberScrollState()
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -138,15 +142,17 @@ fun AccountDetailsPage(
     ) {
         AppBar(
             title = "User",
-            backButtonEnabled = true,
+            showBackButton = true,
             onBackClick = {
                 onBackClick()
             }
         )
+        CustomLinearProgressIndicator(loading)
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight()
+                .verticalScroll(state)
 
         ) {
             if(viewModel.showAdminTools){
@@ -180,7 +186,8 @@ fun AccountDetailsPage(
                 ) {
                     Button(
                         modifier = Modifier
-                            .padding(top = 10.dp),
+                            .padding(top = 10.dp)
+                            .testTag("logout"),
                         onClick = {
                             onLogoutClick()
                         },
@@ -303,7 +310,7 @@ fun UserCard(
                     color = MaterialTheme.colors.onSurface,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Normal,
-                    text = "${viewModel.userName}"
+                    text = viewModel.userName
                 )
             }
             Row(
@@ -325,7 +332,7 @@ fun UserCard(
                     color = MaterialTheme.colors.onSurface,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Normal,
-                    text = "${viewModel.email}"
+                    text = viewModel.email
                 )
             }
             Row(
@@ -347,7 +354,7 @@ fun UserCard(
                     color = MaterialTheme.colors.onSurface,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Normal,
-                    text = "${viewModel.role}"
+                    text = viewModel.role
                 )
             }
 

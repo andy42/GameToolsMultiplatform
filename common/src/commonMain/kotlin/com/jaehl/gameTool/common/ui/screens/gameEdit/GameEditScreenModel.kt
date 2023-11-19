@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableStateOf
 import cafe.adriel.voyager.core.model.ScreenModel
 import com.jaehl.gameTool.common.JobDispatcher
 import com.jaehl.gameTool.common.data.AppConfig
+import com.jaehl.gameTool.common.data.Resource
 import com.jaehl.gameTool.common.data.model.Game
 import com.jaehl.gameTool.common.data.model.ImageType
 import com.jaehl.gameTool.common.data.model.ItemCategory
@@ -14,6 +15,8 @@ import com.jaehl.gameTool.common.data.service.ImageService
 import com.jaehl.gameTool.common.ui.componets.ImageResource
 import com.jaehl.gameTool.common.ui.componets.TextFieldValue
 import com.jaehl.gameTool.common.ui.screens.launchIo
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
 import java.io.File
 
 class GameEditScreenModel(
@@ -38,38 +41,31 @@ class GameEditScreenModel(
 
     private var itemCategoriesFullList = listOf<ItemCategory>()
 
+    val pageLoading = mutableStateOf(false)
 
-    private var game : Game? = null
+    var gameId : Int? = null
+
     private var unsavedChanges = false
 
     init {
         gameEditValidator.validatorListener = this
     }
 
-    fun setup(config : Config) {
-        this.config = config
+    private suspend fun updateUi(gameResource : Resource<Game>?, itemCategoryResource : Resource<List<ItemCategory>>) {
 
-        newItemCategoryIndex = -1
-        newItemCategories.clear()
+        pageLoading.value = (gameResource is Resource.Loading || itemCategoryResource is Resource.Loading)
 
-        launchIo(jobDispatcher, ::onException) {
-
-
-            if(config.gameId != null){
-                updateGame(config.gameId)
+        listOf<Resource<*>?>(gameResource, itemCategoryResource).forEach {
+            if(it is Resource.Error){
+                onException(it.exception)
+                return
             }
         }
+        itemCategoriesFullList = itemCategoryResource.getDataOrThrow()
 
-        launchIo(jobDispatcher, onException = ::onException) {
-            itemRepo.getItemCategories(config.gameId).collect {
-                itemCategoriesFullList = it
-            }
-        }
-    }
+        if(gameResource == null) return
 
-    suspend fun updateGame(gameId : Int){
-        val game = gameRepo.getGame(gameId)
-        this.game = game
+        val game = gameResource.getDataOrThrow()
 
         viewModel.value = viewModel.value.copy(
             name = TextFieldValue(value = game.name),
@@ -84,10 +80,38 @@ class GameEditScreenModel(
                 authHeader = tokenProvider.getBearerRefreshToken()
             ),
         )
+
+    }
+
+    fun setup(config : Config) {
+        this.config = config
+
+        update(config.gameId)
+    }
+
+    private fun update(gameId : Int?) {
+        newItemCategoryIndex = -1
+        newItemCategories.clear()
+
+        launchIo(jobDispatcher, ::onException) {
+            if(gameId != null) {
+                combine(
+                    gameRepo.getGameFlow(gameId),
+                    itemRepo.getItemCategories()
+                ) { gameResource, itemCategoryResource ->
+                    updateUi(gameResource, itemCategoryResource)
+                }.collect()
+            } else {
+                itemRepo.getItemCategories().collect {
+                    updateUi(null, it)
+                }
+            }
+        }
     }
 
     private fun onException(t : Throwable) {
         System.err.println(t.message)
+        pageLoading.value = false
     }
 
     fun onNameChange(value : String) {
@@ -115,12 +139,8 @@ class GameEditScreenModel(
         unsavedChanges = true
     }
 
-    fun onSaveClick(closePageAfter : Boolean = false) = launchIo(jobDispatcher, ::onException) {
+    private suspend fun sendUpdateRequest(closePageAfter : Boolean, gameId : Int?, game : Game?){
         val viewModel = viewModel.value
-        if(!gameEditValidator.validate(viewModel.name.value, viewModel.icon, viewModel.banner)) return@launchIo
-
-        val gameId = config.gameId
-
         var iconImage = game?.icon ?: -1
         if(viewModel.icon is ImageResource.ImageLocalResource) {
             val imageType = ImageType.fromFileExtension( viewModel.icon.getFileExtension() )
@@ -172,11 +192,33 @@ class GameEditScreenModel(
             )
         }
         config.gameId?.let { gameId ->
-            updateGame(gameId)
+            update(gameId)
         }
         unsavedChanges = false
         if(closePageAfter){
             closePageEvent.value = true
+        }
+        pageLoading.value = false
+    }
+
+    fun onSaveClick(closePageAfter : Boolean = false) = launchIo(jobDispatcher, ::onException) {
+        pageLoading.value = true
+        val viewModel = viewModel.value
+        if(!gameEditValidator.validate(viewModel.name.value, viewModel.icon, viewModel.banner)) return@launchIo
+
+        val gameId = config.gameId
+        if(gameId != null){
+            gameRepo.getGameFlow(gameId).collect{
+                if(it is Resource.Loading) return@collect
+                if(it is Resource.Error) {
+                    onException(it.exception)
+                    return@collect
+                }
+                sendUpdateRequest(closePageAfter, gameId, it.getDataOrThrow())
+            }
+        }
+        else {
+            sendUpdateRequest(closePageAfter, gameId, null)
         }
     }
 
