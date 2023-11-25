@@ -25,36 +25,6 @@ object DataModule {
             instance<UserRepo>() as TokenProvider
         }}
 
-        bind<GameLocalSource> {
-            singleton {
-                GameLocalSourceInMemory()
-            }
-        }
-
-        bind<UserLocalSource> {
-            singleton {
-                UserLocalSourceInMemory()
-            }
-        }
-
-        bind<ItemLocalSource> {
-            singleton {
-                ItemLocalSourceInMemory()
-            }
-        }
-
-        bind<CollectionLocalSource> {
-            singleton {
-                CollectionLocalSourceInMemory()
-            }
-        }
-
-        bind<RecipeLocalSource> {
-            singleton {
-                RecipeLocalSourceInMemory()
-            }
-        }
-
         bind<GameRepo> { singleton {  GameRepoImp(
             instance<GameService>(),
             instance<GameLocalSource>(),
