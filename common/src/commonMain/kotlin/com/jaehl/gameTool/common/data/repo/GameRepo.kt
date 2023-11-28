@@ -33,7 +33,6 @@ class GameRepoImp(
 
             val games = gameService.getGames()
             gameLocalSource.addUpdateGames(games)
-//            emit(Resource.Success(games))
             emit(
                 Resource.Success(gameLocalSource.getGames())
             )

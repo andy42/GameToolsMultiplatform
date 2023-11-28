@@ -44,7 +44,6 @@ class ItemRepoImp(
             emit(Resource.Loading(itemLocalSource.getItems(gameId)))
             val items = itemService.getItems(gameId)
             itemLocalSource.updateItems(gameId, items)
-            //emit(Resource.Success(items))
             emit(Resource.Success(itemLocalSource.getItems(gameId)))
         }
         catch (t :Throwable){
@@ -68,7 +67,6 @@ class ItemRepoImp(
             emit(Resource.Loading(itemLocalSource.getItem(id)))
             val item = itemService.getItem(id)
             itemLocalSource.updateItem(item)
-            //emit(Resource.Success(item))
             emit(Resource.Success(itemLocalSource.getItem(id)))
         }
         catch (t : Throwable){
