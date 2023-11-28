@@ -147,8 +147,6 @@ class CollectionDetailsScreenModel (
         groups.postSwap(
             groupsMap.values.toList()
         )
-
-
     }
 
     private fun onException(t : Throwable) {

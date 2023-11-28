@@ -1,5 +1,6 @@
 package com.jaehl.gameTool.localSourceSqlDelight.di
 
+import app.cash.sqldelight.adapter.primitive.FloatColumnAdapter
 import app.cash.sqldelight.adapter.primitive.IntColumnAdapter
 import app.cash.sqldelight.db.SqlDriver
 import com.jaehl.gameTool.localSourceSqlDelight.Database
@@ -38,6 +39,53 @@ object LocalSourceSqlDelightModule {
                         idAdapter = IntColumnAdapter,
                         imageAdapter = IntColumnAdapter,
                         game_idAdapter = IntColumnAdapter
+                    ),
+                    RecipeCraftedAtEntityAdapter = RecipeCraftedAtEntity.Adapter(
+                        recipe_idAdapter = IntColumnAdapter,
+                        item_idAdapter = IntColumnAdapter,
+                        game_idAdapter = IntColumnAdapter
+                    ),
+                    RecipeEntityAdapter = RecipeEntity.Adapter(
+                        idAdapter = IntColumnAdapter,
+                        game_idAdapter = IntColumnAdapter
+                    ),
+                    RecipeInputEntityAdapter = RecipeInputEntity.Adapter(
+                        recipe_idAdapter = IntColumnAdapter,
+                        item_idAdapter = IntColumnAdapter,
+                        game_idAdapter = IntColumnAdapter,
+                        amountAdapter = IntColumnAdapter
+                    ),
+                    RecipeOutputEntityAdapter = RecipeOutputEntity.Adapter(
+                        recipe_idAdapter = IntColumnAdapter,
+                        item_idAdapter = IntColumnAdapter,
+                        game_idAdapter = IntColumnAdapter,
+                        amountAdapter = IntColumnAdapter
+                    ),
+                    UserEntityAdapter = UserEntity.Adapter(
+                        idAdapter = IntColumnAdapter
+                    ),
+                    UserSelfEntityAdapter = UserSelfEntity.Adapter(
+                        user_idAdapter = IntColumnAdapter
+                    ),
+                    CollectionEntityAdapter = CollectionEntity.Adapter(
+                        idAdapter = IntColumnAdapter,
+                        user_idAdapter = IntColumnAdapter,
+                        game_idAdapter = IntColumnAdapter
+                    ),
+                    CollectionGroupEntityAdapter = CollectionGroupEntity.Adapter(
+                        idAdapter = IntColumnAdapter,
+                        collection_idAdapter = IntColumnAdapter,
+                        cost_ReductionAdapter = FloatColumnAdapter
+                    ),
+                    CollectionItemAmountEntityAdapter = CollectionItemAmountEntity.Adapter(
+                        group_idAdapter = IntColumnAdapter,
+                        item_idAdapter = IntColumnAdapter,
+                        amountAdapter = IntColumnAdapter
+                    ),
+                    ItemRecipePreferenceEntityAdapter = ItemRecipePreferenceEntity.Adapter(
+                        group_idAdapter = IntColumnAdapter,
+                        item_idAdapter = IntColumnAdapter,
+                        recipe_id_preferenceAdapter = IntColumnAdapter
                     )
                 )
             }
@@ -53,7 +101,9 @@ object LocalSourceSqlDelightModule {
 
         bind<UserLocalSource> {
             singleton {
-                UserLocalSourceInMemory()
+                UserLocalSourceSqlDelight(
+                    instance<Database>()
+                )
             }
         }
 
@@ -67,13 +117,17 @@ object LocalSourceSqlDelightModule {
 
         bind<CollectionLocalSource> {
             singleton {
-                CollectionLocalSourceInMemory()
+                CollectionLocalSourceSqlDelight(
+                    instance<Database>()
+                )
             }
         }
 
         bind<RecipeLocalSource> {
             singleton {
-                RecipeLocalSourceInMemory()
+                RecipeLocalSourceSqlDelight(
+                    instance<Database>()
+                )
             }
         }
     }

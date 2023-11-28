@@ -1,0 +1,99 @@
+import kotlin.Int;
+import kotlin.Boolean;
+import kotlin.Float;
+
+CREATE TABLE CollectionEntity (
+    id INTEGER AS Int PRIMARY KEY NOT NULL,
+    name TEXT NOT NULL,
+    user_id INTEGER AS Int NOT NULL,
+    game_id INTEGER AS Int NOT NULL
+);
+
+CREATE TABLE CollectionGroupEntity (
+    id INTEGER AS Int PRIMARY KEY NOT NULL,
+    collection_id INTEGER AS Int NOT NULL,
+    name TEXT NOT NULL,
+    show_base_ingredients INTEGER AS Boolean DEFAULT 0 NOT NULL,
+    collapse_ingredients INTEGER AS Boolean DEFAULT 0 NOT NULL,
+    cost_Reduction REAL AS Float NOT NULL,
+    FOREIGN KEY (collection_id) REFERENCES CollectionEntity(id) ON DELETE CASCADE
+);
+
+CREATE TABLE CollectionItemAmountEntity (
+    group_id INTEGER AS Int NOT NULL,
+    item_id INTEGER AS Int NOT NULL,
+    amount INTEGER AS Int NOT NULL,
+    FOREIGN KEY (group_id) REFERENCES CollectionGroupEntity(id) ON DELETE CASCADE
+);
+
+CREATE TABLE ItemRecipePreferenceEntity (
+    group_id INTEGER AS Int NOT NULL,
+    item_id INTEGER AS Int NOT NULL,
+    recipe_id_preference INTEGER AS Int,
+    FOREIGN KEY (group_id) REFERENCES CollectionGroupEntity(id) ON DELETE CASCADE
+);
+
+getAllCollections:
+SELECT *
+FROM CollectionEntity;
+
+getAllCollectionsForGame:
+SELECT *
+FROM CollectionEntity
+WHERE game_id = :gameId;
+
+getCollection:
+SELECT *
+FROM CollectionEntity
+WHERE id = :collectionId;
+
+updateCollection:
+INSERT OR REPLACE INTO CollectionEntity(id, name, user_id, game_id)
+VALUES ?;
+
+deleteCollection:
+DELETE FROM CollectionEntity
+WHERE id = :collectionId;
+
+deleteAllCollectionsForGame:
+DELETE FROM CollectionEntity
+WHERE game_id = :gameId;
+
+getCollectionGroups:
+SELECT *
+FROM CollectionGroupEntity
+WHERE collection_id = :collectionId;
+
+updateCollectionGroup:
+INSERT OR REPLACE INTO CollectionGroupEntity(id, collection_id, name, show_base_ingredients, collapse_ingredients, cost_Reduction)
+VALUES ?;
+
+deleteCollectionGroup:
+DELETE FROM CollectionGroupEntity
+WHERE collection_id = :collectionId;
+
+getCollectionItemAmounts:
+SELECT *
+FROM CollectionItemAmountEntity
+WHERE group_id = :groupId;
+
+updateCollectionItemAmount:
+INSERT OR REPLACE INTO CollectionItemAmountEntity(group_id, item_id, amount)
+VALUES ?;
+
+deleteCollectionItemAmounts:
+DELETE FROM CollectionItemAmountEntity
+WHERE group_id = :groupId;
+
+getItemRecipePreferences:
+SELECT *
+FROM ItemRecipePreferenceEntity
+WHERE group_id = :groupId;
+
+updateItemRecipePreference:
+INSERT OR REPLACE INTO ItemRecipePreferenceEntity(group_id, item_id, recipe_id_preference)
+VALUES ?;
+
+deleteItemRecipePreferences:
+DELETE FROM ItemRecipePreferenceEntity
+WHERE group_id = :groupId;

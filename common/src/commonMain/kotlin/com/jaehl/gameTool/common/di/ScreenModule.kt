@@ -129,7 +129,8 @@ object ScreenModule {
                 instance<RecipeRepo>(),
                 instance<AppConfig>(),
                 instance<ItemRecipeNodeUtil>(),
-                instance<ItemRecipeInverter>()
+                instance<ItemRecipeInverter>(),
+                instance<UiExceptionHandler>()
             )}}
 
 

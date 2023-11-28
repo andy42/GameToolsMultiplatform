@@ -103,6 +103,9 @@ class ItemRecipeNodeUtil(
         )
 
         val inputs = recipe.input.mapNotNull { inputItemAmount ->
+            if(itemAmount.itemModel.id == inputItemAmount.itemId){
+                throw UiException.GeneralError(message = "circular recipe dependency ${inputItemAmount.itemId}")
+            }
             buildTree(
                 itemAmountViewModel(
                     inputItemAmount,

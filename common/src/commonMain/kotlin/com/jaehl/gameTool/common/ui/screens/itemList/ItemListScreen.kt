@@ -47,16 +47,16 @@ class ItemListScreen(
         )
 
         ItemListPage(
-            loading = screenModel.pageLoading.value,
+            loading = screenModel.pageLoading,
             items = screenModel.items,
-            searchText = screenModel.searchText.value,
-            filterCategory = screenModel.categoryFilter.value,
-            showEditItems = screenModel.showEditItems.value,
+            searchText = screenModel.searchText,
+            filterCategory = screenModel.categoryFilter,
+            showEditItems = screenModel.showEditItems,
             onBackClick = {
                 navigator.pop()
             },
             onSearchTextChange = {
-                screenModel.searchText.value = it
+                screenModel.searchText = it
             },
             onCategoryFilterClick = {
                 screenModel.openDialogItemCategoryPicker()
@@ -75,13 +75,13 @@ class ItemListScreen(
             }
         )
 
-        val dialogConfig = screenModel.dialogViewModel.value
+        val dialogConfig = screenModel.dialogViewModel
         if(dialogConfig is ItemCategoryPickerDialogViewModel){
             ItemCategoryPickDialog(
                 title = "Category",
                 categoryList = screenModel.itemCategories,
                 onCategoryClick = { itemCategory ->
-                    screenModel.categoryFilter.value = itemCategory
+                    screenModel.categoryFilter = itemCategory
                     screenModel.closeDialog()
                 },
                 searchText = dialogConfig.searchText,
