@@ -1,0 +1,114 @@
+import kotlin.Int;
+
+CREATE TABLE RecipeEntity (
+  id INTEGER AS Int PRIMARY KEY NOT NULL,
+  game_id INTEGER AS Int NOT NULL,
+  FOREIGN KEY (game_id) REFERENCES GameEntity(id) ON DELETE CASCADE
+);
+
+CREATE TABLE RecipeCraftedAtEntity (
+  recipe_id INTEGER AS Int NOT NULL,
+  item_id INTEGER AS Int NOT NULL,
+  game_id INTEGER AS Int NOT NULL,
+  FOREIGN KEY (recipe_id) REFERENCES RecipeEntity(id) ON DELETE CASCADE,
+  FOREIGN KEY (item_id) REFERENCES ItemEntity(id) ON DELETE CASCADE,
+  FOREIGN KEY (game_id) REFERENCES GameEntity(id) ON DELETE CASCADE
+);
+
+CREATE TABLE RecipeInputEntity (
+  recipe_id INTEGER AS Int NOT NULL,
+  item_id INTEGER AS Int NOT NULL,
+  game_id INTEGER AS Int NOT NULL,
+  amount INTEGER AS Int NOT NULL,
+  FOREIGN KEY (recipe_id) REFERENCES RecipeEntity(id) ON DELETE CASCADE,
+  FOREIGN KEY (item_id) REFERENCES ItemEntity(id) ON DELETE CASCADE,
+  FOREIGN KEY (game_id) REFERENCES GameEntity(id) ON DELETE CASCADE
+);
+
+CREATE TABLE RecipeOutputEntity (
+  recipe_id INTEGER AS Int NOT NULL,
+  item_id INTEGER AS Int NOT NULL,
+  game_id INTEGER AS Int NOT NULL,
+  amount INTEGER AS Int NOT NULL,
+  FOREIGN KEY (recipe_id) REFERENCES RecipeEntity(id) ON DELETE CASCADE,
+  FOREIGN KEY (item_id) REFERENCES ItemEntity(id) ON DELETE CASCADE,
+  FOREIGN KEY (game_id) REFERENCES GameEntity(id) ON DELETE CASCADE
+);
+
+getAllRecipes:
+SELECT *
+FROM RecipeEntity;
+
+getAllRecipesForGame:
+SELECT *
+FROM RecipeEntity
+WHERE game_id = :gameId;
+
+getRecipe:
+SELECT *
+FROM RecipeEntity
+WHERE id = :recipeId;
+
+deleteAllRecipesForGame:
+DELETE FROM RecipeEntity
+WHERE game_id = :gameId;
+
+deleteRecipe:
+DELETE FROM RecipeEntity
+WHERE id = :recipeId;
+
+deleteAllRecipes:
+DELETE FROM RecipeEntity;
+
+deleteAllRecipeCraftedAtForRecipe:
+DELETE FROM RecipeCraftedAtEntity
+WHERE recipe_id = :recipeId;
+
+deleteAllRecipeInputForRecipe:
+DELETE FROM RecipeInputEntity
+WHERE recipe_id = :recipeId;
+
+deleteAllRecipeOutputForRecipe:
+DELETE FROM RecipeOutputEntity
+WHERE recipe_id = :recipeId;
+
+updateRecipe:
+INSERT OR REPLACE INTO RecipeEntity(id, game_id)
+VALUES ?;
+
+insertCraftedAt:
+INSERT OR REPLACE INTO RecipeCraftedAtEntity(recipe_id, item_id, game_id)
+VALUES ?;
+
+insertRecipeInput:
+INSERT OR REPLACE INTO RecipeInputEntity(recipe_id, item_id, game_id, amount)
+VALUES ?;
+
+insertRecipeOutput:
+INSERT OR REPLACE INTO RecipeOutputEntity(recipe_id, item_id, game_id, amount)
+VALUES ?;
+
+getCraftedAtForRecipe:
+SELECT *
+FROM RecipeCraftedAtEntity
+WHERE recipe_id = :recipeId;
+
+getRecipeInputForRecipe:
+SELECT *
+FROM RecipeInputEntity
+WHERE recipe_id = :recipeId;
+
+getRecipeOutputForRecipe:
+SELECT *
+FROM RecipeOutputEntity
+WHERE recipe_id = :recipeId;
+
+getRecipesInputItem:
+SELECT *
+FROM RecipeInputEntity
+WHERE item_id = :itemId;
+
+getRecipesOutputItem:
+SELECT *
+FROM RecipeOutputEntity
+WHERE item_id = :itemId;

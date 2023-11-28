@@ -34,9 +34,9 @@ class RecipeRepoMock : RecipeRepo {
         ))
     }
 
-    override suspend fun getRecipesForOutputFlow(gameId: Int, inputItemId: Int): FlowResource<List<Recipe>> = flow {
+    override suspend fun getRecipesForOutputFlow(gameId: Int, outputItemId: Int): FlowResource<List<Recipe>> = flow {
         emit(Resource.Success(
-            getRecipesForOutputCached(gameId, inputItemId)
+            getRecipesForOutputCached(gameId, outputItemId)
         ))
     }
 

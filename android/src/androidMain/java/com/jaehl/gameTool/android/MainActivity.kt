@@ -1,6 +1,7 @@
 package com.jaehl.gameTool.android
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
@@ -15,6 +16,7 @@ import com.jaehl.gameTool.common.App
 import com.jaehl.gameTool.common.data.AppConfig
 import com.jaehl.gameTool.common.data.AuthLocalStore
 import com.jaehl.gameTool.common.di.DataModule
+import com.jaehl.gameTool.common.di.LocalSourceInMemoryModule
 import com.jaehl.gameTool.common.di.ScreenModule
 import io.ktor.client.*
 import io.ktor.client.engine.android.*
@@ -33,6 +35,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             val di = DI {
+                bind<Context> { singleton {
+                    this@MainActivity
+                }}
                 bind<AppConfig> { provider { AppConfig(baseUrl = "https://gametoolsapi.63bit.com:5443") } }
                 bind<AuthLocalStore> {
                     singleton {
@@ -54,6 +59,7 @@ class MainActivity : AppCompatActivity() {
                 import(DataModule.create())
                 import(ScreenModule.create())
                 //import(ApiClientRetrofitModule.create())
+                import(LocalSourceInMemoryModule.create())
                 import(ApiClientKtorModule.create())
             }
 

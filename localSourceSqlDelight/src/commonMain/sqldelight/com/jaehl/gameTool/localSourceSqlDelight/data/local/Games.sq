@@ -1,0 +1,46 @@
+import kotlin.Int;
+
+CREATE TABLE GameEntity (
+  id INTEGER AS Int PRIMARY KEY NOT NULL,
+  name TEXT NOT NULL,
+  icon INTEGER AS Int NOT NULL,
+  banner INTEGER AS Int NOT NULL
+);
+
+CREATE TABLE GameCategoryEntity (
+  game_id INTEGER AS Int NOT NULL,
+  category_id INTEGER AS Int NOT NULL,
+  FOREIGN KEY (game_id) REFERENCES GameEntity(id) ON DELETE CASCADE,
+  FOREIGN KEY (category_id) REFERENCES CategoryEntity(id) ON DELETE CASCADE
+);
+
+selectAll:
+SELECT *
+FROM GameEntity;
+
+getGame:
+SELECT *
+FROM GameEntity
+WHERE id = :id;
+
+getGameCategories:
+SELECT *
+FROM GameCategoryEntity
+JOIN CategoryEntity ON CategoryEntity.id = GameCategoryEntity.category_id
+WHERE game_id = :gameId;
+
+updateGameCategories:
+INSERT OR REPLACE INTO GameCategoryEntity(game_id, category_id)
+VALUES ?;
+
+deleteGameCategories:
+DELETE FROM GameCategoryEntity
+WHERE game_id = :gameId;
+
+insertGame:
+INSERT OR REPLACE INTO GameEntity(id, name, icon, banner)
+VALUES ?;
+
+deleteGame:
+DELETE FROM  GameEntity
+WHERE id = :id;

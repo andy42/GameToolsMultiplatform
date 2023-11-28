@@ -1,0 +1,44 @@
+import kotlin.Int;
+
+CREATE TABLE UserEntity (
+  id INTEGER AS Int PRIMARY KEY NOT NULL,
+  userName TEXT NOT NULL,
+  email TEXT NOT NULL,
+  role TEXT NOT NULL
+);
+
+CREATE TABLE UserSelfEntity (
+  user_id INTEGER AS Int NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES UserEntity(id) ON DELETE CASCADE
+);
+
+getAllUsers:
+SELECT *
+FROM UserEntity;
+
+getUser:
+SELECT *
+FROM UserEntity
+WHERE id = :userId;
+
+insertUser:
+INSERT OR REPLACE INTO UserEntity(id, userName, email, role)
+VALUES ?;
+
+deleteUser:
+DELETE FROM  UserEntity
+WHERE id = :id;
+
+deleteAllUsers:
+DELETE FROM  UserEntity;
+
+getUserSelf:
+SELECT *
+FROM UserSelfEntity;
+
+deleteUserSelf:
+DELETE FROM UserSelfEntity;
+
+insertUserSelf:
+INSERT OR REPLACE INTO UserSelfEntity(user_id)
+VALUES ?;

@@ -13,6 +13,7 @@ interface RecipeLocalSource {
     suspend fun updateRecipes(gameId : Int?, recipes : List<Recipe>)
 
     suspend fun getRecipesForOutput(itemId : Int) : List<Recipe>
+    suspend fun getRecipesForInput(itemId : Int) : List<Recipe>
 }
 
 class RecipeLocalSourceInMemory() : RecipeLocalSource {
@@ -53,6 +54,12 @@ class RecipeLocalSourceInMemory() : RecipeLocalSource {
     override suspend fun getRecipesForOutput(itemId: Int): List<Recipe> {
         return recipesMap.values.filter {  recipe ->
             recipe.output.firstOrNull { it.itemId == itemId } != null
+        }
+    }
+
+    override suspend fun getRecipesForInput(itemId: Int): List<Recipe> {
+        return recipesMap.values.filter {  recipe ->
+            recipe.input.firstOrNull { it.itemId == itemId } != null
         }
     }
 }

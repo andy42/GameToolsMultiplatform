@@ -19,6 +19,7 @@ kotlin {
                 implementation(project(":common"))
                 implementation(project(":apiClientRetrofit"))
                 implementation(project(":apiClientKtor"))
+                implementation(project(":localSourceSqlDelight"))
 
                 implementation("org.kodein.di:kodein-di-framework-compose:$kodeinVersion")
 

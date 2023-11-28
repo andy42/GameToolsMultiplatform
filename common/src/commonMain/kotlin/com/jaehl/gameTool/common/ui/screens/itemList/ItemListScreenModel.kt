@@ -1,7 +1,9 @@
 package com.jaehl.gameTool.common.ui.screens.itemList
 
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.coroutineScope
 import com.jaehl.gameTool.common.JobDispatcher
@@ -37,20 +39,20 @@ class ItemListScreenModel(
 
     private lateinit var config : Config
 
-    var showEditItems = mutableStateOf(false)
+    var showEditItems by mutableStateOf(false)
 
-    var pageLoading = mutableStateOf(false)
+    var pageLoading by mutableStateOf(false)
         private set
 
     var items = mutableStateListOf<ItemRowModel>()
         private set
 
-    val searchText =  mutableStateOf("")
-    val categoryFilter = mutableStateOf(ItemCategory.Item_Category_ALL)
+    var searchText by  mutableStateOf("")
+    var categoryFilter by mutableStateOf(ItemCategory.Item_Category_ALL)
 
     val itemCategories = mutableStateListOf<ItemCategory>()
 
-    val dialogViewModel = mutableStateOf<DialogViewModel>(ClosedDialogViewModel)
+    var dialogViewModel by mutableStateOf<DialogViewModel>(ClosedDialogViewModel)
 
     fun setup(config : Config) {
         this.config = config
@@ -64,7 +66,7 @@ class ItemListScreenModel(
         itemsResource : Resource<List<Item>>,
         itemCategoriesResource : Resource<List<ItemCategory>>){
 
-        pageLoading.value = (userResource is Resource.Loading
+        pageLoading = (userResource is Resource.Loading
                 || itemsResource is Resource.Loading
                 || itemCategoriesResource is Resource.Loading)
 
@@ -77,7 +79,7 @@ class ItemListScreenModel(
         }
 
         userResource.getDataOrThrow().let { user ->
-            showEditItems.value = listOf(
+            showEditItems = listOf(
                 User.Role.Admin,
                 User.Role.Contributor
             ).contains(user.role)
@@ -96,7 +98,7 @@ class ItemListScreenModel(
 
     suspend fun dataRefresh() {
 
-        pageLoading.value = true
+        pageLoading = true
         combine(
             userRepo.getUserSelFlow(),
             itemRepo.getItems(config.gameId),
@@ -113,38 +115,27 @@ class ItemListScreenModel(
     private fun onException(t: Throwable){
         System.err.println(t.message)
 
-        dialogViewModel.value = uiExceptionHandler.handelException(t)
+        dialogViewModel = uiExceptionHandler.handelException(t)
     }
 
     fun openDialogItemCategoryPicker() = launchIo(jobDispatcher, ::onException) {
-        dialogViewModel.value = ItemCategoryPickerDialogViewModel()
+        dialogViewModel = ItemCategoryPickerDialogViewModel()
     }
 
     fun onDialogItemCategoryPickerSearchTextChange(searchText : String) {
-        val dialogItemCategoryPicker = dialogViewModel.value as? ItemCategoryPickerDialogViewModel ?: return
-        dialogViewModel.value = dialogItemCategoryPicker.copy(
+        val dialogItemCategoryPicker = dialogViewModel as? ItemCategoryPickerDialogViewModel ?: return
+        dialogViewModel = dialogItemCategoryPicker.copy(
             searchText = searchText
         )
     }
 
     fun closeDialog() {
-        dialogViewModel.value = ClosedDialogViewModel
+        dialogViewModel = ClosedDialogViewModel
     }
 
     data class Config(
         val gameId : Int
     )
-
-    sealed class DialogConfig {
-        data object Closed : DialogConfig()
-        data class DialogItemCategoryPicker(
-            val searchText : String = ""
-        ) : DialogConfig()
-        data class ErrorDialog(
-            val title : String,
-            val message : String
-        ) : DialogConfig()
-    }
 }
 
 suspend fun Item.toItemRowModel(appConfig: AppConfig, tokenProvider: TokenProvider) : ItemRowModel {

@@ -5,6 +5,7 @@ include(":desktop")
 include(":common")
 include(":apiClientRetrofit")
 include(":apiClientKtor")
+include(":localSourceSqlDelight")
 
 pluginManagement {
     repositories {

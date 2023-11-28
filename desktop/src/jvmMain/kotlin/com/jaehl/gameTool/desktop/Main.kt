@@ -16,6 +16,7 @@ import com.jaehl.gameTool.desktop.data.AuthLocalStoreJsonFile
 import com.jaehl.gameTool.desktop.data.LocalFileSettings
 import com.jaehl.gameTool.desktop.data.LocalFiles
 import com.jaehl.gameTool.desktop.data.LocalFilesImp
+import com.jaehl.gameTool.localSourceSqlDelight.di.LocalSourceSqlDelightModule
 import io.kamel.core.config.KamelConfig
 import io.kamel.core.config.httpFetcher
 import io.kamel.core.config.takeFrom
@@ -44,6 +45,13 @@ fun main() = application {
                     LocalFileSettings(
                         userHomeDirectory = "gameTools"
                     )
+                }
+            }
+            bind<String>(tag = "databaseUrl"){
+                provider {
+                    val localFiles = instance<LocalFiles>()
+                    val localFileSettings = instance<LocalFileSettings>()
+                    return@provider localFiles.getFile(localFileSettings.userHomeDirectory, "database.db").absolutePath
                 }
             }
             bind<AppConfig> { provider { AppConfig(baseUrl = "https://gametoolsapi.63bit.com:5443") } }
@@ -78,6 +86,7 @@ fun main() = application {
             import(ScreenModule.create())
             import(ApiClientRetrofitModule.create(trustAllCerts = true, addDelay = false))
             //import(ApiClientKtorModule.create())
+            import(LocalSourceSqlDelightModule.create())
         }
 
         val httpClient : HttpClient by di.instance<HttpClient>()

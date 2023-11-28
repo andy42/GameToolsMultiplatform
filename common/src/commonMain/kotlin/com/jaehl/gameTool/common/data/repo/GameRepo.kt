@@ -25,13 +25,17 @@ class GameRepoImp(
 ) : GameRepo {
 
     override suspend fun getGames(): Flow<Resource<List<Game>>> = flow {
-        emit(
-            Resource.Loading(gameLocalSource.getGames())
-        )
+
         try {
+            emit(
+                Resource.Loading(gameLocalSource.getGames())
+            )
+
             val games = gameService.getGames()
             gameLocalSource.addUpdateGames(games)
-            emit(Resource.Success(games)
+//            emit(Resource.Success(games))
+            emit(
+                Resource.Success(gameLocalSource.getGames())
             )
         }
         catch (t : Throwable) {
