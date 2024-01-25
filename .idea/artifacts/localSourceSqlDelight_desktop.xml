@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="localSourceSqlDelight-desktop">
+    <output-path>$PROJECT_DIR$/localSourceSqlDelight/build/libs</output-path>
+    <root id="archive" name="localSourceSqlDelight-desktop.jar">
+      <element id="module-output" name="GameTools.localSourceSqlDelight.desktopMain" />
+    </root>
+  </artifact>
+</component>

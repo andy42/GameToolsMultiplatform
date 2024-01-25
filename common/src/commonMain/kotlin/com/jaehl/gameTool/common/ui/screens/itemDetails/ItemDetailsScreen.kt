@@ -28,6 +28,7 @@ import com.jaehl.gameTool.common.ui.AppColor
 import com.jaehl.gameTool.common.ui.componets.*
 import com.jaehl.gameTool.common.ui.screens.itemEdit.ItemEditScreen
 import com.jaehl.gameTool.common.ui.viewModel.ItemModel
+import com.jaehl.gameTool.common.ui.viewModel.RecipeDisplayType
 import kotlinx.coroutines.launch
 
 class ItemDetailsScreen(
@@ -65,11 +66,12 @@ class ItemDetailsScreen(
         )
 
         ItemDetailsPage(
-            loading = screenModel.pageLoading.value,
+            loading = screenModel.pageLoading,
             itemId = itemId,
-            itemInfo = screenModel.itemInfo.value,
+            itemInfo = screenModel.itemInfo,
             recipes = screenModel.recipeModels,
-            showEditItems = screenModel.showEditItems.value,
+            usedInRecipes = screenModel.usedAsInputRecipes,
+            showEditItems = screenModel.showEditItems,
             scrollState = scrollState,
             onBackClick = {
                 navigator.pop()
@@ -96,41 +98,43 @@ class ItemDetailsScreen(
             }
         )
 
-        val dialogState = screenModel.dialogState.value
-        if(dialogState is ItemDetailsScreenModel.DialogState.RecipeSettingDialog ){
+        val dialogViewModel = screenModel.dialogViewModel
+        if(dialogViewModel is ItemDetailsScreenModel.RecipeSettingDialog ){
             RecipeSettingsDialog(
                 title = "Recipe Settings",
-                recipeSettings = dialogState.recipeSettings,
+                recipeSettings = dialogViewModel.recipeSettings,
                 onClose = {
                     screenModel.onCloseDialog()
                 },
                 onRecipeSettingsChange = {
                     screenModel.onRecipeSettingsChange(
-                        dialogState.recipeId,
+                        dialogViewModel.recipeId,
                         it
                     )
                 }
             )
         }
 
-        if(dialogState is ItemDetailsScreenModel.DialogState.RecipePickerDialog ){
+        if(dialogViewModel is ItemDetailsScreenModel.RecipePickerDialog ){
             RecipePickerDialog(
                 title = "Pick Recipe",
-                recipePickerData = dialogState.recipePickerData,
+                recipePickerData = dialogViewModel.recipePickerData,
                 onClose = {
                     screenModel.onCloseDialog()
                 },
                 onRecipeClick = { recipeId ->
-                    screenModel.onRecipePickerSelectedClick(dialogState, recipeId)
+                    screenModel.onRecipePickerSelectedClick(dialogViewModel, recipeId)
                 },
                 onRecipeConfirmClick = {
                     screenModel.onItemRecipeChanged(
-                        itemId = dialogState.itemId,
-                        recipeId = dialogState.recipePickerData.selectedRecipeId
+                        itemId = dialogViewModel.itemId,
+                        recipeId = dialogViewModel.recipePickerData.selectedRecipeId
                     )
                 }
             )
         }
+
+        ErrorDialog(dialogViewModel, onClose = screenModel::onCloseDialog)
     }
 }
 
@@ -158,6 +162,7 @@ fun ItemDetailsPage(
     itemId : Int,
     itemInfo : ItemInfoModel,
     recipes : List<RecipeViewModel>,
+    usedInRecipes : List<RecipeSimpleViewModel>,
     showEditItems : Boolean,
     scrollState : ScrollState,
     onBackClick : ()-> Unit,
@@ -218,6 +223,19 @@ fun ItemDetailsPage(
                         },
                         onRecipeSettingsClick = onRecipeSettingsClick,
                         onRecipeChange = onRecipeChange
+                    )
+                }
+
+                usedInRecipes.forEachIndexed { index, recipeSimpleViewModel ->
+                    RecipeSimple(
+                        modifier = Modifier,
+                        recipeIndex = index,
+                        recipe = recipeSimpleViewModel,
+                        onItemClick = { clickedItemId ->
+                            if (clickedItemId != itemId) {
+                                onItemClick(clickedItemId)
+                            }
+                        }
                     )
                 }
             }
@@ -297,57 +315,50 @@ fun Recipe(
                 }
             }
 
+            Text(
+                text = "Output",
+                modifier = Modifier.padding(top = 20.dp, start = 10.dp, bottom = 10.dp),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+            RecipeItemAmount(
+                modifier = Modifier.padding(start = 10.dp, end = 10.dp),
+                itemAmount = recipe.node.itemAmount,
+                background = AppColor.rowBackgroundEven,
 
+                )
 
-            if(recipe.node.itemAmount.amount != 1 || recipe.node.byProducts.isNotEmpty()) {
-                PageSpacer(Modifier.padding(top= 20.dp))
+            if (recipe.node.byProducts.isNotEmpty()) {
                 Text(
-                    text = "Output",
+                    text = "By-Product",
                     modifier = Modifier.padding(top = 20.dp, start = 10.dp, bottom = 10.dp),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
                 )
-                RecipeItemAmount(
-                    modifier = Modifier.padding(start = 10.dp, end = 10.dp),
-                    itemAmount = recipe.node.itemAmount,
-                    background = AppColor.rowBackgroundEven,
-
+                recipe.node.byProducts.forEach {
+                    RecipeItemAmount(
+                        modifier = Modifier.padding(start = 10.dp, end = 10.dp),
+                        itemAmount = it,
+                        background = AppColor.rowBackgroundSecondEven,
+                        onItemClick = onItemClick
                     )
-
-                if (recipe.node.byProducts.isNotEmpty()) {
-
-                    PageSpacer(Modifier.padding(top = 20.dp))
-
-                    Text(
-                        text = "By-Product",
-                        modifier = Modifier.padding(top = 20.dp, start = 10.dp, bottom = 10.dp),
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    recipe.node.byProducts.forEach {
-                        RecipeItemAmount(
-                            modifier = Modifier.padding(start = 10.dp, end = 10.dp),
-                            itemAmount = it,
-                            background = AppColor.rowBackgroundSecondEven,
-                            onItemClick = onItemClick
-                        )
-                    }
                 }
-                PageSpacer(Modifier.padding(top= 20.dp))
-
-                Text(
-                    text = "Input",
-                    modifier = Modifier.padding(top = 20.dp, start = 10.dp, bottom = 10.dp),
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
             }
 
-
+            Text(
+                text = "Input",
+                modifier = Modifier.padding(top = 20.dp, start = 10.dp, bottom = 10.dp),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
             RecipeNodes(
                 Modifier.padding(top = 10.dp, bottom = 10.dp, start = 10.dp, end = 10.dp),
                 recipe.recipeSettings.collapseIngredients,
-                if(recipe.recipeSettings.showBaseIngredients) recipe.baseIngredients else recipe.node.inputs,
+                when(recipe.recipeSettings.displayType){
+                    RecipeDisplayType.Normal -> recipe.node.inputs
+                    RecipeDisplayType.BaseItems -> recipe.baseIngredients
+                    RecipeDisplayType.FlattenedList -> recipe.flatRecipeItems
+                },
                 onItemClick = onItemClick,
                 onRecipeChange = { itemId ->
                     onRecipeChange(itemId, recipe.id)

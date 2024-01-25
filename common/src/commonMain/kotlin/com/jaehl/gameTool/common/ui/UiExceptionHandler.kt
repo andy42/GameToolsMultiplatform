@@ -21,10 +21,16 @@ class UiExceptionHandlerImp() : UiExceptionHandler {
                     message = "Oops, seems like you can not connect to the server"
                 )
             }
+            is UiException.GeneralError -> {
+                ErrorDialogViewModel(
+                    title = "Error",
+                    message = e.message ?: "Oops something went wrong"
+                )
+            }
             else -> {
                 ErrorDialogViewModel(
                     title = "Error",
-                    message = "Oops something went wrong"
+                    message = e.message ?: "Oops something went wrong"
                 )
             }
         }
@@ -36,7 +42,7 @@ class UiExceptionHandlerImp() : UiExceptionHandler {
         } else  {
             ErrorDialogViewModel(
                 title = "Error",
-                message = "Oops something went wrong"
+                message = e.message ?: "Oops something went wrong"
             )
         }
     }

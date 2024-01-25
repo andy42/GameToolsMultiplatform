@@ -11,11 +11,13 @@ import com.jaehl.gameTool.common.App
 import com.jaehl.gameTool.common.data.AppConfig
 import com.jaehl.gameTool.common.data.AuthLocalStore
 import com.jaehl.gameTool.common.di.DataModule
+import com.jaehl.gameTool.common.di.LocalSourceInMemoryModule
 import com.jaehl.gameTool.common.di.ScreenModule
 import com.jaehl.gameTool.desktop.data.AuthLocalStoreJsonFile
 import com.jaehl.gameTool.desktop.data.LocalFileSettings
 import com.jaehl.gameTool.desktop.data.LocalFiles
 import com.jaehl.gameTool.desktop.data.LocalFilesImp
+import com.jaehl.gameTool.localSourceSqlDelight.di.LocalSourceSqlDelightModule
 import io.kamel.core.config.KamelConfig
 import io.kamel.core.config.httpFetcher
 import io.kamel.core.config.takeFrom
@@ -31,7 +33,7 @@ import org.kodein.di.*
 
 
 fun main() = application {
-    val windowState = rememberWindowState(width = 720.dp, height = 800.dp)
+    val windowState = rememberWindowState(width = 720.dp, height = 850.dp)
     Window(title = "Game Tools", onCloseRequest = ::exitApplication, state = windowState) {
         val di = DI {
             bind<LocalFiles> {
@@ -44,6 +46,13 @@ fun main() = application {
                     LocalFileSettings(
                         userHomeDirectory = "gameTools"
                     )
+                }
+            }
+            bind<String>(tag = "databaseUrl"){
+                provider {
+                    val localFiles = instance<LocalFiles>()
+                    val localFileSettings = instance<LocalFileSettings>()
+                    return@provider localFiles.getFile(localFileSettings.userHomeDirectory, "database.db").absolutePath
                 }
             }
             bind<AppConfig> { provider { AppConfig(baseUrl = "https://gametoolsapi.63bit.com:5443") } }
@@ -78,6 +87,8 @@ fun main() = application {
             import(ScreenModule.create())
             import(ApiClientRetrofitModule.create(trustAllCerts = true, addDelay = false))
             //import(ApiClientKtorModule.create())
+            //import(LocalSourceSqlDelightModule.create())
+            import(LocalSourceInMemoryModule.create())
         }
 
         val httpClient : HttpClient by di.instance<HttpClient>()

@@ -1,0 +1,72 @@
+import kotlin.Int;
+
+CREATE TABLE ItemEntity (
+  id INTEGER AS Int PRIMARY KEY NOT NULL,
+  name TEXT NOT NULL,
+  image INTEGER AS Int NOT NULL,
+  game_id INTEGER AS Int NOT NULL,
+  FOREIGN KEY (game_id) REFERENCES GameEntity(id) ON DELETE CASCADE
+);
+
+CREATE TABLE ItemCategoryEntity (
+  item_id INTEGER AS Int NOT NULL,
+  category_id INTEGER AS Int NOT NULL,
+  FOREIGN KEY (item_id) REFERENCES ItemEntity(id) ON DELETE CASCADE,
+  FOREIGN KEY (category_id) REFERENCES CategoryEntity(id) ON DELETE CASCADE
+);
+
+CREATE TABLE CategoryEntity (
+  id INTEGER AS Int PRIMARY KEY NOT NULL,
+  name TEXT NOT NULL
+);
+
+getAllItems:
+SELECT *
+FROM ItemEntity;
+
+getAllItemsForGame:
+SELECT *
+FROM ItemEntity
+WHERE game_id = :gameId;
+
+getItem:
+SELECT *
+FROM ItemEntity
+WHERE id = :itemId;
+
+getItemCategories:
+SELECT *
+FROM ItemCategoryEntity
+JOIN CategoryEntity ON CategoryEntity.id = ItemCategoryEntity.category_id
+WHERE item_id = :itemId;
+
+updateItem:
+INSERT OR REPLACE INTO ItemEntity(id, name, image, game_id)
+VALUES ?;
+
+deleteItemsForGame:
+DELETE FROM ItemEntity
+WHERE game_id = :gameId;
+
+deleteAllItems:
+DELETE FROM ItemEntity;
+
+deleteItem:
+DELETE FROM ItemEntity
+WHERE id = :itemId;
+
+updateItemCategory:
+INSERT OR REPLACE INTO ItemCategoryEntity(item_id, category_id)
+VALUES ?;
+
+deleteItemCategories:
+DELETE FROM ItemCategoryEntity
+WHERE item_id = :itemId;
+
+selectAllCategories:
+SELECT *
+FROM CategoryEntity;
+
+updateCategories:
+INSERT OR REPLACE INTO CategoryEntity(id, name)
+VALUES ?;

@@ -24,6 +24,7 @@ import com.jaehl.gameTool.common.ui.componets.*
 import com.jaehl.gameTool.common.ui.screens.collectionEdit.CollectionEditScreen
 import com.jaehl.gameTool.common.ui.screens.itemDetails.ItemDetailsScreen
 import com.jaehl.gameTool.common.ui.viewModel.ItemAmountViewModel
+import com.jaehl.gameTool.common.ui.viewModel.RecipeDisplayType
 
 class CollectionDetailsScreen(
     val gameId : Int,
@@ -258,15 +259,20 @@ fun Section(
                 Item(itemViewModel = itemViewModel, groupId = group.id, onItemClick, onRecipeChangeClick)
             }
         }
-        RecipeNodes(
-            Modifier.padding(top = 10.dp, bottom = 10.dp),
-            group.recipeSettings.collapseIngredients,
-            if(group.recipeSettings.showBaseIngredients) group.baseNodes else group.nodes,
-            onItemClick = onItemClick,
-            onRecipeChange = { itemId ->
-                onRecipeChangeClick(itemId, group.id)
-            }
-        )
+        if(group.recipeSettings.displayType == RecipeDisplayType.FlattenedList) {
+            //TODO("Add FlattenedList")
+        }
+        else {
+            RecipeNodes(
+                Modifier.padding(top = 10.dp, bottom = 10.dp),
+                group.recipeSettings.collapseIngredients,
+                if(group.recipeSettings.displayType == RecipeDisplayType.BaseItems) group.baseNodes else group.nodes,
+                onItemClick = onItemClick,
+                onRecipeChange = { itemId ->
+                    onRecipeChangeClick(itemId, group.id)
+                }
+            )
+        }
     }
 }
 
@@ -281,7 +287,7 @@ fun Item(
     Column(
         modifier = Modifier
             .padding(end = 10.dp, top = 10.dp)
-            .clip(RoundedCornerShape(10.dp))
+
             .background(Color.White)
             .combinedClickable (
                 onClick = {

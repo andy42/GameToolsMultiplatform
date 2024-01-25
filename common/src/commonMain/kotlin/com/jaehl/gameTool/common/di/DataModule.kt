@@ -5,10 +5,7 @@ import com.jaehl.gameTool.common.data.*
 import com.jaehl.gameTool.common.data.local.*
 import com.jaehl.gameTool.common.data.repo.*
 import com.jaehl.gameTool.common.data.service.*
-import com.jaehl.gameTool.common.ui.util.ItemImporter
-import com.jaehl.gameTool.common.ui.util.ItemRecipeInverter
-import com.jaehl.gameTool.common.ui.util.ItemRecipeNodeUtil
-import com.jaehl.gameTool.common.ui.util.ServerBackup
+import com.jaehl.gameTool.common.ui.util.*
 import org.kodein.di.*
 
 object DataModule {
@@ -24,36 +21,6 @@ object DataModule {
         bind<TokenProvider> { provider {
             instance<UserRepo>() as TokenProvider
         }}
-
-        bind<GameLocalSource> {
-            singleton {
-                GameLocalSourceInMemory()
-            }
-        }
-
-        bind<UserLocalSource> {
-            singleton {
-                UserLocalSourceInMemory()
-            }
-        }
-
-        bind<ItemLocalSource> {
-            singleton {
-                ItemLocalSourceInMemory()
-            }
-        }
-
-        bind<CollectionLocalSource> {
-            singleton {
-                CollectionLocalSourceInMemory()
-            }
-        }
-
-        bind<RecipeLocalSource> {
-            singleton {
-                RecipeLocalSourceInMemory()
-            }
-        }
 
         bind<GameRepo> { singleton {  GameRepoImp(
             instance<GameService>(),
@@ -101,6 +68,10 @@ object DataModule {
 
         bind<ItemRecipeInverter> { singleton {
             ItemRecipeInverter()
+        }}
+
+        bind<ItemRecipeFlattener> { singleton {
+            ItemRecipeFlattener()
         }}
 
         bind<ServerBackup> {

@@ -21,6 +21,7 @@ import com.jaehl.gameTool.common.ui.screens.launchIo
 import com.jaehl.gameTool.common.ui.util.UiException
 import com.jaehl.gameTool.common.ui.viewModel.ClosedDialogViewModel
 import com.jaehl.gameTool.common.ui.viewModel.DialogViewModel
+import com.jaehl.gameTool.common.ui.viewModel.ErrorDialogViewModel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 
@@ -117,6 +118,12 @@ class HomeScreenModel(
     private fun onException(t: Throwable){
         if (t is UiException){
             dialogViewModel = uiExceptionHandler.handelException(t)
+        }
+        else {
+            dialogViewModel = ErrorDialogViewModel(
+                title = "Error",
+                message = "Oops something went wrong"
+            )
         }
         pageLoading = false
     }

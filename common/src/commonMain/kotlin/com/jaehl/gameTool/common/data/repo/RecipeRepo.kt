@@ -12,7 +12,8 @@ import kotlinx.coroutines.flow.flow
 interface RecipeRepo {
     suspend fun getRecipesFlow(gameId : Int? = null) : FlowResource<List<Recipe>>
     suspend fun getRecipeFlow(id : Int) : FlowResource<Recipe>
-    suspend fun getRecipesForOutputFlow(gameId : Int, inputItemId : Int) : FlowResource<List<Recipe>>
+
+    suspend fun getRecipesForOutputFlow(gameId : Int, outputItemId : Int) : FlowResource<List<Recipe>>
     suspend fun getRecipesForOutputCached(gameId : Int, inputItemId : Int) : List<Recipe>
 
     suspend fun createRecipes(
@@ -63,20 +64,20 @@ class RecipeRepoImp(
         }
     }
 
-    override suspend fun getRecipesForOutputFlow(gameId : Int, inputItemId: Int) = flow {
+    override suspend fun getRecipesForOutputFlow(gameId : Int, outputItemId: Int) = flow {
         try {
-            emit(Resource.Loading(recipeLocalSource.getRecipesForOutput(inputItemId)))
+            emit(Resource.Loading(recipeLocalSource.getRecipesForOutput(outputItemId)))
             val recipes = recipeService.getRecipes(gameId)
             recipeLocalSource.updateRecipes(gameId, recipes)
-            emit(Resource.Success(recipeLocalSource.getRecipesForOutput(inputItemId)))
+            emit(Resource.Success(recipeLocalSource.getRecipesForOutput(outputItemId)))
         }
         catch (t : Throwable){
             emit(Resource.Error(t))
         }
     }
 
-    override suspend fun getRecipesForOutputCached(gameId: Int, inputItemId: Int): List<Recipe> {
-        return recipeLocalSource.getRecipesForOutput(inputItemId)
+    override suspend fun getRecipesForOutputCached(gameId: Int, outputItemId: Int): List<Recipe> {
+        return recipeLocalSource.getRecipesForOutput(outputItemId)
     }
 
     override suspend fun createRecipes(
