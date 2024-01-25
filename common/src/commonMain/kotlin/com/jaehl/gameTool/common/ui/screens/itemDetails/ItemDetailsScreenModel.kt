@@ -24,6 +24,7 @@ import com.jaehl.gameTool.common.ui.UiExceptionHandler
 import com.jaehl.gameTool.common.ui.componets.ImageResource
 import com.jaehl.gameTool.common.ui.componets.RecipePickerData
 import com.jaehl.gameTool.common.ui.screens.runWithCatch
+import com.jaehl.gameTool.common.ui.util.ItemRecipeFlattener
 import com.jaehl.gameTool.common.ui.util.ItemRecipeInverter
 import com.jaehl.gameTool.common.ui.util.ItemRecipeNodeUtil
 import com.jaehl.gameTool.common.ui.util.UiException
@@ -40,6 +41,7 @@ class ItemDetailsScreenModel(
     private val appConfig: AppConfig,
     private val itemRecipeNodeUtil : ItemRecipeNodeUtil,
     private val itemRecipeInverter: ItemRecipeInverter,
+    private val itemRecipeFlattener: ItemRecipeFlattener,
     private val uiExceptionHandler : UiExceptionHandler
 ) : ScreenModel {
 
@@ -92,10 +94,8 @@ class ItemDetailsScreenModel(
             }
         }
 
-        val itemMap = HashMap<Int, Item>()
-        itemResource.getDataOrThrow().forEach { item ->
-            itemMap[item.id] = item
-        }
+        val itemMap = itemResource.getDataOrThrow().associateBy { it.id }
+
         val item = itemMap[config.itemId] ?: throw UiException.NotFound("item not found : ${config.itemId}")
 
         val recipeOutputMap = LinkedHashMap<Int, ArrayList<Recipe>>()
@@ -168,10 +168,11 @@ class ItemDetailsScreenModel(
                 id = recipe.id,
                 node = node,
                 recipeSettings = recipePreferencesMap[recipe.id] ?: RecipeSettings(
-                    showBaseIngredients = false,
+                    displayType = RecipeDisplayType.Normal,
                     collapseIngredients = true
                 ),
                 baseIngredients = baseIngredients,
+                flatRecipeItems = itemRecipeFlattener.flattenItemRecipes(listOf(node)),
                 craftedAt = node.recipe?.craftedAt?.mapNotNull {
                     itemMap[it]?.toItemModel(appConfig, tokenProvider)
                 } ?: listOf()
@@ -320,14 +321,17 @@ suspend fun Item.toItemInfoModel(appConfig: AppConfig, tokenProvider: TokenProvi
     )
 }
 
+
+
 data class RecipeViewModel(
     val id : Int,
     val recipeSettings : RecipeSettings = RecipeSettings(
-        showBaseIngredients = false,
+        displayType = RecipeDisplayType.Normal,
         collapseIngredients = true
     ),
     var node : ItemRecipeNode,
     var baseIngredients : List<ItemRecipeNode>,
+    var flatRecipeItems : List<ItemRecipeNode>,
     var craftedAt : List<ItemModel> = listOf()
 )
 

@@ -1,18 +1,26 @@
 package com.jaehl.gameTool.common.ui.componets
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Switch
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.jaehl.gameTool.common.ui.AppColor
+import com.jaehl.gameTool.common.ui.viewModel.RecipeDisplayType
 import com.jaehl.gameTool.common.ui.viewModel.RecipeSettings
 
 @Composable
@@ -53,15 +61,18 @@ fun RecipeSettingsDialog(
                     )
                 }
             )
-            SwitchWithTitle(
+            ListPickerWithTitle(
                 modifier = Modifier
                     .padding(top = 10.dp),
-                title = "Show Base Ingredients",
-                checked = recipeSettings.showBaseIngredients,
-                onCheckedChange = {
+                title = "Display Type ",
+                value = recipeSettings.displayType,
+                list = RecipeDisplayType.values().map {
+                    Pair<RecipeDisplayType, String>(it, it.displayName)
+                },
+                onValueChange = {
                     onRecipeSettingsChange(
                         recipeSettings.copy(
-                            showBaseIngredients = it
+                            displayType = it
                         )
                     )
                 }
@@ -77,6 +88,53 @@ fun RecipeSettingsDialog(
                 Text("Ok")
             }
 
+        }
+    }
+}
+
+@Composable
+fun <T>ListPickerWithTitle(
+    modifier: Modifier = Modifier,
+    title : String,
+    value : T,
+    list : List<Pair<T, String>>,
+    onValueChange : (value : T) -> Unit
+) {
+    Column (
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(start = 20.dp, end = 20.dp)
+    ) {
+        Text(
+            modifier = Modifier
+                .padding(start = 10.dp),
+            text = title,
+            fontWeight = FontWeight.SemiBold
+        )
+        Column (
+            modifier = modifier
+                //.padding(top = 1.dp)
+                .fillMaxWidth()
+                .clip(shape = RoundedCornerShape(10.dp))
+                .border(
+                    BorderStroke(2.dp, SolidColor(MaterialTheme.colors.primary)),
+                    RoundedCornerShape(10.dp)
+                )
+        ) {
+            list.forEach {
+                Text(
+                    modifier = Modifier
+                        .clickable {
+                            onValueChange(it.first)
+                        }
+                        .background(if (value == it.first) MaterialTheme.colors.secondary else MaterialTheme.colors.surface)
+                        .fillMaxWidth()
+                        .padding(top = 10.dp, bottom = 10.dp)
+                        .padding(start = 10.dp,),
+                    color = if (value == it.first) MaterialTheme.colors.onSecondary else MaterialTheme.colors.onSurface,
+                    text = it.second
+                )
+            }
         }
     }
 }
@@ -104,7 +162,8 @@ fun SwitchWithTitle(
         Text(
             modifier = Modifier
                 .padding(start = 10.dp),
-            text = title
+            text = title,
+            fontWeight = FontWeight.SemiBold
         )
     }
 }

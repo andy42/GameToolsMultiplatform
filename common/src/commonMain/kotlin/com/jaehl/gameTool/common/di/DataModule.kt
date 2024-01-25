@@ -5,10 +5,7 @@ import com.jaehl.gameTool.common.data.*
 import com.jaehl.gameTool.common.data.local.*
 import com.jaehl.gameTool.common.data.repo.*
 import com.jaehl.gameTool.common.data.service.*
-import com.jaehl.gameTool.common.ui.util.ItemImporter
-import com.jaehl.gameTool.common.ui.util.ItemRecipeInverter
-import com.jaehl.gameTool.common.ui.util.ItemRecipeNodeUtil
-import com.jaehl.gameTool.common.ui.util.ServerBackup
+import com.jaehl.gameTool.common.ui.util.*
 import org.kodein.di.*
 
 object DataModule {
@@ -71,6 +68,10 @@ object DataModule {
 
         bind<ItemRecipeInverter> { singleton {
             ItemRecipeInverter()
+        }}
+
+        bind<ItemRecipeFlattener> { singleton {
+            ItemRecipeFlattener()
         }}
 
         bind<ServerBackup> {

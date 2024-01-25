@@ -103,10 +103,7 @@ class CollectionDetailsScreenModel (
             recipeMap[recipe.id] = recipe
         }
 
-        val itemMap = HashMap<Int, Item>()
-        itemResource.getDataOrThrow().forEach { item ->
-            itemMap[item.id] = item
-        }
+        val itemMap = itemResource.getDataOrThrow().associateBy { it.id }
 
         title.value = collection.name
 
@@ -200,7 +197,7 @@ class CollectionDetailsScreenModel (
         collectionRepo.updateGroupPreferences(
             collectionId =  config.collectionId,
             groupId = groupId,
-            showBaseIngredients = recipeSettings.showBaseIngredients,
+            displayType = recipeSettings.displayType,
             collapseIngredients = recipeSettings.collapseIngredients,
             costReduction = 1f,
             itemRecipePreferenceMap = group.itemRecipePreferenceMap
@@ -268,7 +265,7 @@ class CollectionDetailsScreenModel (
         collectionRepo.updateGroupPreferences(
             collectionId =  config.collectionId,
             groupId = groupId,
-            showBaseIngredients = groupsViewModel.recipeSettings.showBaseIngredients,
+            displayType = groupsViewModel.recipeSettings.displayType,
             collapseIngredients = groupsViewModel.recipeSettings.collapseIngredients,
             costReduction = 1f,
             itemRecipePreferenceMap = itemRecipePreferenceMap
@@ -314,7 +311,7 @@ suspend fun Collection.Group.toGroupsViewModel(
         id = this.id,
         name = this.name,
         recipeSettings = RecipeSettings(
-            showBaseIngredients = this.showBaseIngredients,
+            displayType = if(this.showBaseIngredients) RecipeDisplayType.BaseItems else RecipeDisplayType.Normal,
             collapseIngredients = this.collapseIngredients
         ),
         itemList = this.itemAmounts.map {

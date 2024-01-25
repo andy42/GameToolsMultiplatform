@@ -8,6 +8,7 @@ import com.jaehl.gameTool.common.data.model.Collection
 import com.jaehl.gameTool.common.data.model.request.NewCollectionRequest
 import com.jaehl.gameTool.common.data.model.request.UpdateCollectionRequest
 import com.jaehl.gameTool.common.data.service.CollectionService
+import com.jaehl.gameTool.common.ui.viewModel.RecipeDisplayType
 import kotlinx.coroutines.flow.flow
 
 
@@ -22,7 +23,7 @@ interface CollectionRepo {
     suspend fun updateGroupPreferences(
         collectionId : Int,
         groupId : Int,
-        showBaseIngredients : Boolean,
+        displayType: RecipeDisplayType,
         collapseIngredients : Boolean,
         costReduction : Float,
         itemRecipePreferenceMap : Map<Int, Int?>
@@ -80,7 +81,7 @@ class CollectionRepoImp(
     override suspend fun updateGroupPreferences(
         collectionId: Int,
         groupId: Int,
-        showBaseIngredients: Boolean,
+        displayType: RecipeDisplayType,
         collapseIngredients: Boolean,
         costReduction: Float,
         itemRecipePreferenceMap : Map<Int, Int?>
@@ -88,7 +89,8 @@ class CollectionRepoImp(
         val group = collectionService.updateGroupPreferences(
             collectionId = collectionId,
             groupId = groupId,
-            showBaseIngredients = showBaseIngredients,
+            //TODO: change endpoint showBaseIngredients to displayType
+            showBaseIngredients = (displayType != RecipeDisplayType.Normal),
             collapseIngredients = collapseIngredients,
             costReduction = costReduction,
             itemRecipePreferenceMap = itemRecipePreferenceMap,

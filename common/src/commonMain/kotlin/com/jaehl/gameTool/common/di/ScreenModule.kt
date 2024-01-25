@@ -24,6 +24,7 @@ import com.jaehl.gameTool.common.ui.screens.gameEdit.GameEditValidator
 import com.jaehl.gameTool.common.domain.useCase.GetUserPermissionsUseCaseImp
 import com.jaehl.gameTool.common.ui.screens.itemEdit.ItemEditValidator
 import com.jaehl.gameTool.common.ui.screens.login.usecases.*
+import com.jaehl.gameTool.common.ui.util.ItemRecipeFlattener
 import com.jaehl.gameTool.common.ui.util.ItemRecipeInverter
 import com.jaehl.gameTool.common.ui.util.ItemRecipeNodeUtil
 import org.kodein.di.*
@@ -130,6 +131,7 @@ object ScreenModule {
                 instance<AppConfig>(),
                 instance<ItemRecipeNodeUtil>(),
                 instance<ItemRecipeInverter>(),
+                instance<ItemRecipeFlattener>(),
                 instance<UiExceptionHandler>()
             )}}
 

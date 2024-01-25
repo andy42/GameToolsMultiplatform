@@ -11,6 +11,7 @@ import com.jaehl.gameTool.common.App
 import com.jaehl.gameTool.common.data.AppConfig
 import com.jaehl.gameTool.common.data.AuthLocalStore
 import com.jaehl.gameTool.common.di.DataModule
+import com.jaehl.gameTool.common.di.LocalSourceInMemoryModule
 import com.jaehl.gameTool.common.di.ScreenModule
 import com.jaehl.gameTool.desktop.data.AuthLocalStoreJsonFile
 import com.jaehl.gameTool.desktop.data.LocalFileSettings
@@ -32,7 +33,7 @@ import org.kodein.di.*
 
 
 fun main() = application {
-    val windowState = rememberWindowState(width = 720.dp, height = 800.dp)
+    val windowState = rememberWindowState(width = 720.dp, height = 850.dp)
     Window(title = "Game Tools", onCloseRequest = ::exitApplication, state = windowState) {
         val di = DI {
             bind<LocalFiles> {
@@ -86,7 +87,8 @@ fun main() = application {
             import(ScreenModule.create())
             import(ApiClientRetrofitModule.create(trustAllCerts = true, addDelay = false))
             //import(ApiClientKtorModule.create())
-            import(LocalSourceSqlDelightModule.create())
+            //import(LocalSourceSqlDelightModule.create())
+            import(LocalSourceInMemoryModule.create())
         }
 
         val httpClient : HttpClient by di.instance<HttpClient>()

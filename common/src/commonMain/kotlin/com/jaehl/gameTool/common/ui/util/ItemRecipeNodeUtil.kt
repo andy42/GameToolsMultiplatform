@@ -29,7 +29,13 @@ class ItemRecipeNodeUtil(
     }
 
     private suspend fun getByProductFor(itemAmount : ItemAmountViewModel, recipe : Recipe, multiplier : Int) : ArrayList<ItemAmountViewModel> {
-        return ArrayList(recipe.output.filter { it.itemId != itemAmount.itemModel.id }.map { itemAmountViewModel(it, it.amount * multiplier) })
+        return ArrayList(
+            recipe.output.filter {
+                it.itemId != itemAmount.itemModel.id
+            }.map {
+                itemAmountViewModel(it, itemAmount.amount * multiplier)
+            }
+        )
     }
 
     private fun recipeMultiplier(itemAmount : ItemAmountViewModel, recipeItemAmount : ItemAmount) : Int {
@@ -104,7 +110,15 @@ class ItemRecipeNodeUtil(
 
         val inputs = recipe.input.mapNotNull { inputItemAmount ->
             if(itemAmount.itemModel.id == inputItemAmount.itemId){
-                throw UiException.GeneralError(message = "circular recipe dependency ${inputItemAmount.itemId}")
+                return@mapNotNull ItemRecipeNode(
+                    recipe = null,
+                    parentNode = WeakReference(null),
+                    itemAmount = itemAmountViewModel(inputItemAmount),
+                    inputs = arrayListOf(),
+                    byProducts = arrayListOf(),
+                    recipeCount = recipes.size
+                )
+                //throw UiException.GeneralError(message = "circular recipe dependency ${inputItemAmount.itemId}")
             }
             buildTree(
                 itemAmountViewModel(

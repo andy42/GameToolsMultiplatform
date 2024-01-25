@@ -28,6 +28,7 @@ import com.jaehl.gameTool.common.ui.AppColor
 import com.jaehl.gameTool.common.ui.componets.*
 import com.jaehl.gameTool.common.ui.screens.itemEdit.ItemEditScreen
 import com.jaehl.gameTool.common.ui.viewModel.ItemModel
+import com.jaehl.gameTool.common.ui.viewModel.RecipeDisplayType
 import kotlinx.coroutines.launch
 
 class ItemDetailsScreen(
@@ -350,11 +351,14 @@ fun Recipe(
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
             )
-
             RecipeNodes(
                 Modifier.padding(top = 10.dp, bottom = 10.dp, start = 10.dp, end = 10.dp),
                 recipe.recipeSettings.collapseIngredients,
-                if(recipe.recipeSettings.showBaseIngredients) recipe.baseIngredients else recipe.node.inputs,
+                when(recipe.recipeSettings.displayType){
+                    RecipeDisplayType.Normal -> recipe.node.inputs
+                    RecipeDisplayType.BaseItems -> recipe.baseIngredients
+                    RecipeDisplayType.FlattenedList -> recipe.flatRecipeItems
+                },
                 onItemClick = onItemClick,
                 onRecipeChange = { itemId ->
                     onRecipeChange(itemId, recipe.id)

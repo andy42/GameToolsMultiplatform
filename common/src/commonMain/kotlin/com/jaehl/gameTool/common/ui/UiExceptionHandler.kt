@@ -30,7 +30,7 @@ class UiExceptionHandlerImp() : UiExceptionHandler {
             else -> {
                 ErrorDialogViewModel(
                     title = "Error",
-                    message = "Oops something went wrong"
+                    message = e.message ?: "Oops something went wrong"
                 )
             }
         }
@@ -42,7 +42,7 @@ class UiExceptionHandlerImp() : UiExceptionHandler {
         } else  {
             ErrorDialogViewModel(
                 title = "Error",
-                message = "Oops something went wrong"
+                message = e.message ?: "Oops something went wrong"
             )
         }
     }

@@ -32,7 +32,7 @@ class ItemImporter(
             categoriesMap[it.name] = it.id
         }
 
-        val gameFolderName = "tribes_of_midgard"
+        val gameFolderName = "dyson_sphere_program"
 
         val itemLoader = ObjectListJsonLoader<ItemData>(
             type = object : TypeToken<Array<ItemData>>() {}.type,
